@@ -1,0 +1,23 @@
+default: &default
+  adapter: postgresql
+  host: localhost
+  pool: 5
+  timeout: 5000
+  encoding: unicode
+  username: eresto
+  password: p@ssw0rd
+
+development:
+  <<: *default
+  database: eresto_core_dev
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: eresto_core_test
+
+production:
+  <<: *default
+  database: eresto_core

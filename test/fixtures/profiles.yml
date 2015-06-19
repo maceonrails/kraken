@@ -1,0 +1,32 @@
+# == Schema Information
+#
+# Table name: profiles
+#
+#  id             :uuid             not null, primary key
+#  user_id        :integer
+#  name           :string
+#  address        :text
+#  phone          :string
+#  join_at        :date
+#  contract_until :date
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#
+
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user_id: 1
+  name: MyString
+  address: MyText
+  phone: MyString
+  join_at: 2015-05-16
+  contract_until: 2015-05-16
+
+two:
+  user_id: 1
+  name: MyString
+  address: MyText
+  phone: MyString
+  join_at: 2015-05-16
+  contract_until: 2015-05-16

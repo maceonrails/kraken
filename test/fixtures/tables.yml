@@ -1,0 +1,29 @@
+# == Schema Information
+#
+# Table name: tables
+#
+#  id         :uuid             not null, primary key
+#  name       :string
+#  floor      :integer
+#  splited    :boolean
+#  order_id   :uuid
+#  status     :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  floor: 1
+  splited: false
+  order_id: 
+  status: 1
+
+two:
+  name: MyString
+  floor: 1
+  splited: false
+  order_id: 
+  status: 1
