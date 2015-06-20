@@ -3,7 +3,7 @@ class V1::SessionsController < ApplicationController
     user = User.where(username_params).first
     if user
       if user.valid_password?(password_params[:password])
-        now = (DateTime.now + 20.minutes).to_i
+        now = (DateTime.now + 60.minutes).to_i
         string = user.token + '||' + now.to_s
         render json: {token:  AESCrypt.encrypt(string, '\n')}
       else

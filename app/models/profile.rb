@@ -15,4 +15,5 @@
 
 class Profile < ActiveRecord::Base
 	belongs_to :user
+  # Date.parse('Sat, 20 Oct 2012').strftime('%Y-%m-%d')
 end
