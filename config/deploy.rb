@@ -12,7 +12,7 @@ set :rails_env,       'staging'
 set :domain,          '104.215.153.222'
 # set :port,            37894
 
-set :deploy_to,       "/home/azureuser/mfp/#{rails_env}"
+set :deploy_to,       "/home/azureuser/Project/backend/#{rails_env}"
 set :app_path,        "#{deploy_to}/#{current_path}"
 
 set :repository,      'https://github.com/evandavid/kraken.git'

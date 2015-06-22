@@ -1,5 +1,5 @@
 # config/unicorn/staging.rb
-app_path = "/home/azureuser/mfp/staging/current"
+app_path = "/home/azureuser/Project/backend/staging/current"
 
 worker_processes   1
 preload_app        true
