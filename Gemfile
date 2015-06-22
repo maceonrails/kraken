@@ -12,7 +12,10 @@ gem 'devise-encryptable'
 gem 'aescrypt'
 gem 'rack-cors', :require => 'rack/cors'
 
-gem 'thin'
+gem 'unicorn'
+gem 'mina'
+
+gem 'mina-unicorn', :require => false
 
 group :development do
 	gem 'annotate'
