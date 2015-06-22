@@ -21,3 +21,7 @@ test:
 production:
   <<: *default
   database: eresto_core_prod
+
+staging:
+  <<: *default
+  database: eresto_core_prod
