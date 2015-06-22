@@ -6,6 +6,8 @@ preload_app        true
 timeout            180
 listen             '0.0.0.0:9000'
 listen             '0.0.0.0:9001'
+listen             '0.0.0.0:9002'
+listen             '0.0.0.0:9003'
 user               'azureuser', 'azureuser'
 working_directory  app_path
 pid                "#{app_path}/tmp/pids/unicorn.pid"
