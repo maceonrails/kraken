@@ -20,4 +20,4 @@ test:
 
 production:
   <<: *default
-  database: eresto_core
+  database: eresto_core_prod
