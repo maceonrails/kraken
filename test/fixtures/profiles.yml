@@ -3,7 +3,7 @@
 # Table name: profiles
 #
 #  id             :uuid             not null, primary key
-#  user_id        :integer
+#  user_id        :uuid
 #  name           :string
 #  address        :text
 #  phone          :string

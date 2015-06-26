@@ -16,22 +16,27 @@
 #  last_sign_in_at        :datetime
 #  current_sign_in_ip     :inet
 #  last_sign_in_ip        :inet
+#  company_id             :uuid
+#  outlet_id              :uuid
 #  created_at             :datetime
 #  updated_at             :datetime
 #
 
 class User < ActiveRecord::Base
+  include Total
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
 
-  has_one :profile
+  has_one :profile, :autosave => true
+  accepts_nested_attributes_for :profile
+
   before_save  :ensure_authentication_token
-  after_create :create_profile
+  # after_create :create_profile
   enum role:               
     [ 
-      :eresto, :superadmin, :manager, :assistant_manager, 
+      :eresto, :owner, :superadmin, :manager, :assistant_manager, 
       :waitress, :captain, :cashier, :chef
     ]
 

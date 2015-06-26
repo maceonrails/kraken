@@ -5,7 +5,7 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
-User.create(username: 'eresto', role: :eresto, password: 'super123', email: 'eresto@eresto.co.id')
+User.create( role: :eresto, password: 'super123', email: 'eresto@eresto.co.id')
 
 (1..100).each do |num|
 	table = Table.create(name: num.to_s)

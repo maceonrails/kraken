@@ -1,11 +1,12 @@
 class V1::SessionsController < ApplicationController
-	def create
+  def create
     user = User.where(username_params).first
     if user
       if user.valid_password?(password_params[:password])
-        now = (DateTime.now + 60.minutes).to_i
+        now = (DateTime.now + 30.minutes).to_i
         string = user.token + '||' + now.to_s
-        render json: {token:  AESCrypt.encrypt(string, '\n')}
+        string = AESCrypt.encrypt string, '\n'
+        render json: {token:  Base64.urlsafe_encode64(string)}
       else
         json_error 'Password didn\'t correct', 400
       end

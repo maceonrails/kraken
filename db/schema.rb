@@ -25,6 +25,7 @@ ActiveRecord::Schema.define(version: 20150526145300) do
     t.string   "email"
     t.string   "phone"
     t.string   "mobile"
+    t.string   "logo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -122,7 +123,6 @@ ActiveRecord::Schema.define(version: 20150526145300) do
   create_table "users", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.string   "email",                  default: "", null: false
     t.string   "encrypted_password",     default: "", null: false
-    t.string   "username",               default: "", null: false
     t.string   "token",                  default: "", null: false
     t.integer  "role",                   default: 5
     t.string   "reset_password_token"
@@ -142,7 +142,6 @@ ActiveRecord::Schema.define(version: 20150526145300) do
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   add_index "users", ["token"], name: "index_users_on_token", unique: true, using: :btree
-  add_index "users", ["username"], name: "index_users_on_username", unique: true, using: :btree
 
   add_foreign_key "inventories", "companies"
   add_foreign_key "inventory_outlets", "inventories"

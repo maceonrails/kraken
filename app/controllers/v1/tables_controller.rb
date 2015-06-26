@@ -1,5 +1,5 @@
 class V1::TablesController < V1::BaseController
-	private
+  private
     def table_params
       params.require(:table).permit(:name)
     end
@@ -9,6 +9,6 @@ class V1::TablesController < V1::BaseController
     end
 
     def attach_includes
-    	[:parts]
+      [:parts]
     end
 end

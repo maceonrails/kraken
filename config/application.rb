@@ -26,7 +26,7 @@ module Backend
       allow do
         origins '*'
         resource '*',
-            :headers => :any, :methods => [:get, :post, :options],
+            :headers => :any, :methods => [:get, :post, :put, :delete, :options ],
             :expose  => ['X-Token']
       end
     end

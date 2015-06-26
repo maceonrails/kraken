@@ -1,5 +1,3 @@
-json.token @token
-
 json.tables @tables do |table|
   json.id    	table.id
   json.name  	table.name
@@ -11,4 +9,4 @@ json.tables @tables do |table|
   json.parts table.parts, :id, :name, :status, :order_id
 end
 
-json.total @tables.first.total
+json.total @tables.first.total if @tables.first

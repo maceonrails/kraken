@@ -4,6 +4,7 @@ Rails.application.routes.draw do
     get '/me' => 'base#me'
 
     resources :tables
+    resources :users
   end
 
   # catch not found
