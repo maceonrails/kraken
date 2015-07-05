@@ -22,6 +22,27 @@ class V1::BaseController < ApplicationController
     head :no_content
   end
 
+  def search
+    field = search_params[:field].downcase.to_sym
+    query = search_params[:q]
+
+    plural_resource_name = "@#{resource_name.pluralize}"
+    tables    = resource_class.arel_table
+    resources = resource_class.where(tables[field]
+                  .matches("%#{query}%"))
+                  .page(page_params[:page])
+                  .per(page_params[:page_size])
+
+    @total    = resource_class.where(tables[field]
+                  .matches("%#{query}%"))
+                  .count
+
+    resources = resources.includes(attach_includes) if attach_includes
+
+    instance_variable_set(plural_resource_name, resources)
+    respond_with instance_variable_get(plural_resource_name)
+  end
+
   # GET /api/{plural_resource_name}
   def index
     plural_resource_name = "@#{resource_name.pluralize}"
@@ -54,6 +75,9 @@ class V1::BaseController < ApplicationController
   end
 
   private
+    def search_params
+      params.except(:format, :token, :page).permit(:field, :q)
+    end
 
     def set_token_response
       if current_user

@@ -20,21 +20,54 @@ class V1::UsersController < V1::BaseController
     respond_with @users
   end
 
+  def search
+    field  = search_params[:field].downcase.to_sym
+    query  = search_params[:q]
+    users  = User.arel_table
+    if (search_params[:field] == 'Name')
+      @users = User.joins(:profile)
+                   .where("profiles.name LIKE ?", "%#{query}%")
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total = User.joins(:profile)
+                   .where("profiles.name LIKE ?", "%#{query}%")
+                   .count
+    else
+      @users = User.where(users[field]
+                   .matches("%#{query}%"))
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total = User.where(users[field]
+                   .matches("%#{query}%"))
+                   .count
+    end
+
+    respond_with @users
+  end
+
   private
     def user_params
+      if !params[:user][:password].presence || params[:user][:password].blank?
+        params[:user].delete(:password)
+      end
+
       params.require(:user)
         .permit(
-          :email, :role, :company_id, :outlet_id, :password, 
-          profile_attributes: 
+          :email, :role, :company_id, :outlet_id, :password,
+          profile_attributes:
             [:name, :phone, :address, :join_at, :contract_until]
           )
     end
 
     def query_params
-      params.require(:filter).permit(:role) rescue {} 
+      params.require(:filter).permit(:role) rescue {}
     end
 
     def attach_includes
       [:profile]
+    end
+
+    def search_params
+      params.except(:format, :token, :page).permit(:field, :q)
     end
 end

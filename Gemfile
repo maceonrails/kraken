@@ -14,6 +14,7 @@ gem 'rack-cors', :require => 'rack/cors'
 
 gem 'unicorn'
 gem 'mina'
+gem 'validates_email_format_of'
 
 gem 'mina-unicorn', :require => false
 

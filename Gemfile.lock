@@ -134,6 +134,8 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
+    validates_email_format_of (1.6.2)
+      i18n
     warden (1.2.3)
       rack (>= 1.0)
 
@@ -156,3 +158,4 @@ DEPENDENCIES
   rails-api
   spring
   unicorn
+  validates_email_format_of

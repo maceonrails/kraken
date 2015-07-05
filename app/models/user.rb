@@ -33,10 +33,11 @@ class User < ActiveRecord::Base
   accepts_nested_attributes_for :profile
 
   before_save  :ensure_authentication_token
-  # after_create :create_profile
-  enum role:               
-    [ 
-      :eresto, :owner, :superadmin, :manager, :assistant_manager, 
+  validates :email, uniqueness: true, email_format: { message: "doesn't look like an email address" }
+
+  enum role:
+    [
+      :eresto, :owner, :superadmin, :manager, :assistant_manager,
       :waitress, :captain, :cashier, :chef
     ]
 
@@ -50,7 +51,7 @@ class User < ActiveRecord::Base
   end
 
   def ensure_authentication_token
-    if token.blank?
+    if self.token.blank? && self.valid?
       self.token = generate_authentication_token
     end
   end
@@ -58,7 +59,7 @@ class User < ActiveRecord::Base
   def create_profile
     build_profile({})
   end
- 
+
   private
     def generate_authentication_token
       loop do

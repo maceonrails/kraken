@@ -1,6 +1,6 @@
 
 json.name           profile.name
-json.phone          profile.phone
+json.phone          profile.phone.to_i
 json.address        profile.address
 json.join_at        profile.join_at
 json.contract_until profile.contract_until
