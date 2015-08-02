@@ -6,10 +6,4 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 User.create( role: :eresto, password: 'super123', email: 'eresto@eresto.co.id')
-
-(1..100).each do |num|
-	table = Table.create(name: num.to_s)
-	Table.create(name: num.to_s+'A', parent_id: table.id)
-	Table.create(name: num.to_s+'B', parent_id: table.id)
-	Table.create(name: num.to_s+'C', parent_id: table.id)
-end
+User.create( role: :superadmin, password: 'super123', email: 'admin@bobercafe.com')

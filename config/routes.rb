@@ -7,6 +7,10 @@ Rails.application.routes.draw do
     resources :users do
       collection { get 'search' }
     end
+
+    resources :outlets do
+      collection { get 'search' }
+    end
   end
 
   # catch not found

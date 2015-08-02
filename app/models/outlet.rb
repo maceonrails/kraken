@@ -14,4 +14,5 @@
 #
 
 class Outlet < ActiveRecord::Base
+  include Total
 end

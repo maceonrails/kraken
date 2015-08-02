@@ -12,7 +12,7 @@ class V1::UsersController < V1::BaseController
         .page(page_params[:page])
         .per(page_params[:page_size])
     else
-      @users = User.where(hash_query_params).where.not(role: 1)
+      @users = User.where(hash_query_params).where.not(role: 0)
         .includes(attach_includes)
         .page(page_params[:page])
         .per(page_params[:page_size])
