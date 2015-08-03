@@ -56,6 +56,18 @@ class V1::BaseController < ApplicationController
     respond_with instance_variable_get(plural_resource_name)
   end
 
+  # GET /api/{plural_resource_name}/all
+  def all
+    plural_resource_name = "@#{resource_name.pluralize}"
+    resources = resource_class.where(query_params)
+    resources = resources.includes(attach_includes) if attach_includes
+
+    instance_variable_set(plural_resource_name, resources)
+    respond_with(instance_variable_get(plural_resource_name)) do |format|
+      format.json { render :index }
+    end
+  end
+
   # GET /api/{plural_resource_name}/1
   def show
     respond_with get_resource

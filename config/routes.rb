@@ -6,10 +6,18 @@ Rails.application.routes.draw do
     resources :tables
     resources :users do
       collection { get 'search' }
+      collection { get 'all' }
     end
 
     resources :outlets do
       collection { get 'search' }
+      collection { get 'all' }
+    end
+
+    resources :products do
+      collection { get 'search' }
+      collection { get 'category' }
+      collection { get 'all' }
     end
   end
 

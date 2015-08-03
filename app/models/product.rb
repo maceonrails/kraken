@@ -14,4 +14,5 @@
 #
 
 class Product < ActiveRecord::Base
+  include Total
 end
