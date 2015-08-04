@@ -26,9 +26,9 @@ class V1::ProductsController < V1::BaseController
 
     def encode64
       if resource_params[:picture_base64].presence
-        filename = SecureRandom.hex.to_s + '.' +resource_params[:picture_extension]
+        filename = SecureRandom.hex.to_s + '.' +resource_params[:picture_extension].downcase
         path     = File.join(Rails.public_path, 'uploads', filename)
-        resource_params[:picture] = File.join( request.protocol + request.host_with_port,  'uploads', filename)
+        resource_params[:picture] = File.join( '/', 'uploads', filename)
 
         unless File.directory?(File.join(Rails.public_path, 'uploads'))
           FileUtils.mkdir_p(File.join(Rails.public_path, 'uploads'))
