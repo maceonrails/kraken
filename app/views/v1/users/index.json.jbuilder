@@ -5,4 +5,5 @@ json.users @users do |user|
   end
 end
 
-json.total @users.first.total if @users.first
+json.total @total
+json.total @users.first.total if @users.first && !@total

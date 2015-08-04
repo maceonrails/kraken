@@ -1,10 +1,14 @@
 class V1::ProductsController < V1::BaseController
+  skip_before_action :authenticate, only: %w(all)
+  skip_before_action :set_token_response, only: %w(all)
+
   def category
     @categories = Product.uniq.pluck(:category)
     respond_with @categories
   end
 
   def create
+    resource_params[:active] = true 
     encode64
     super
   end
@@ -17,7 +21,7 @@ class V1::ProductsController < V1::BaseController
   private
     def product_params
       params.require(:product).permit(:name, :category, :default_price, :picture,
-        :description, :picture_base64, :picture_extension)
+        :description, :picture_base64, :picture_extension, :active)
     end
 
     def encode64

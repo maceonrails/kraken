@@ -1,4 +1,7 @@
 class V1::UsersController < V1::BaseController
+  skip_before_action :authenticate, only: %w(all)
+  skip_before_action :set_token_response, only: %w(all)
+
   def index
     hash_query_params    = query_params
 
@@ -45,6 +48,17 @@ class V1::UsersController < V1::BaseController
     respond_with @users
   end
 
+  def all
+    @users = User.where(outlet_filter_params)
+              .where
+              .not(role: 0)
+              .includes(attach_includes)
+    @total = @users.count
+    respond_with(@users) do |format|
+      format.json { render :index }
+    end
+  end
+
   private
     def user_params
       if !params[:user][:password].presence || params[:user][:password].blank?
@@ -69,5 +83,9 @@ class V1::UsersController < V1::BaseController
 
     def search_params
       params.except(:format, :token, :page).permit(:field, :q)
+    end
+
+    def outlet_filter_params
+      params.require(:filter).permit(:outlet_id)
     end
 end
