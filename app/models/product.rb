@@ -16,4 +16,33 @@
 class Product < ActiveRecord::Base
   default_scope { where(active: true) }
   include Total
+
+  def self.sync(products)
+    self.delete_all
+
+    keys   = products.first.keys.join(',')
+    values = []
+
+    products.each do |product|
+        holder  = product[:picture].split('/uploads/')
+        product[:picture] = "/uploads/#{holder.last}"
+
+        #save picture
+        filename = product[:picture].split('/').last
+        path     = File.join(Rails.public_path, 'uploads', filename)
+
+        unless File.directory?(File.join(Rails.public_path, 'uploads'))
+          FileUtils.mkdir_p(File.join(Rails.public_path, 'uploads'))
+        end
+        require 'open-uri'
+        open(path, 'wb') do |file|
+          file << open(holder.join('/uploads/')).read
+        end
+
+        values << "( #{product.values.map { |s| "'#{s}'" }.join(', ')} )"
+    end
+
+    sql = "INSERT INTO products (#{keys}) VALUES #{values.join(", ")}"
+    self.connection.execute sql
+  end
 end

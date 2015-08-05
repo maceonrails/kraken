@@ -3,7 +3,14 @@ class V1::BaseController < ApplicationController
 
   before_action :authenticate
   before_action :set_resource, only: [:destroy, :show, :update]
-  before_action :set_token_response
+  # before_action :set_token_response
+
+  # POST /api/sync
+  def sync
+    Product.sync(params[:products]) if params[:products]
+    User.sync(params[:users]) if params[:users]
+    render json: { message: 'Data syncronized' }, status: 201
+  end
 
   # POST /api/{plural_resource_name}
   def create
@@ -104,10 +111,7 @@ class V1::BaseController < ApplicationController
       user_token = params['token'].presence
       encrypted  = Base64.urlsafe_decode64(user_token)
       decrypted  = AESCrypt.decrypt encrypted, '\n'
-      data       = decrypted.split('||')
-
-      valid      = data.last.to_i >= DateTime.now.to_i || true
-      user       = valid && User.find_by_token(data.first.to_s)
+      user       = User.find_by_token(decrypted.to_s)
 
 
       if user

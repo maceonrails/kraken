@@ -60,6 +60,11 @@ class User < ActiveRecord::Base
     build_profile({})
   end
 
+  def self.sync(users)
+    # self.where.not(role: 3).destroy_all
+    # self.create(users)
+  end
+
   private
     def generate_authentication_token
       loop do
