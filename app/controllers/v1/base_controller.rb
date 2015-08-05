@@ -7,8 +7,9 @@ class V1::BaseController < ApplicationController
 
   # POST /api/sync
   def sync
+    Outlet.first_or_create({id: '9133ad69-f036-4536-8fe1-32889aba5015'})
     Product.sync(params[:products]) if params[:products]
-    User.sync(params[:users]) if params[:users]
+    create_user sync_params if sync_params[:users]
     render json: { message: 'Data syncronized' }, status: 201
   end
 
@@ -94,6 +95,26 @@ class V1::BaseController < ApplicationController
   end
 
   private
+    def sync_params
+      params.permit(:users).tap do |whitelisted|
+        whitelisted[:users] = params[:users]
+      end
+    end
+
+    def user_params(user)
+      user.permit!
+    end
+
+    def create_user(sync_params)
+      users = sync_params[:users]
+      User.where.not(role: 3).destroy_all
+      users.each do |user|
+        obj          = User.new(user_params user)
+        obj.password = 'password'
+        obj.save
+      end
+    end
+
     def search_params
       params.except(:format, :token, :page).permit(:field, :q)
     end

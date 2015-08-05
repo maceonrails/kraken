@@ -94,8 +94,6 @@ ActiveRecord::Schema.define(version: 20150803072816) do
     t.datetime "updated_at",                         null: false
     t.text     "description"
     t.string   "category"
-    t.string   "picture_extension"
-    t.text     "picture_base64"
   end
 
   add_index "products", ["active"], name: "index_products_on_active", using: :btree
