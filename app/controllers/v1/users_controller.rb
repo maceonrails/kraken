@@ -49,13 +49,20 @@ class V1::UsersController < V1::BaseController
   end
 
   def all
-    @users = User.where(outlet_filter_params)
+    outlet = Outlet.where({id: outlet_filter_params[:outlet_id] })
+  
+    if (outlet.count > 0)
+      @users = User.where(outlet_filter_params)
               .where
               .not(role: 0)
               .includes(attach_includes)
-    @total = @users.count
-    respond_with(@users) do |format|
-      format.json { render :index }
+
+      @total = @users.count
+      respond_with(@users) do |format|
+        format.json { render :index }
+      end
+    else
+      json_error 'Outlet not found', 404
     end
   end
 
