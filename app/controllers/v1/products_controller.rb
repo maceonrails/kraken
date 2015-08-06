@@ -8,7 +8,7 @@ class V1::ProductsController < V1::BaseController
   end
 
   def create
-    resource_params[:active] = true 
+    resource_params[:active] = true
     encode64
     super
   end
@@ -21,11 +21,11 @@ class V1::ProductsController < V1::BaseController
   private
     def product_params
       params.require(:product).permit(:name, :category, :default_price, :picture,
-        :description, :picture_base64, :picture_extension, :active)
+        :description, :picture_base64, :picture_extension, :active, :price)
     end
 
     def encode64
-      if resource_params[:picture_base64].presence
+      if resource_params[:picture_base64].presence && resource_params[:picture_extension].presence
         filename = SecureRandom.hex.to_s + '.' +resource_params[:picture_extension].downcase
         path     = File.join(Rails.public_path, 'uploads', filename)
         resource_params[:picture] = File.join( '/', 'uploads', filename)
@@ -37,6 +37,7 @@ class V1::ProductsController < V1::BaseController
         File.open(path, 'wb') {
           |f| f.write(Base64.decode64(resource_params[:picture_base64].split('base64,').last))}
       end
+      resource_params.delete(:picture)
     end
 
     def query_params

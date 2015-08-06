@@ -4,7 +4,11 @@ Rails.application.routes.draw do
     post '/sync'     => "base#sync"
     get '/me'        => 'base#me'
 
-    resources :tables
+    resources :tables do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
     resources :users do
       collection { get 'search' }
       collection { get 'all' }

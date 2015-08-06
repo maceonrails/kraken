@@ -83,6 +83,7 @@ class V1::BaseController < ApplicationController
 
   # PATCH/PUT /api/{plural_resource_name}/1
   def update
+    resource_params[:updated_by] = current_user.id unless resource_name == 'user'
     if get_resource.update(resource_params)
       render :show
     else
@@ -107,11 +108,16 @@ class V1::BaseController < ApplicationController
 
     def create_user(sync_params)
       users = sync_params[:users]
-      User.where.not(role: 3).destroy_all
+      ids   = users.collect{|u| u[:id]}
+      User.where.not(role: 3).where.not(id: ids).destroy_all
       users.each do |user|
-        obj          = User.new(user_params user)
-        obj.password = 'password'
-        obj.save
+        if ids.include? user[:id]
+          User.update user[:id], role: user[:role]
+        else
+          obj          = User.new(user_params user)
+          obj.password = 'password'
+          obj.save
+        end
       end
     end
 

@@ -18,7 +18,7 @@ class Product < ActiveRecord::Base
   include Total
 
   def self.sync(products)
-    self.delete_all
+    self.unscoped.delete_all
 
     keys   = products.first.keys.join(',')
     values = []
@@ -39,10 +39,10 @@ class Product < ActiveRecord::Base
           file << open(holder.join('/uploads/')).read
         end
 
-        values << "( #{product.values.map { |s| "'#{s}'" }.join(', ')} )"
+        values << "( #{product.values.map { |s| "'#{s}'" }.join(', ')}, '#{product[:default_price]}' )"
     end
 
-    sql = "INSERT INTO products (#{keys}) VALUES #{values.join(", ")}"
+    sql = "INSERT INTO products (#{keys}, price ) VALUES #{values.join(", ")}"
     self.connection.execute sql
   end
 end
