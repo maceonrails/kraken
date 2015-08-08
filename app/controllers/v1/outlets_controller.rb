@@ -1,7 +1,12 @@
 class V1::OutletsController < V1::BaseController
+  skip_before_action :authenticate, only: %w(show)
+  skip_before_action :set_token_response, only: %w(show)
+
   private
     def outlet_params
-      params.require(:outlet).permit(:name, :email, :phone, :mobile, :address)
+      params.require(:outlet).permit(:name, :email, :phone, :mobile, :address, :taxs).tap do |whitelisted|
+        whitelisted[:taxs] = params[:outlet][:taxs]
+      end
     end
 
     def query_params

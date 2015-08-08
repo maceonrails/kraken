@@ -15,4 +15,5 @@
 
 class Outlet < ActiveRecord::Base
   include Total
+  store_accessor :taxs
 end
