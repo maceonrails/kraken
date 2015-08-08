@@ -7,8 +7,13 @@ class V1::BaseController < ApplicationController
 
   # POST /api/sync
   def sync
-    Outlet.first_or_create({id: '9133ad69-f036-4536-8fe1-32889aba5015'})
+    if outlet_params
+      outlet = Outlet.find_or_initialize_by(outlet_params[:id])
+      outlet.update(outlet_params)
+    end
+
     Product.sync(params[:products]) if params[:products]
+    Discount.sync params[:discounts] if params[:discounts]
     create_user sync_params if sync_params[:users]
     render json: { message: 'Data syncronized' }, status: 201
   end
@@ -96,6 +101,12 @@ class V1::BaseController < ApplicationController
   end
 
   private
+    def outlet_params
+      params.require(:outlet).permit(:name, :email, :phone, :mobile, :address, :taxs).tap do |whitelisted|
+        whitelisted[:taxs] = params[:outlet][:taxs]
+      end rescue nil
+    end
+
     def sync_params
       params.permit(:users).tap do |whitelisted|
         whitelisted[:users] = params[:users]

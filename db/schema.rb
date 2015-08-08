@@ -11,11 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150806143030) do
+ActiveRecord::Schema.define(version: 20150808061732) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "uuid-ossp"
+  enable_extension "hstore"
 
   create_table "companies", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.string   "name"
@@ -26,6 +27,15 @@ ActiveRecord::Schema.define(version: 20150806143030) do
     t.string   "phone"
     t.string   "mobile"
     t.string   "logo"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "discounts", force: :cascade do |t|
+    t.string   "name"
+    t.string   "amount"
+    t.uuid     "product_id"
+    t.text     "outlets",                 array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -54,6 +64,7 @@ ActiveRecord::Schema.define(version: 20150806143030) do
     t.string   "mobile"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.hstore   "taxs"
   end
 
   create_table "product_categories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|

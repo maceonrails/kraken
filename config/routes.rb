@@ -24,6 +24,11 @@ Rails.application.routes.draw do
       collection { get 'category' }
       collection { get 'all' }
     end
+
+    resources :discounts do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
   end
 
   # catch not found
