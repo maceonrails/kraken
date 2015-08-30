@@ -2,6 +2,10 @@ class V1::ProductsController < V1::BaseController
   skip_before_action :authenticate, only: %w(all)
   skip_before_action :set_token_response, only: %w(all)
 
+  def get_by_sub_category
+    @products = Product.where(query_params)
+  end
+
   def category
     @categories = Product.uniq.pluck(:category)
     respond_with @categories
@@ -41,7 +45,7 @@ class V1::ProductsController < V1::BaseController
     end
 
     def query_params
-      params.permit(:name)
+      params.permit(:name, :product_sub_category_id)
     end
 
     def search_params

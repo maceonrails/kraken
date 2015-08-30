@@ -11,6 +11,8 @@ gem 'kaminari'
 gem 'devise-encryptable'
 gem 'aescrypt'
 gem 'rack-cors', :require => 'rack/cors'
+gem 'carrierwave'
+gem "mini_magick"
 
 gem 'unicorn'
 gem 'mina'
@@ -19,8 +21,10 @@ gem 'validates_email_format_of'
 gem 'mina-unicorn', :require => false
 
 group :development do
+	gem 'grape-rails-routes'
 	gem 'annotate'
 	gem 'byebug'
+	gem 'pry'
 end
 
 
@@ -38,3 +42,4 @@ end
 
 # To use debugger
 # gem 'ruby-debug19', :require => 'ruby-debug'
+gem 'apipie-rails'

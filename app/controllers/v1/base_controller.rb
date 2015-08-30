@@ -147,10 +147,13 @@ class V1::BaseController < ApplicationController
 
     def authenticate
       user_token = params['token'].presence
-      encrypted  = Base64.urlsafe_decode64(user_token)
-      decrypted  = AESCrypt.decrypt encrypted, '\n'
-      user       = User.find_by_token(decrypted.to_s)
+      user = nil
 
+      if user_token
+        encrypted  = Base64.urlsafe_decode64(user_token)
+        decrypted  = AESCrypt.decrypt encrypted, '\n'
+        user       = User.find_by_token(decrypted.to_s)
+      end
 
       if user
         # We are passing store false, so the user is not actually stored in the session
