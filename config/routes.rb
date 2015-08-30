@@ -5,11 +5,6 @@ Rails.application.routes.draw do
     post '/sync'     => "base#sync"
     get '/me'        => 'base#me'
 
-    resources :rooms do
-      collection { get 'search' }
-      collection { get 'all' }
-    end
-
     resources :tables do
       collection { get 'search' }
       collection { get 'all' }
@@ -28,6 +23,7 @@ Rails.application.routes.draw do
     resources :product_categories do
       resources :product_sub_categories do
         resources :products do
+          collection { get 'get_by_sub_category' }
           collection { get 'search' }
           collection { get 'category' }
           collection { get 'all' }

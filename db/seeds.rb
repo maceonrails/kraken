@@ -731,23 +731,28 @@ categories.each do |cat|
 		sub_category = category.product_sub_categories.create name: sub_cat[:name]
 		sub_cat[:products].each do |menu|
 			puts "create menu #{menu[:name]}"
-			sub_category.products.create({
+
+			product = sub_category.products.build({
 				name: menu[:name], 
 				price: menu[:price], 
 				default_price: menu[:price], 
-				picture: File.open(File.join(Rails.root, "db/product_images/#{cat[:name].titleize}/#{sub_cat[:name].titleize}/#{menu[:name].titleize}.jpg")),
 			})
+
+			if product.save
+				picture = ProductImage.new
+				picture.file = File.open(File.join(Rails.root, "db/product_images/#{cat[:name].titleize}/#{sub_cat[:name].titleize}/#{menu[:name].titleize}.jpg"))
+				picture.save!
+				product.update!(picture: picture.file.url)
+			end
 		end
 	end
 end
 
 puts "start create table"
-utama = Room.create name: "Utama"
-halaman = Room.create name: "halaman"
 20.times do |i|
-	puts "create table #{i}"
-	utama.tables.create name: i.to_s, status: 'available', location: "Ruang Utama"
-	halaman.tables.create name: i.to_s, status: 'available', location: "Ruang Halaman"
+	puts "create table #{++i}"
+	Table.create name: "#{++i}", status: 'available', location: "Ruang Utama"
+	Table.create name: "#{++i}", status: 'available', location: "Ruang Halaman"
 end
 
 

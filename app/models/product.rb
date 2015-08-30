@@ -15,7 +15,6 @@
 
 class Product < ActiveRecord::Base
   default_scope { where(active: true) }
-  mount_uploader :picture, PictureUploader
   include Total
 
   belongs_to :product_sub_category
