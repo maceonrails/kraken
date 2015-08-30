@@ -2,6 +2,11 @@ class V1::ProductsController < V1::BaseController
   skip_before_action :authenticate, only: %w(all)
   skip_before_action :set_token_response, only: %w(all)
 
+  def index
+    product_sub_category = ProductSubCategory.find(params[:product_sub_category_id])
+    @products = product_sub_category.products.where(query_params)
+  end
+
   def category
     @categories = Product.uniq.pluck(:category)
     respond_with @categories

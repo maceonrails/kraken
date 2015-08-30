@@ -15,7 +15,12 @@
 
 class Product < ActiveRecord::Base
   default_scope { where(active: true) }
+  mount_uploader :picture, PictureUploader
   include Total
+
+  belongs_to :product_sub_category
+  has_many :product_choices
+  has_many :choices, through: :product_choices
 
   def self.sync(products)
     self.unscoped.delete_all
@@ -44,5 +49,9 @@ class Product < ActiveRecord::Base
 
     sql = "INSERT INTO products (#{keys}, price ) VALUES #{values.join(", ")}"
     self.connection.execute sql
+  end
+
+  def self.create_from_seed()
+    
   end
 end

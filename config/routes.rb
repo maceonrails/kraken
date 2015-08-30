@@ -5,6 +5,11 @@ Rails.application.routes.draw do
     post '/sync'     => "base#sync"
     get '/me'        => 'base#me'
 
+    resources :rooms do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
     resources :tables do
       collection { get 'search' }
       collection { get 'all' }
@@ -20,6 +25,30 @@ Rails.application.routes.draw do
       collection { get 'all' }
     end
 
+    resources :product_categories do
+      resources :product_sub_categories do
+        resources :products do
+          collection { get 'search' }
+          collection { get 'category' }
+          collection { get 'all' }
+        end
+        collection { get 'search' }
+        collection { get 'all' }
+      end
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
+    resources :product_sub_categories do
+      resources :products do
+        collection { get 'search' }
+        collection { get 'category' }
+        collection { get 'all' }
+      end
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
     resources :products do
       collection { get 'search' }
       collection { get 'category' }
@@ -27,6 +56,21 @@ Rails.application.routes.draw do
     end
 
     resources :discounts do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
+    resources :orders do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
+    resources :order_items do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
+    resources :payments do
       collection { get 'search' }
       collection { get 'all' }
     end

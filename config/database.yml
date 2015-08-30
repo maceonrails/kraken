@@ -4,7 +4,7 @@ default: &default
   pool: 5
   timeout: 5000
   encoding: unicode
-  username: bober
+  username: cecep
   password: p@ssw0rd
 
 development:
