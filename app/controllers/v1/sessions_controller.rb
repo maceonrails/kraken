@@ -5,7 +5,7 @@ class V1::SessionsController < ApplicationController
       if user.valid_password?(password_params[:password])
         string = user.token
         string = AESCrypt.encrypt string, '\n'
-        render json: {token:  Base64.urlsafe_encode64(string)}
+        render json: { token:  Base64.urlsafe_encode64(string), role: user.role }
       else
         json_error 'Password didn\'t correct', 400
       end

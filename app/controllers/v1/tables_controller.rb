@@ -1,13 +1,20 @@
 class V1::TablesController < V1::BaseController
   skip_before_action :set_resource, only: [:update]
+  skip_before_action :authenticate, only: %w(all)
+  skip_before_action :set_token_response, only: %w(all)
 
   def index
-    @tables = Table.all
+    @tables   = Table.includes(:parts).all
+  end
+
+  def locations
+    @locations = Table.select(:location).uniq
   end
 
   def search
     query = search_params[:q]
-    @tables = Table.where("location LIKE ?", "%#{query}%")
+    @tables = Table.includes(:parts).where("location LIKE ?", "%#{query}%")
+    @total  = @tables.count
 
     respond_with(@tables) do |format|
       format.json { render :index }
