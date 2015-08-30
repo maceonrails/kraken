@@ -7,6 +7,7 @@ Rails.application.routes.draw do
     resources :tables do
       collection { get 'search' }
       collection { get 'all' }
+      collection { get 'locations' }
     end
 
     resources :users do

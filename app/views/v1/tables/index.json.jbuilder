@@ -9,4 +9,8 @@ json.tables @tables do |table|
   json.parts table.parts, :id, :name, :status, :order_id
 end
 
-json.total @tables.first.total if @tables.first
+if @total
+  json.total @total
+else
+  json.total @tables.first.total if @tables.first
+end
