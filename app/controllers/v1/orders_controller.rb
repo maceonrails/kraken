@@ -32,7 +32,7 @@ class V1::OrdersController < V1::BaseController
     end
 
     def query_params
-      params.permit(:name, :waiting)
+      params.permit(:name, :waiting, :id)
     end
 
 end

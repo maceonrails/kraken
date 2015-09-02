@@ -1,5 +1,7 @@
 class V1::ProductCategoriesController < V1::BaseController
 	skip_before_action :set_resource, only: [:update]
+  skip_before_action :authenticate, only: %w(all)
+  skip_before_action :set_token_response, only: %w(all)
 
   def index
     @product_categories = ProductCategory.where(query_params)
