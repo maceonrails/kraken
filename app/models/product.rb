@@ -46,14 +46,14 @@ class Product < ActiveRecord::Base
           file << open(holder.join('/uploads/')).read
         end
 
-        values << "( #{product.values.map { |s| "'#{s}'" }.join(', ')}, '#{product[:default_price]}' )"
+        values << "( #{product.values.map { |s| "'#{s}'" }.join(', ')} )"
     end
 
-    sql = "INSERT INTO products (#{keys}, price ) VALUES #{values.join(", ")}"
+    sql = "INSERT INTO products (#{keys} ) VALUES #{values.join(", ")}"
     self.connection.execute sql
   end
 
   def self.create_from_seed()
-    
+
   end
 end

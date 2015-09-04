@@ -8,10 +8,12 @@ class V1::BaseController < ApplicationController
   # POST /api/sync
   def sync
     if outlet_params
-      outlet = Outlet.find_or_initialize_by(outlet_params[:id])
+      Outlet.destroy_all if Outlet.all.count > 1
+      outlet = Outlet.find_or_initialize_by(id: outlet_params[:id])
       outlet.update(outlet_params)
     end
 
+    ProductCategory.sync(params[:product_categories]) if params[:product_categories]
     Product.sync(params[:products]) if params[:products]
     Discount.sync params[:discounts] if params[:discounts]
     create_user sync_params if sync_params[:users]
@@ -102,7 +104,7 @@ class V1::BaseController < ApplicationController
 
   private
     def outlet_params
-      params.require(:outlet).permit(:name, :email, :phone, :mobile, :address, :taxs).tap do |whitelisted|
+      params.require(:outlet).permit(:id, :name, :email, :phone, :mobile, :address, :taxs).tap do |whitelisted|
         whitelisted[:taxs] = params[:outlet][:taxs]
       end rescue nil
     end
@@ -122,7 +124,7 @@ class V1::BaseController < ApplicationController
       ids   = users.collect{|u| u[:id]}
       User.where.not(role: 3).where.not(id: ids).destroy_all
       users.each do |user|
-        if ids.include? user[:id]
+        if !User.where(id: user[:id]).blank?
           User.update user[:id], role: user[:role]
         else
           obj          = User.new(user_params user)
