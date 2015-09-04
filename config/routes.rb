@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'all' }
       collection { get 'locations' }
+      member { put 'change' }
     end
 
     resources :users do
