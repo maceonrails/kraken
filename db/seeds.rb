@@ -1,10 +1,3 @@
-User.delete_all
-Product.delete_all
-ProductSubCategory.delete_all
-ProductCategory.delete_all
-Table.delete_all
-ProductChoice.delete_all
-
 puts "create user"
 User.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com')
 User.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com')
@@ -732,17 +725,13 @@ categories.each do |cat|
 		sub_cat[:products].each do |menu|
 			puts "create menu #{menu[:name]}"
 
-			product = sub_category.products.build({
-				name: menu[:name], 
-				price: menu[:price], 
-				default_price: menu[:price], 
-			})
+			product = sub_category.products.build(menu)
 
 			if product.save
 				picture = ProductImage.new
 				picture.file = File.open(File.join(Rails.root, "db/product_images/#{cat[:name].titleize}/#{sub_cat[:name].titleize}/#{menu[:name].titleize}.jpg"))
 				picture.save!
-				product.update!(picture: picture.file.url)
+				product.update!(picture: picture.file.url, default_price: menu[:price])
 			end
 		end
 	end

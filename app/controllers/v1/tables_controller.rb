@@ -35,6 +35,15 @@ class V1::TablesController < V1::BaseController
   end
 
   def update
+    @table = Table.find(params[:id])
+    if @table.update table_params
+      render json: @table, status: 201
+    else
+      render json: @table, status: 409
+    end
+  end
+
+  def update_data
     Table.update_data params
     to_return = {
       table: {
@@ -49,7 +58,7 @@ class V1::TablesController < V1::BaseController
 
   private
     def table_params
-      params.require(:table).permit(:name)
+      params.require(:table).permit(:name, :occupied, :status, :order_id)
     end
 
     def query_params

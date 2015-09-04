@@ -21,6 +21,9 @@ class Product < ActiveRecord::Base
   has_many :product_choices
   has_many :choices, through: :product_choices
 
+  accepts_nested_attributes_for :product_choices
+  accepts_nested_attributes_for :choices
+
   def self.sync(products)
     self.unscoped.delete_all
 

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150901005357) do
+ActiveRecord::Schema.define(version: 20150903080718) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -69,9 +69,15 @@ ActiveRecord::Schema.define(version: 20150901005357) do
     t.string   "note"
     t.uuid     "payment_id"
     t.boolean  "served"
-    t.boolean  "void"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.boolean  "void",                                     default: false
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.boolean  "paid",                                     default: false
+    t.decimal  "paid_amount",     precision: 10, scale: 2
+    t.decimal  "tax_amount",      precision: 10, scale: 2
+    t.decimal  "discount_amount", precision: 5,  scale: 2
+    t.string   "void_note"
+    t.integer  "void_quantity",                            default: 0
   end
 
   create_table "orders", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -196,6 +202,7 @@ ActiveRecord::Schema.define(version: 20150901005357) do
     t.integer  "status"
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false
+    t.boolean  "occupied",   default: false
   end
 
   add_index "tables", ["location"], name: "index_tables_on_location", using: :btree
