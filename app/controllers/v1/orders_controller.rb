@@ -5,6 +5,13 @@ class V1::OrdersController < V1::BaseController
     @orders = Order.where(query_params)
   end
 
+  def pay
+    @order = Order.find(params[:order_id])
+    @order.pay(params)
+
+    render json: @order, status: 201
+  end
+
   def show
   end
 
@@ -29,6 +36,11 @@ class V1::OrdersController < V1::BaseController
   private
     def order_params
       params.require(:order).permit(:name)
+    end
+
+    def pay_params
+      params.require(:order_items).permit(:quantity)
+      
     end
 
     def query_params
