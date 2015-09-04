@@ -11,12 +11,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150808061732) do
+ActiveRecord::Schema.define(version: 20150903080718) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "uuid-ossp"
   enable_extension "hstore"
+
+  create_table "choices", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "companies", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.string   "name"
@@ -55,6 +61,35 @@ ActiveRecord::Schema.define(version: 20150808061732) do
     t.datetime "updated_at",   null: false
   end
 
+  create_table "order_items", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.uuid     "order_id"
+    t.uuid     "product_id"
+    t.integer  "quantity"
+    t.uuid     "choice_id"
+    t.string   "note"
+    t.uuid     "payment_id"
+    t.boolean  "served"
+    t.boolean  "void",                                     default: false
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.boolean  "paid",                                     default: false
+    t.decimal  "paid_amount",     precision: 10, scale: 2
+    t.decimal  "tax_amount",      precision: 10, scale: 2
+    t.decimal  "discount_amount", precision: 5,  scale: 2
+    t.string   "void_note"
+    t.integer  "void_quantity",                            default: 0
+  end
+
+  create_table "orders", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.string   "name"
+    t.uuid     "table_id"
+    t.uuid     "servant_id"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.boolean  "waiting",      default: true
+    t.integer  "queue_number"
+  end
+
   create_table "outlets", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.string   "name"
     t.text     "address"
@@ -67,10 +102,34 @@ ActiveRecord::Schema.define(version: 20150808061732) do
     t.hstore   "taxs"
   end
 
+  create_table "payments", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.uuid     "order_id"
+    t.string   "payment_type"
+    t.decimal  "amount",       precision: 10, scale: 2
+    t.decimal  "discount",     precision: 10, scale: 2
+    t.boolean  "void"
+    t.string   "note"
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
+  end
+
   create_table "product_categories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.uuid     "company_id"
     t.string   "name"
-    t.boolean  "valid"
+    t.boolean  "is_valid"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "product_choices", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.uuid     "product_id"
+    t.uuid     "choice_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "product_images", force: :cascade do |t|
+    t.string   "file"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -80,6 +139,14 @@ ActiveRecord::Schema.define(version: 20150808061732) do
     t.uuid     "product_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "product_sub_categories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.uuid     "product_category_id"
+    t.string   "name"
+    t.boolean  "is_valid"
+    t.datetime "created_at",          null: false
+    t.datetime "updated_at",          null: false
   end
 
   create_table "product_varians", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -96,19 +163,20 @@ ActiveRecord::Schema.define(version: 20150808061732) do
 
   create_table "products", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.uuid     "company_id"
-    t.uuid     "product_category_id"
     t.string   "name"
     t.string   "picture"
-    t.boolean  "active",              default: true
-    t.string   "default_price"
-    t.datetime "created_at",                         null: false
-    t.datetime "updated_at",                         null: false
+    t.boolean  "active",                                           default: true
+    t.datetime "created_at",                                                      null: false
+    t.datetime "updated_at",                                                      null: false
     t.text     "description"
     t.string   "category"
-    t.string   "price"
     t.uuid     "updated_by"
     t.string   "picture_extension"
     t.text     "picture_base64"
+    t.uuid     "product_sub_category_id"
+    t.decimal  "price",                   precision: 10, scale: 2
+    t.decimal  "default_price",           precision: 10, scale: 2
+    t.boolean  "available",                                        default: true
   end
 
   add_index "products", ["active"], name: "index_products_on_active", using: :btree
@@ -134,6 +202,7 @@ ActiveRecord::Schema.define(version: 20150808061732) do
     t.integer  "status"
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false
+    t.boolean  "occupied",   default: false
   end
 
   add_index "tables", ["location"], name: "index_tables_on_location", using: :btree
@@ -170,7 +239,6 @@ ActiveRecord::Schema.define(version: 20150808061732) do
   add_foreign_key "product_outlets", "products"
   add_foreign_key "product_varians", "products"
   add_foreign_key "products", "companies"
-  add_foreign_key "products", "product_categories"
   add_foreign_key "profiles", "users", on_delete: :cascade
   add_foreign_key "users", "companies"
   add_foreign_key "users", "outlets"
