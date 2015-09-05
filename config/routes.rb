@@ -19,6 +19,7 @@ Rails.application.routes.draw do
     resources :outlets do
       collection { get 'search' }
       collection { get 'all' }
+      collection { get 'get' }
     end
 
     resources :product_categories do

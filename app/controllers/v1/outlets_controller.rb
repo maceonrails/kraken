@@ -2,6 +2,13 @@ class V1::OutletsController < V1::BaseController
   skip_before_action :authenticate, only: %w(all)
   skip_before_action :set_token_response, only: %w(all)
 
+  def get
+    @outlet = Outlet.first
+    respond_with(@outlet) do |format|
+      format.json { render :show }
+    end
+  end
+
   private
     def outlet_params
       params.require(:outlet).permit(:name, :email, :phone, :mobile, :address, :taxs).tap do |whitelisted|
