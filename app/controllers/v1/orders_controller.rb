@@ -61,7 +61,7 @@ class V1::OrdersController < V1::BaseController
 
     def from_servant_params
       params.require(:order).permit(:id, :servant_id, :table_id, :name,
-        products: [:id, :quantity, :take_away, :void, :void_note, :choice, :price, :void_by, note:[]])
+        products: [:id, :quantity, :take_away, :void, :void_note, :choice, :price, :void_by, :order_item_id, note:[]])
     end
 
 end
