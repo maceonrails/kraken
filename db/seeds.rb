@@ -6,6 +6,7 @@ puts "create user"
 outlet.users.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
 outlet.users.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com', company_id: outlet.company_id)
 	
+
 # choices
 puts "create choice"
 hot = Choice.create name: "HOT"
@@ -136,92 +137,92 @@ COFFEE = [
 SHAKE_IT_GOOD = [
 	{
 		name: "MOJITO",
-		price: 15900 
+		price: 15900
 	},
 	{
 		name: "LOVE STORY",
-		price: 22900 
+		price: 22900
 	},
 	{
 		name: "LEMON SQUASH",
-		price: 18900 
+		price: 18900
 	},
 	{
 		name: "YOGHURT MESIR",
-		price: 22900 
+		price: 22900
 	},
 	{
 		name: "STRAWBERRY BLIND",
-		price: 22900 
+		price: 22900
 	},
 	{
 		name: "BLACKSPOT VANILLA",
-		price: 19900 
+		price: 19900
 	},
 	{
 		name: "LYCHEE SQUASH",
-		price: 17900 
+		price: 17900
 	},
 	{
 		name: "BOBER TARO SMOOTHIES",
-		price: 19900 
+		price: 19900
 	},
 	{
 		name: "BOBER YOGHURT GREEN TEA",
-		price: 19900 
+		price: 19900
 	},
 	{
 		name: "BOBER YOGHURT ORANGE",
-		price: 19900 
+		price: 19900
 	}
 ]
 
 FRESH_MILKSHAKE = [
 	{
 		name: "VANILLA MILKSHAKE",
-		price: 18900 
+		price: 18900
 	},
 	{
 		name: "STRAWBERRY MILKSHAKE",
-		price: 18900 
+		price: 18900
 	},
 	{
 		name: "CHOCOLATE MILKSHAKE",
-		price: 18900 
+		price: 18900
 	}
 ]
-	
+
 DRINK_IN_THE_BOTTLE = [
 	{
 		name: "AMIDIS 330 ml",
-		price: 5000 
+		price: 5000
 	},
 	{
 		name: "COCA COLA",
-		price: 7000 
+		price: 7000
 	},
 	{
 		name: "FANTA",
-		price: 7000 
+		price: 7000
 	},
 	{
 		name: "TEH BOTOL SOSRO",
-		price: 7000 
+		price: 7000
 	},
 	{
 		name: "YOGHURT JONGMAN LYCHEE",
-		price: 10000 
+		price: 10000
 	},
 	{
 		name: "YOGHURT JONGMAN STRAWBERRY",
-		price: 10000 
+		price: 10000
 	},
 ]
-	
+
 JUICE_IN_BOBER = [
 	{
 		name: "STRAWBERRY JUICE",
-		price: 16900 
+		price: 16900
 	},
 	{
 		name: "ORANGE JUICE",
@@ -230,71 +231,71 @@ JUICE_IN_BOBER = [
 	},
 	{
 		name: "MELON JUICE",
-		price: 14900 
+		price: 14900
 	},
 	{
 		name: "MANGO JUICE",
-		price: 16900 
+		price: 16900
 	},
 	{
 		name: "GUAVA JUICE",
-		price: 14900 
+		price: 14900
 	},
 	{
 		name: "SOURSOP JUICE",
-		price: 14900 
+		price: 14900
 	},
 ]
 
 FLOAT = [
 	{
 		name: "COFFEE FLOAT",
-		price: 16900 
+		price: 16900
 	},
 	{
 		name: "CHOCOLATE FLOAT",
-		price: 16900 
+		price: 16900
 	},
 	{
 		name: "COLA FLOAT",
-		price: 16900 
+		price: 16900
 	},
 	{
 		name: "FANTA FLOAT",
-		price: 16900 
+		price: 16900
 	},
-]	
-	
+]
+
 SHEESHA_SMOKING = [
 	{
 		name: "SHEESHA SINGLE",
-		price: 30900 
+		price: 30900
 	},
 	{
 		name: "SHEESHA DOUBLE",
-		price: 40900 
+		price: 40900
 	},
 	{
 		name: "SHEESHA TRIPLE",
-		price: 45900 
+		price: 45900
 	},
 ]
 
 OTHERS = [
 	{
 		name: "SUSU JAHE",
-		price: 15900 
+		price: 15900
 	},
 	# {
 	# 	name: "ALL ABOUT THAT FRESH",
-	# 	price: 16900 
+	# 	price: 16900
 	# },
 	# {
 	# 	name: "RED KISS",
-	# 	price: 21900 
+	# 	price: 21900
 	# },
-]	
-	
+]
+
 MILK_AND_CHOCOLATE = [
 	{
 		name: "BANANA MILK",
@@ -314,19 +315,19 @@ MILK_AND_CHOCOLATE = [
 	{
 		name: "CHOCOLATE MILK",
 		price: 16900,
-		choices: [hot, cold] 
+		choices: [hot, cold]
 	},
 	{
 		name: "MILK COLA",
-		price: 13500 
+		price: 13500
 	},
 	{
 		name: "MILK FANTA",
-		price: 13500 
+		price: 13500
 	},
 	{
 		name: "MILK SODA",
-		price: 13500 
+		price: 13500
 	},
 	{
 		name: "CHOCOLATE CARAMEL",
@@ -336,7 +337,7 @@ MILK_AND_CHOCOLATE = [
 	{
 		name: "CHOCOLATE CREAMY",
 		price: 17900,
-		choices: [hot, cold] 
+		choices: [hot, cold]
 	},
 ]
 
@@ -344,11 +345,11 @@ MILK_AND_CHOCOLATE = [
 SOUP_AND_SALAD = [
 	{
 		name: "CREAM SOUP + FRENCH BREAD",
-		price: 17900 
+		price: 17900
 	},
 	{
 		name: "CHICKEN GARDEN SALAD",
-		price: 19900 
+		price: 19900
 	},
 ]
 
@@ -389,137 +390,137 @@ ASIA_CARRERA = [
 		name: "CHICKEN KUNGPAO PANDA",
 		price: 26900
 	},
-]	
+]
 
 EURO_TRIP = [
-	{	
+	{
 		name: "SPAGHETTI BOLOGNAISE",
-		price: 23900 
+		price: 23900
 	},
 	{
 		name: "SPAGHETTI AGLIO OLIO BOBER",
-		price: 28900 
+		price: 28900
 	},
 	{
 		name: "FETTUCCINE CARBONARA",
-		price: 26900 
+		price: 26900
 	},
 	{
 		name: "MIX STEAK WITH SAUSAGE",
-		price: 49900 
+		price: 49900
 	},
 	{
 		name: "SIRLOIN STEAK",
-		price: 47900 
+		price: 47900
 	},
 	{
 		name: "CHICKEN STEAK",
-		price: 37900 
+		price: 37900
 	},
 	{
 		name: "BEEF CORDON BLEU",
-		price: 47900 
+		price: 47900
 	},
 	{
 		name: "TENDERLOIN STEAK",
-		price: 49900 
+		price: 49900
 	},
 	{
 		name: "CHICKEN CORDON BLEU",
-		price: 39900 
+		price: 39900
 	},
 	{
 		name: "POTATO MOZARELLA",
-		price: 30900 
+		price: 30900
 	},
 	{
 		name: "SPAGHETTI KAGET CENAT CENUT",
-		price: 24900 
+		price: 24900
 	},
 	{
 		name: "FETTUCCINE PLECING SETAN",
-		price: 24900 
+		price: 24900
 	},
 ]
 
 SIGNATURE_DISH = [
 	{
 		name: "AYAM PLECING SETAN",
-		price: 29900 
+		price: 29900
 	},
 	{
 		name: "AYAM SUWIR DISTORSI",
-		price: 31900 
+		price: 31900
 	},
 	{
 		name: "ORIENTAL SPICY CHICKEN GRILL",
-		price: 25900 
+		price: 25900
 	},
 ]
 
-INDONESIA_UNITE = [	
+INDONESIA_UNITE = [
 	{
 	name: "AYAM KAGET CENAT CENUT",
-	price: 27900 
+	price: 27900
 	},
 	{
 		name: "SOTO BETAWI",
-		price: 29900 
+		price: 29900
 	},
 	{
 		name: "NASI RAWON",
-		price: 29900 
+		price: 29900
 	},
 	{
 		name: "SOP BUNTUT BBQ",
-		price: 49900 
+		price: 49900
 	},
 	{
 		name: "SOP BUNTUT KUAH",
-		price: 49900 
+		price: 49900
 	},
 	{
 		name: "SOP IGA BAKAR BOBER",
-		price: 49900 
+		price: 49900
 	},
 	{
 		name: "AYAM COBEK",
-		price: 27900 
+		price: 27900
 	},
 	{
 		name: "AYAM RICA RICA",
-		price: 28900 
+		price: 28900
 	},
 	{
 		name: "AYAM CAH JAMUR",
-		price: 21900 
+		price: 21900
 	},
 	{
 		name: "AYAM KECAP MENTEGA",
-		price: 28900 
+		price: 28900
 	},
 ]
 
-# NEW_MENU = [ 	
+# NEW_MENU = [
 # 	{
 # 		name: "CILOK BAPER SAUS KACANG",
-# 		price: 15900 
+# 		price: 15900
 # 	},
 # 	{
 # 		name: "CILOK BAPER SPICY",
-# 		price: 15900 
+# 		price: 15900
 # 	},
 # 	{
 # 		name: "PIZZA BOBER SUPREME",
-# 		price: 36900 
+# 		price: 36900
 # 	},
 # 	{
 # 		name: "PIZZA BEEF LICIOUS",
-# 		price: 36900 
+# 		price: 36900
 # 	},
 # 	{
 # 		name: "PIZZA CHEEZY SQUEZY",
-# 		price: 36900 
+# 		price: 36900
 # 	}
 # ]
 
@@ -553,67 +554,67 @@ FRIED_RICE = [
 CEMAL_CEMIL_CIAMIK = [
 	{
 		name: "LUMPIA",
-		price: 19900 
+		price: 19900
 	},
 	{
 		name: "CALAMARI",
-		price: 25900 
+		price: 25900
 	},
 	{
 		name: "GIANT BOBER SAMPLER",
-		price: 39900 
+		price: 39900
 	},
 	{
 		name: "TORTILLA CHIPS",
-		price: 17900 
+		price: 17900
 	},
 	{
 		name: "SAUSAGE + FRENCH FRIES",
-		price: 28900 
+		price: 28900
 	},
 	{
 		name: "AUTHENTIC CHICKEN + FRENCH FRIES",
-		price: 23900 
+		price: 23900
 	},
 	{
 		name: "BOBER SAMPLER",
-		price: 29900 
+		price: 29900
 	},
 	{
 		name: "GIANT FRENCH FRIES",
-		price: 36900 
+		price: 36900
 	},
 	{
 		name: "CHICKEN WINGS",
-		price: 28900 
+		price: 28900
 	},
 	{
 		name: "TEMPE MENDOAN",
-		price: 14900 
+		price: 14900
 	},
 	{
 		name: "FRENCH FRIES",
-		price: 19900 
+		price: 19900
 	},
 	{
 		name: "FRIED MUSHROOM",
-		price: 23900 
+		price: 23900
 	},
 	# {
 	# 	name: "I CHEESE YOU",
-	# 	price: 25900 
+	# 	price: 25900
 	# },
 	# {
 	# 	name: "MANGO BINGGO",
-	# 	price: 24900 
+	# 	price: 24900
 	# },
 	{
 		name: "SEBLAK BLAKAN",
-		price: 14900 
+		price: 14900
 	},
 	{
 		name: "WAFFLE POTATO",
-		price: 22900 
+		price: 22900
 	},
 ]
 

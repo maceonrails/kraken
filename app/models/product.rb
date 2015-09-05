@@ -26,27 +26,48 @@ class Product < ActiveRecord::Base
 
   def self.sync(products)
     self.unscoped.delete_all
+    Choice.delete_all
+    ProductChoice.delete_all
 
-    keys   = products.first.keys.join(',')
+    keys   = products.first.keys
+
+    keys.delete('choices')
+    keys   = keys.join(',')
     values = []
 
     products.each do |product|
-        holder  = product[:picture].split('/uploads/')
-        product[:picture] = "/uploads/#{holder.last}"
+        holder  = product[:picture].split('/')
 
         #save picture
-        filename = product[:picture].split('/').last
+        filename = product[:picture].split('uploads').last
         path     = File.join(Rails.public_path, 'uploads', filename)
+        folder   = path.split('/')
+        folder.pop
+        folder   = folder.join('/')
 
-        unless File.directory?(File.join(Rails.public_path, 'uploads'))
-          FileUtils.mkdir_p(File.join(Rails.public_path, 'uploads'))
+        unless File.directory?(folder)
+          FileUtils.mkdir_p(folder)
         end
         require 'open-uri'
+        path.gsub!('%2B', '')
         open(path, 'wb') do |file|
-          file << open(holder.join('/uploads/')).read
+          file << open(product[:picture]).read
         end
 
-        values << "( #{product.values.map { |s| "'#{s}'" }.join(', ')} )"
+        filename.gsub!('%2B', '')
+        product[:picture] = '/uploads'+filename
+
+        val = product.values.map { |s| "'#{s}'" }
+        val.pop
+        val = val.join(',')
+
+        values << "( #{val} )"
+
+        # create choices
+        product['choices'].each do |choice|
+          Choice.find_or_create_by(id: choice['id'], name: choice['name'])
+          ProductChoice.find_or_create_by(product_id: product['id'], choice_id: choice['id'])
+        end unless product['choices'].nil?
     end
 
     sql = "INSERT INTO products (#{keys} ) VALUES #{values.join(", ")}"

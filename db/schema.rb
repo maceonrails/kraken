@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150903080718) do
+ActiveRecord::Schema.define(version: 20150905084702) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -78,7 +78,12 @@ ActiveRecord::Schema.define(version: 20150903080718) do
     t.decimal  "discount_amount", precision: 5,  scale: 2
     t.string   "void_note"
     t.integer  "void_quantity",                            default: 0
+    t.string   "saved_choice"
+    t.boolean  "take_away",                                default: false
+    t.uuid     "void_by"
   end
+
+  add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree
 
   create_table "orders", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.string   "name"
