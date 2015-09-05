@@ -34,7 +34,7 @@ class V1::TablesController < V1::BaseController
     render json: to_return, status: 201
   end
 
-  def update
+  def change
     @table = Table.find(params[:id])
     if @table.update table_params
       render json: @table, status: 201
@@ -43,7 +43,7 @@ class V1::TablesController < V1::BaseController
     end
   end
 
-  def update_data
+  def update
     Table.update_data params
     to_return = {
       table: {
