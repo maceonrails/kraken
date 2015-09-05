@@ -1,6 +1,10 @@
+puts "create bober company"
+company = Company.create( name: 'Bober Cafe')
+outlet = company.outlets.create( name: 'Bober Cafe pahlawan', taxs: {ppn: 0.1 , service: 0.05})
+
 puts "create user"
-User.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com')
-User.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com')
+outlet.users.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
+outlet.users.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com', company_id: outlet.company_id)
 	
 # choices
 puts "create choice"
