@@ -62,7 +62,9 @@ Rails.application.routes.draw do
     resources :orders do
       collection { get 'search' }
       collection { get 'all' }
+      collection { post 'from_servant' }
       member { post 'pay' }
+      member { get 'get' }
       resources :order_items do
         collection { get 'search' }
         collection { get 'all' }

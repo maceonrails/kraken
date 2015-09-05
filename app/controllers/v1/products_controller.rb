@@ -51,4 +51,8 @@ class V1::ProductsController < V1::BaseController
     def search_params
       params.except(:format, :token, :page).permit(:field, :q)
     end
+
+    def attach_includes
+      [:choices, :product_sub_category, product_sub_category: :product_category]
+    end
 end

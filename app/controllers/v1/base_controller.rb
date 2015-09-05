@@ -14,6 +14,7 @@ class V1::BaseController < ApplicationController
     end
 
     ProductCategory.sync(params[:product_categories]) if params[:product_categories]
+    ProductSubCategory.sync(params[:product_sub_categories]) if params[:product_sub_categories]
     Product.sync(params[:products]) if params[:products]
     Discount.sync params[:discounts] if params[:discounts]
     create_user sync_params if sync_params[:users]
