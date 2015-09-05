@@ -9,6 +9,8 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'all' }
       collection { get 'locations' }
+      collection { post 'linking' }
+      collection { post 'moving' }
       member { put 'change' }
     end
 

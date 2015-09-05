@@ -11,6 +11,23 @@ class V1::TablesController < V1::BaseController
     @locations = Table.select(:location).uniq
   end
 
+  def moving
+    from = Table.find(params[:from])
+    to   = Table.find(params[:to])
+    to.update(order_id: from.order_id)
+    from.update(order_id: nil)
+
+    render json: { message: 'Ok' }, status: 200
+  end
+
+  def linking
+    from = Table.find(params[:from])
+    to   = Table.find(params[:to])
+    to.update(order_id: from.order_id)
+
+    render json: { message: 'Ok' }, status: 200
+  end
+
   def search
     query = search_params[:q]
     @tables = Table.includes(:parts).where("location LIKE ?", "%#{query}%")
