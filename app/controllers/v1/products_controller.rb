@@ -24,8 +24,13 @@ class V1::ProductsController < V1::BaseController
 
   private
     def product_params
-      params.require(:product).permit(:name, :category, :default_price, :picture,
-        :description, :picture_base64, :picture_extension, :active, :price)
+      if current_user.role == 'manager'
+        params.require(:product).permit(:name, :category, :picture,
+          :description, :picture_base64, :product_sub_category_id, :picture_extension, :active,
+          :price, :sold_out, :serv_category, :serv_sub_category)
+      else
+          params.require(:product).permit(:name, :category, :default_price, :sold_out, :serv_category, :serv_sub_category)
+      end
     end
 
     def encode64
@@ -41,7 +46,17 @@ class V1::ProductsController < V1::BaseController
         File.open(path, 'wb') {
           |f| f.write(Base64.decode64(resource_params[:picture_base64].split('base64,').last))}
       end
+
+      #product categories and params
+      product_category     = ProductCategory.find_or_create_by(name: resource_params[:serv_category])
+      product_sub_category = ProductSubCategory.find_or_create_by(name: resource_params[:serv_sub_category])
+      product_sub_category.update(product_category_id: product_category.id, name: resource_params[:serv_sub_category])
+
+      resource_params[:product_sub_category_id] = product_sub_category.id
+
       resource_params.delete(:picture)
+      resource_params.delete(:serv_category)
+      resource_params.delete(:serv_sub_category)
     end
 
     def query_params

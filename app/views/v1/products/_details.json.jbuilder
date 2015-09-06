@@ -10,3 +10,4 @@ json.updated_at     product.updated_at
 json.choices				product.choices
 json.serv_category  product.product_sub_category.product_category.name
 json.serv_sub_category  product.product_sub_category.name
+json.sold_out       product.sold_out
