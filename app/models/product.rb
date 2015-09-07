@@ -20,6 +20,7 @@ class Product < ActiveRecord::Base
   belongs_to :product_sub_category
   has_many :product_choices
   has_many :choices, through: :product_choices
+  has_one :discount
 
   accepts_nested_attributes_for :product_choices
   accepts_nested_attributes_for :choices

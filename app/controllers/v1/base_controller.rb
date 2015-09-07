@@ -100,7 +100,7 @@ class V1::BaseController < ApplicationController
   end
 
   def me
-    render json: {user: current_user, token: @token}, status: 200
+    @user = current_user
   end
 
   private

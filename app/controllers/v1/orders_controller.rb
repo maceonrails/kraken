@@ -19,6 +19,26 @@ class V1::OrdersController < V1::BaseController
     @order = Order.includes(:order_items, :table, order_items: :product).find(params[:id])
   end
 
+  def print
+    order = Order.where(id: params[:id])
+
+    if order.blank?
+      render json: { message: 'Order not found' }, status: 404
+
+    else
+      printed = Order.new.do_print(params)
+      if printed[:status]
+        if printed[:printed]
+          render json: { message: 'Ok' }, status: 200
+        else
+          render json: { message: 'No data to print' }, status: 400
+        end
+      else
+        render json: { message: 'Failed to print, please try again.' }, status: 500
+      end
+    end
+  end
+
   def from_servant
     if Order.save_from_servant(from_servant_params)
       render json: { message: 'Ok' }, status: 201
