@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150905084702) do
+ActiveRecord::Schema.define(version: 20150906090131) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -69,18 +69,21 @@ ActiveRecord::Schema.define(version: 20150905084702) do
     t.string   "note"
     t.uuid     "payment_id"
     t.boolean  "served"
-    t.boolean  "void",                                     default: false
-    t.datetime "created_at",                                               null: false
-    t.datetime "updated_at",                                               null: false
-    t.boolean  "paid",                                     default: false
-    t.decimal  "paid_amount",     precision: 10, scale: 2
-    t.decimal  "tax_amount",      precision: 10, scale: 2
-    t.decimal  "discount_amount", precision: 5,  scale: 2
+    t.boolean  "void",                                      default: false
+    t.datetime "created_at",                                                null: false
+    t.datetime "updated_at",                                                null: false
+    t.boolean  "paid",                                      default: false
+    t.decimal  "paid_amount",      precision: 10, scale: 2
+    t.decimal  "tax_amount",       precision: 10, scale: 2
+    t.decimal  "discount_amount",  precision: 5,  scale: 2
     t.string   "void_note"
-    t.integer  "void_quantity",                            default: 0
+    t.integer  "void_quantity",                             default: 0
     t.string   "saved_choice"
-    t.boolean  "take_away",                                default: false
+    t.boolean  "take_away",                                 default: false
     t.uuid     "void_by"
+    t.integer  "paid_quantity",                             default: 0
+    t.integer  "printed_quantity",                          default: 0
+    t.integer  "split_quantity",                            default: 0
   end
 
   add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree
@@ -89,10 +92,13 @@ ActiveRecord::Schema.define(version: 20150905084702) do
     t.string   "name"
     t.uuid     "table_id"
     t.uuid     "servant_id"
-    t.datetime "created_at",                  null: false
-    t.datetime "updated_at",                  null: false
-    t.boolean  "waiting",      default: true
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.boolean  "waiting",                                   default: true
     t.integer  "queue_number"
+    t.decimal  "discount_amount",  precision: 10, scale: 2
+    t.decimal  "discount_percent", precision: 5,  scale: 2
+    t.uuid     "discount_by"
   end
 
   create_table "outlets", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
