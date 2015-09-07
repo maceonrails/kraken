@@ -1,5 +1,6 @@
 class Order < ActiveRecord::Base
 	has_many   :order_items
+  belongs_to :discount_provider, foreign_key: :discount_by, class_name: 'User'
   belongs_to :table
 
   def self.save_from_servant(params)
