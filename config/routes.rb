@@ -83,6 +83,11 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'all' }
     end
+
+    resources :printers do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
   end
 
   # catch not found
