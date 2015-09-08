@@ -82,12 +82,22 @@ class V1::OrdersController < V1::BaseController
   end
 
   def search
-    query  = params[:data] || ''
-    orders = Order.joins(:table)
-                  .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
-                  .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
-    @orders = orders.page(page_params[:page]).per(10)
-    @total  = orders.count
+    if params[:type]
+      @orders = Order
+                .includes(:table, :order_items, order_items: :product)
+                .where(created_at: (Date.today-1.days).beginning_of_day..Date.today.end_of_day)
+                .all
+      @total  = @orders.count
+    elsif params[:dateStart] && params[:dateEnd]
+      query  = params[:data] || ''
+      orders = Order.joins(:table)
+                    .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
+                    .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
+      @orders = orders.page(page_params[:page]).per(10)
+      @total  = orders.count
+    else
+      render json: {message: 'order not found'}, status: 404
+    end
   end
 
   def print

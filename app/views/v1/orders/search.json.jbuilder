@@ -1,12 +1,13 @@
 json.orders @orders do |order|
-  json.extract! order, :id, :name, :created_at
+  json.extract! order, :id, :name, :created_at, :table_id
   json.servant do
     json.name order.server.profile.name
     json.email order.server.email
   end
+
   json.table do
     json.name order.table.name
-  end
+  end if order.table
 
   json.products order.order_items do |item|
     json.partial! 'v1/products/details', product: item.product
