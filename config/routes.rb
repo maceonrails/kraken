@@ -65,6 +65,9 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'all' }
       collection { post 'from_servant' }
+      collection { get 'graph_by_revenue' }
+      collection { get 'graph_by_order' }
+
       member { post 'pay' }
       member { get 'get' }
       member { get 'print' }
