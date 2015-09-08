@@ -19,6 +19,15 @@ class V1::OrdersController < V1::BaseController
     @order = Order.includes(:order_items, :table, order_items: :product).find(params[:id])
   end
 
+  def search
+    query  = params[:data] || ''
+    orders = Order.joins(:table)
+                  .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
+                  .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
+    @orders = orders.page(page_params[:page]).per(10)
+    @total  = orders.count
+  end
+
   def print
     order = Order.where(id: params[:id])
 

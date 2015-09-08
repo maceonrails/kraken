@@ -23,12 +23,17 @@ class Order < ActiveRecord::Base
 
       # order_item
       params['products'].each do |prd|
-        discount = Discount.where(product_id: prd['id']).last
-        discount = discount.nil? ? 0 : discount.amount.to_i
+        discount      = Discount.where(product_id: prd['id']).last
+        discount      = discount.nil? ? 0 : discount.amount.to_i
+        dsc_qty       = discount * prd['quantity'].to_i
+        prices        = prd['price'].to_i * prd['quantity'].to_i
+        prices_wo_dsc = prices - dsc_qty
+
+
         tax_component = 0;
         taxs.each_pair do |name, amount|
           percentage = amount.to_f / 100
-          tax_component += (percentage * prd['price'].to_i).to_i
+          tax_component += (percentage * prices_wo_dsc).to_i
         end rescue true
 
         if prd['order_item_id']
@@ -43,9 +48,9 @@ class Order < ActiveRecord::Base
           quantity:         prd['quantity'],
           note:             prd['note'].nil? ? '' : prd['note'].join(','),
           void:             prd['void'],
-          paid_amount:      (tax_component - discount + prd['price'].to_i),
+          paid_amount:      (tax_component + prices_wo_dsc),
           tax_amount:       tax_component,
-          discount_amount:  discount,
+          discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
           take_away:        prd['take_away'],
           saved_choice:     prd['choice'],
