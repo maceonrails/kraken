@@ -69,6 +69,11 @@ class Order < ActiveRecord::Base
   # end
 
   def do_print(params)
+    #params :   pay_amount = cust_pay_amount
+              # id = order_id
+              # preview = 'yes' || 'no'
+
+    params[:preview] = params[:preview] || 'yes'
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
@@ -192,6 +197,30 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << "\n"
 
+    if params[:preview] == 'no'
+      text << center(true)
+      text << line
+      text << center(false)
+
+      text << emphasized(true)
+      text << "  Pay"
+      text << 9.chr
+      text << right(true)
+      text << number_to_currency(params[:pay_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << emphasized(false)
+      text << "\n"
+
+      text << emphasized(true)
+      text << "  Change"
+      text << 9.chr
+      text << right(true)
+      text << number_to_currency((grand_total - params[:pay_amount].to_i), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << emphasized(false)
+      text << "\n"
+    end
+
     text << center(true)
     text << "=================================\n"
 
@@ -215,7 +244,7 @@ class Order < ActiveRecord::Base
         succeed = false
       end
 
-      if succeed
+      if succeed && params[:preview] == 'no'
         order.order_items.each do |item|
           item.update(printed_quantity: item.paid_quantity)
         end
