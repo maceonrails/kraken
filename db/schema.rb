@@ -84,7 +84,7 @@ ActiveRecord::Schema.define(version: 20150906094916) do
     t.uuid     "void_by"
     t.integer  "paid_quantity",                             default: 0
     t.integer  "printed_quantity",                          default: 0
-    t.integer  "split_quantity",                            default: 0
+    t.integer  "pay_quantity",                              default: 0
   end
 
   add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree

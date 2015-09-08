@@ -343,10 +343,10 @@ MILK_AND_CHOCOLATE = [
 
 # Foods Menu
 SOUP_AND_SALAD = [
-	{
-		name: "CREAM SOUP + FRENCH BREAD",
-		price: 17900
-	},
+	# {
+	# 	name: "CREAM SOUP + FRENCH BREAD",
+	# 	price: 17900
+	# },
 	{
 		name: "CHICKEN GARDEN SALAD",
 		price: 19900
@@ -744,9 +744,9 @@ end
 
 puts "start create table"
 20.times do |i|
-	puts "create table #{++i}"
-	Table.create name: "#{++i}", status: 'available', location: "Ruang Utama"
-	Table.create name: "#{++i}", status: 'available', location: "Ruang Halaman"
+	puts "create table #{i + 1}"
+	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Utama"
+	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Halaman"
 end
 
 
