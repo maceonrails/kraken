@@ -130,12 +130,17 @@ class Order < ActiveRecord::Base
 
       # order_item
       params['products'].each do |prd|
-        discount = Discount.where(product_id: prd['id']).last
-        discount = discount.nil? ? 0 : discount.amount.to_i
+        discount      = Discount.where(product_id: prd['id']).last
+        discount      = discount.nil? ? 0 : discount.amount.to_i
+        dsc_qty       = discount * prd['quantity'].to_i
+        prices        = prd['price'].to_i * prd['quantity'].to_i
+        prices_wo_dsc = prices - dsc_qty
+
+
         tax_component = 0;
         taxs.each_pair do |name, amount|
           percentage = amount.to_f / 100
-          tax_component += (percentage * prd['price'].to_i).to_i
+          tax_component += (percentage * prices_wo_dsc).to_i
         end rescue true
 
         if prd['order_item_id']
@@ -150,9 +155,9 @@ class Order < ActiveRecord::Base
           quantity:         prd['quantity'],
           note:             prd['note'].nil? ? '' : prd['note'].join(','),
           void:             prd['void'],
-          paid_amount:      (tax_component - discount + prd['price'].to_i),
+          paid_amount:      (tax_component + prices_wo_dsc),
           tax_amount:       tax_component,
-          discount_amount:  discount,
+          discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
           take_away:        prd['take_away'],
           saved_choice:     prd['choice'],
@@ -171,6 +176,11 @@ class Order < ActiveRecord::Base
   # end
 
   def do_print(params)
+    #params :   pay_amount = cust_pay_amount
+              # id = order_id
+              # preview = 'yes' || 'no'
+
+    params[:preview] = params[:preview] || 'yes'
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
@@ -294,6 +304,30 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << "\n"
 
+    if params[:preview] == 'no'
+      text << center(true)
+      text << line
+      text << center(false)
+
+      text << emphasized(true)
+      text << "  Pay"
+      text << 9.chr
+      text << right(true)
+      text << number_to_currency(params[:pay_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << emphasized(false)
+      text << "\n"
+
+      text << emphasized(true)
+      text << "  Change"
+      text << 9.chr
+      text << right(true)
+      text << number_to_currency((grand_total - params[:pay_amount].to_i), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << emphasized(false)
+      text << "\n"
+    end
+
     text << center(true)
     text << "=================================\n"
 
@@ -309,15 +343,28 @@ class Order < ActiveRecord::Base
 
     if sub_total > 0
       begin
-        fd = IO.sysopen('/dev/usb/lp0', 'w+')
-        printer = IO.new(fd)
-        printer.puts text
-        printer.close
+        begin
+          printer = Printer.where(default: true).first
+          fd = IO.sysopen(printer.printer, 'w+')
+          printer = IO.new(fd)
+          printer.puts text
+          printer.close
+        rescue Exception => e
+          begin
+            printer = Printer.where.not(default: true).first
+            fd = IO.sysopen(printer.printer, 'w+')
+            printer = IO.new(fd)
+            printer.puts text
+            printer.close
+          rescue Exception => e
+            succeed = false
+          end
+        end
       rescue Exception => e
         succeed = false
       end
 
-      if succeed
+      if succeed && params[:preview] == 'no'
         order.order_items.each do |item|
           item.update(printed_quantity: item.paid_quantity)
         end

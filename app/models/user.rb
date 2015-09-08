@@ -37,7 +37,7 @@ class User < ActiveRecord::Base
 
   enum role:
     [
-      :eresto, :owner, :superadmin, :manager, :assistant_manager,
+      :eresto, :owner, :superadmin, :manager, :bartender,
       :waitress, :captain, :cashier, :chef
     ]
 

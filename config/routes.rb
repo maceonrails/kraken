@@ -68,6 +68,9 @@ Rails.application.routes.draw do
       collection { post 'from_servant' }
       member { post 'pay_order' }
       member { post 'make_order' }
+      collection { get 'graph_by_revenue' }
+      collection { get 'graph_by_order' }
+
       member { get 'get' }
       member { get 'print' }
       resources :order_items do
@@ -84,6 +87,11 @@ Rails.application.routes.draw do
     end
 
     resources :payments do
+      collection { get 'search' }
+      collection { get 'all' }
+    end
+
+    resources :printers do
       collection { get 'search' }
       collection { get 'all' }
     end
