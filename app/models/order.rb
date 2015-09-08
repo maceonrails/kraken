@@ -236,10 +236,23 @@ class Order < ActiveRecord::Base
 
     if sub_total > 0
       begin
-        fd = IO.sysopen('/dev/usb/lp0', 'w+')
-        printer = IO.new(fd)
-        printer.puts text
-        printer.close
+        begin
+          printer = Printer.where(default: true).first
+          fd = IO.sysopen(printer.printer, 'w+')
+          printer = IO.new(fd)
+          printer.puts text
+          printer.close
+        rescue Exception => e
+          begin
+            printer = Printer.where.not(default: true).first
+            fd = IO.sysopen(printer.printer, 'w+')
+            printer = IO.new(fd)
+            printer.puts text
+            printer.close
+          rescue Exception => e
+            succeed = false
+          end
+        end
       rescue Exception => e
         succeed = false
       end
