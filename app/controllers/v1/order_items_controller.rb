@@ -8,7 +8,7 @@ class V1::OrderItemsController < V1::BaseController
   def active_items
     order = Order.find(params[:order_id])
     if order_items = order.get_active_items
-      render json: order_items, include: [:product], status: 201
+      render json: order_items, include: { product: { only: [:id, :price] } }, status: 201
     else
       render json: {message: "something when wrong"}, status: 409
     end

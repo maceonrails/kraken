@@ -155,17 +155,12 @@ class V1::OrdersController < V1::BaseController
       params.require(:order).permit(:name)
     end
 
-    def pay_params
-      params.require(:order_items).permit(:quantity)
-
-    end
-
     def query_params
       params.permit(:name, :waiting, :id)
     end
 
     def pay_params
-      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount,
+      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :cash_amount,
         order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
           :pay_quantity, :paid, :void_by, :note, :product_id, :price]
       )

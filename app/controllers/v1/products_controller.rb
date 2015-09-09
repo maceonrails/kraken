@@ -4,6 +4,7 @@ class V1::ProductsController < V1::BaseController
 
   def get_by_sub_category
     @products = Product.where(query_params)
+    render json: @products, only: [:id, :name, :price, :picture, :sold_out]
   end
 
   def category
