@@ -79,23 +79,27 @@ class Order < ActiveRecord::Base
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
 
     text = center(true)
-    text << outlet.name + "\n"
-    text << outlet.address.gsub!("\n", " ") + "\n"
-    text << "Telp:" + outlet.phone + "/" + outlet.mobile + "\n"
+    text << outlet.name.to_s + "\n"
+    text << outlet.address.gsub!("\n", " ").to_s + "\n"
+    text << "Telp:" + outlet.phone.to_s + "/" + outlet.mobile.to_s + "\n"
     text << "\n"
 
     text << emphasized(true)
-    text << "Table : "
-    text << order.table.name + "\n"
+    if order.table
+      text << "Table : "
+      text << order.table.name.to_s + "\n"
+    else
+      text << 'Take Away'
+    end
     text << emphasized(false)
     text << center(false)
 
     text << "Cust: "
-    text << order.name
+    text << order.name.to_s
     text << 9.chr
     text << right(true)
     text << "Serv: "
-    text << order.server.profile.name || order.server.profile.email
+    text << order.server.profile.name.to_s || order.server.profile.email.to_s
     text << right(false)
     text << "\n"
 
@@ -110,7 +114,7 @@ class Order < ActiveRecord::Base
     order.order_items.each do |item|
       print_qty = item.paid_quantity - item.printed_quantity
       if !item.void && item.paid && print_qty > 0
-        prd_name = print_qty.to_s + " " + item.product.name.capitalize
+        prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
         text << prd_name
 
         if (prd_name.length > 20)
@@ -128,7 +132,7 @@ class Order < ActiveRecord::Base
         text << "\n"
 
         if item.product.discount
-          text << "   Discount: " + item.product.discount.name
+          text << "   Discount: " + item.product.discount.name.to_s
           text << 9.chr
           text << right(true)
           disc_pric = item.product.discount.amount.to_i * print_qty
@@ -175,7 +179,7 @@ class Order < ActiveRecord::Base
       tax_component = (percentage * grand_total.to_i).to_i
       taxs         += tax_component
 
-      text << "  " + name.capitalize + " " + amount.to_s + "%"
+      text << "  " + name.to_s.capitalize + " " + amount.to_s + "%"
       text << 9.chr
       text << right(true)
       text << number_to_currency(tax_component, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
