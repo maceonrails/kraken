@@ -14,6 +14,17 @@ class V1::OrderItemsController < V1::BaseController
     end
   end
 
+
+  def toggle_served
+    order_item = OrderItem.find(params[:id])
+    order_item.toggle :served 
+    if order_item.save
+      render json: order_item, status: 201
+    else
+      render json: order_item, status: 409
+    end
+  end
+
   def create
     order_item = OrderItem.new order_item_params
 

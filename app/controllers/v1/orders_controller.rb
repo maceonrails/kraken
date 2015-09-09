@@ -99,7 +99,7 @@ class V1::OrdersController < V1::BaseController
     if params[:type]
       @orders = Order
                 .includes(:table, :order_items, order_items: :product)
-                .where(created_at: (Date.today-1.days).beginning_of_day..Date.today.end_of_day)
+                .where(created_at: (Date.today).beginning_of_day..Date.today.end_of_day)
                 .all
       @total  = @orders.count
     elsif params[:dateStart] && params[:dateEnd]
