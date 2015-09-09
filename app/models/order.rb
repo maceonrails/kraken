@@ -1,8 +1,52 @@
 class Order < ActiveRecord::Base
   include ActionView::Helpers::NumberHelper
 	has_many   :order_items
+  belongs_to :discount_provider, foreign_key: :discount_by, class_name: 'User'
   belongs_to :table
   belongs_to :server, class_name: 'User', foreign_key: 'servant_id'
+
+  def self.get_waiting_orders
+    where("orders.table_id IS NULL AND orders.waiting IS TRUE")
+  end
+
+  def get_active_items
+    order_items.where("quantity > paid_quantity")
+  end
+
+  def self.make_order(params)
+    if save_from_servant(params)
+      order = self.find(params[:id])
+      order.do_print(id: params['id'], preview: 'yes')
+    end
+  end
+
+  def self.pay_order(params)
+    save_from_servant(params)
+    order = Order.find(params[:id])
+    # order.transaction do 
+    #   begin
+        params[:order_items].each do |item|
+          order_item = OrderItem.find_by(order_id: params['id'], product_id: item['product_id'])
+          if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity']
+            item['pay_quantity'] = item['quantity'] - item['paid_quantity'] 
+          end
+          item['paid_quantity'] += item['pay_quantity']
+          item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
+          item['paid'] = true
+          item['pay_quantity'] = 0
+          order_item.update!(item.except(:id, :price))
+        end
+        unless Order.joins(:order_items).where("orders.id = ? AND quantity > paid_quantity", order.id).exists?
+          order.update waiting: false
+          order.table.update order_id: nil if order.table
+        end
+        order.do_print(id: order.id, preview: 'no', pay_amount: params['cash_amount'])
+        return true
+    #   rescue Exception => e
+    #     return false
+    #   end
+    # end
+  end
 
   def self.save_from_servant(params)
     begin
@@ -16,14 +60,19 @@ class Order < ActiveRecord::Base
       order.update name: params['name'], table_id: params['table_id'], servant_id: params['servant_id']
 
       # update table data with order id
-      Table.update(params['table_id'], order_id: order.id)
+      Table.update(params['table_id'], order_id: order.id) if params['table_id']
 
       #get taxs
       taxs  = Outlet.first.taxs;
 
+      params['products'] = params[:products] ? params[:products] : params[:order_items]
+
       # order_item
       params['products'].each do |prd|
-        discount      = Discount.where(product_id: prd['id']).last
+        product_id = params[:order_items] ? prd['product_id'] : prd[:id]
+        order_item_id = params[:order_items] ? prd[:id] : prd['order_item_id']
+
+        discount      = Discount.where(product_id: product_id).last
         discount      = discount.nil? ? 0 : discount.amount.to_i
         dsc_qty       = discount * prd['quantity'].to_i
         prices        = prd['price'].to_i * prd['quantity'].to_i
@@ -36,17 +85,18 @@ class Order < ActiveRecord::Base
           tax_component += (percentage * prices_wo_dsc).to_i
         end rescue true
 
-        if prd['order_item_id']
-          orderItem = OrderItem.find(prd['order_item_id'])
+        if order_item_id
+          orderItem = OrderItem.find(order_item_id)
         else
           orderItem = OrderItem.create
         end
 
+        note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
           order_id:         order.id,
-          product_id:       prd['id'],
+          product_id:       product_id,
           quantity:         prd['quantity'],
-          note:             prd['note'].nil? ? '' : prd['note'].join(','),
+          note:             note,
           void:             prd['void'],
           paid_amount:      (tax_component + prices_wo_dsc),
           tax_amount:       tax_component,
@@ -54,7 +104,8 @@ class Order < ActiveRecord::Base
           void_note:        prd['void_note'],
           take_away:        prd['take_away'],
           saved_choice:     prd['choice'],
-          void_by:          prd['void_by']
+          void_by:          prd['void_by'],
+          pay_quantity:     prd['pay_quantity'] || 0
         )
       end
 
@@ -77,13 +128,13 @@ class Order < ActiveRecord::Base
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
-
+    
     text = center(true)
+
     text << outlet.name.to_s + "\n"
     text << outlet.address.gsub!("\n", " ").to_s + "\n"
     text << "Telp:" + outlet.phone.to_s + "/" + outlet.mobile.to_s + "\n"
     text << "\n"
-
     text << emphasized(true)
     if order.table
       text << "Table : "
@@ -91,15 +142,15 @@ class Order < ActiveRecord::Base
     else
       text << 'Take Away'
     end
+
     text << emphasized(false)
     text << center(false)
-
     text << "Cust: "
     text << order.name.to_s
     text << 9.chr
     text << right(true)
     text << "Serv: "
-    text << order.server.profile.name.to_s || order.server.profile.email.to_s
+    text << (order.server.try(:profile).try(:name) || order.server.try(:email) || outlet.name)
     text << right(false)
     text << "\n"
 

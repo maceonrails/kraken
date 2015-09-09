@@ -4,7 +4,7 @@ class V1::TablesController < V1::BaseController
   skip_before_action :set_token_response, only: %w(all)
 
   def index
-    @tables   = Table.includes(:parts).all
+    @tables   = Table.includes(:parts).order("name::int").all
   end
 
   def locations

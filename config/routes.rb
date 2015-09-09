@@ -64,22 +64,26 @@ Rails.application.routes.draw do
     resources :orders do
       collection { get 'search' }
       collection { get 'all' }
+      collection { get 'waiting_orders' }
       collection { post 'from_servant' }
+      member { post 'pay_order' }
+      member { post 'make_order' }
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
 
-      member { post 'pay' }
       member { get 'get' }
       member { get 'print' }
       resources :order_items do
         collection { get 'search' }
         collection { get 'all' }
+        collection { get 'active_items' }
       end
     end
 
     resources :order_items do
       collection { get 'search' }
       collection { get 'all' }
+      collection { get 'active_items' }
     end
 
     resources :payments do

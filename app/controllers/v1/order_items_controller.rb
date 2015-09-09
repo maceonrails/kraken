@@ -5,6 +5,15 @@ class V1::OrderItemsController < V1::BaseController
     @order_items = OrderItem.where(query_params)
   end
 
+  def active_items
+    order = Order.find(params[:order_id])
+    if order_items = order.get_active_items
+      render json: order_items, include: { product: { only: [:id, :price] } }, status: 201
+    else
+      render json: {message: "something when wrong"}, status: 409
+    end
+  end
+
   def create
     order_item = OrderItem.new order_item_params
 

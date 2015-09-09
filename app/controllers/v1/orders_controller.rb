@@ -5,6 +5,11 @@ class V1::OrdersController < V1::BaseController
     @orders = Order.where(query_params)
   end
 
+  def waiting_orders
+    @orders = Order.get_waiting_orders
+    render json: @orders, status: 201
+  end
+
   def graph_by_revenue
     date  = Date.today
     case params[:timeframe]
@@ -67,11 +72,20 @@ class V1::OrdersController < V1::BaseController
     render json: data, status: 200
   end
 
-  def pay
-    @order = Order.find(params[:order_id])
-    @order.pay(params)
+  def pay_order
+    if Order.pay_order(pay_params)
+      render json: { message: 'Ok' }, status: 201
+    else
+      render json: { message: "pay order failed" }, status: 409
+    end
+  end
 
-    render json: @order, status: 201
+  def make_order
+    if Order.make_order(pay_params)
+      render json: { message: 'Ok' }, status: 201
+    else
+      render json: { message: "create order failed" }, status: 409
+    end
   end
 
   def show
@@ -151,13 +165,15 @@ class V1::OrdersController < V1::BaseController
       params.require(:order).permit(:name)
     end
 
-    def pay_params
-      params.require(:order_items).permit(:quantity)
-
-    end
-
     def query_params
       params.permit(:name, :waiting, :id)
+    end
+
+    def pay_params
+      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :cash_amount,
+        order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
+          :pay_quantity, :paid, :void_by, :note, :product_id, :price]
+      )
     end
 
     def from_servant_params

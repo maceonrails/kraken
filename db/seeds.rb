@@ -1,6 +1,11 @@
+puts "create bober company"
+company = Company.create( name: 'Bober Cafe')
+outlet = company.outlets.create( name: 'Bober Cafe pahlawan', taxs: {ppn: 0.1 , service: 0.05})
+
 puts "create user"
-User.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com')
-User.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com')
+outlet.users.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
+outlet.users.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com', company_id: outlet.company_id)
+	
 
 # choices
 puts "create choice"
@@ -338,10 +343,10 @@ MILK_AND_CHOCOLATE = [
 
 # Foods Menu
 SOUP_AND_SALAD = [
-	{
-		name: "CREAM SOUP + FRENCH BREAD",
-		price: 17900
-	},
+	# {
+	# 	name: "CREAM SOUP + FRENCH BREAD",
+	# 	price: 17900
+	# },
 	{
 		name: "CHICKEN GARDEN SALAD",
 		price: 19900
@@ -739,9 +744,9 @@ end
 
 puts "start create table"
 20.times do |i|
-	puts "create table #{++i}"
-	Table.create name: "#{++i}", status: 'available', location: "Ruang Utama"
-	Table.create name: "#{++i}", status: 'available', location: "Ruang Halaman"
+	puts "create table #{i + 1}"
+	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Utama"
+	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Halaman"
 end
 
 

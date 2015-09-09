@@ -84,6 +84,7 @@ ActiveRecord::Schema.define(version: 20150906094916) do
     t.uuid     "void_by"
     t.integer  "paid_quantity",                             default: 0
     t.integer  "printed_quantity",                          default: 0
+    t.integer  "pay_quantity",                              default: 0
   end
 
   add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree
@@ -92,10 +93,13 @@ ActiveRecord::Schema.define(version: 20150906094916) do
     t.string   "name"
     t.uuid     "table_id"
     t.uuid     "servant_id"
-    t.datetime "created_at",                  null: false
-    t.datetime "updated_at",                  null: false
-    t.boolean  "waiting",      default: true
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.boolean  "waiting",                                   default: true
     t.integer  "queue_number"
+    t.decimal  "discount_amount",  precision: 10, scale: 2
+    t.decimal  "discount_percent", precision: 5,  scale: 2
+    t.uuid     "discount_by"
   end
 
   create_table "outlets", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
