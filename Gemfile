@@ -17,6 +17,10 @@ gem "mini_magick"
 gem 'unicorn'
 gem 'mina'
 gem 'validates_email_format_of'
+gem 'tubesock'
+gem 'puma'
+gem 'httparty'
+gem 'whenever', require: false
 
 gem 'mina-unicorn', :require => false
 

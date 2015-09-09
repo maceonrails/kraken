@@ -190,9 +190,9 @@ ActiveRecord::Schema.define(version: 20150906094916) do
     t.datetime "updated_at",                                                      null: false
     t.text     "description"
     t.string   "category"
-    t.uuid     "updated_by"
     t.string   "picture_extension"
     t.text     "picture_base64"
+    t.uuid     "updated_by"
     t.uuid     "product_sub_category_id"
     t.decimal  "price",                   precision: 10, scale: 2
     t.decimal  "default_price",           precision: 10, scale: 2
