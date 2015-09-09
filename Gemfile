@@ -21,6 +21,7 @@ gem 'tubesock'
 gem 'puma'
 gem 'httparty'
 gem 'whenever', require: false
+gem 'rufus-scheduler'
 
 gem 'mina-unicorn', :require => false
 
