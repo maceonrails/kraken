@@ -1,5 +1,5 @@
 json.orders @orders do |order|
-  json.extract! order, :id, :name, :created_at, :table_id
+  json.extract! order, :id, :name, :created_at, :table_id, :queue_number
   json.servant do
     json.name order.server.profile.name
     json.email order.server.email

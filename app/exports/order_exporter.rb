@@ -3,7 +3,7 @@ module Exports
     include HTTParty
 
     def initialize
-      @base_uri = 'api-bober.io/v1'
+      @base_uri = 'api-bober.eresto.io/v1'
     end
 
     def do_export
