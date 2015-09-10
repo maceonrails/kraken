@@ -101,14 +101,14 @@ class V1::OrdersController < V1::BaseController
                 .includes(:table, :order_items, order_items: :product)
                 .where(created_at: (Date.today-3.days).beginning_of_day..Date.today.end_of_day)
                 .all
-      @total  = @orders.count
+      @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
       orders = Order.joins(:table)
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
                     .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
       @orders = orders.page(page_params[:page]).per(10)
-      @total  = orders.count
+      @total  = orders.count || 0
     else
       render json: {message: 'order not found'}, status: 404
     end
@@ -171,7 +171,7 @@ class V1::OrdersController < V1::BaseController
 
     def pay_params
       params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :cash_amount,
-        order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
+        order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity,
           :pay_quantity, :paid, :void_by, :note, :product_id, :price]
       )
     end

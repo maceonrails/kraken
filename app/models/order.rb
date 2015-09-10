@@ -24,12 +24,12 @@ class Order < ActiveRecord::Base
   def self.pay_order(params)
     save_from_servant(params)
     order = Order.find(params[:id])
-    # order.transaction do 
+    # order.transaction do
     #   begin
         params[:order_items].each do |item|
           order_item = OrderItem.find_by(order_id: params['id'], product_id: item['product_id'])
           if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity']
-            item['pay_quantity'] = item['quantity'] - item['paid_quantity'] 
+            item['pay_quantity'] = item['quantity'] - item['paid_quantity']
           end
           item['paid_quantity'] += item['pay_quantity']
           item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
@@ -129,7 +129,7 @@ class Order < ActiveRecord::Base
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
-    
+
     text = center(true)
 
     text << outlet.name.to_s + "\n"
@@ -208,7 +208,33 @@ class Order < ActiveRecord::Base
     text << "\n"
 
     if discount_total > 0
-      text << "  DISCOUNT"
+
+      if order.discount_amount && order.discount_amount.to_i > 0
+        discount_total += order.discount_amount.to_i
+        text << "  ORDER DISCOUNTS"
+        text << 9.chr
+        text << right(true)
+        text << " - "
+        text << number_to_currency(order.discount_amount.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+        text << right(false)
+        text << "\n"
+      end
+
+      if order.discount_percent && order.discount_percent.to_i > 0
+        percentage = order.discount_percent.to_f / 100
+        ord_dsc    = (percentage * sub_total).to_i
+
+        discount_total += ord_dsc.to_i
+        text << "  ORDER DISCOUNTS"
+        text << 9.chr
+        text << right(true)
+        text << " - "
+        text << number_to_currency(ord_dsc.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+        text << right(false)
+        text << "\n"
+      end
+
+      text << "  TOTAL DISCOUNTS"
       text << 9.chr
       text << right(true)
       text << " - "
@@ -259,7 +285,7 @@ class Order < ActiveRecord::Base
       text << center(false)
 
       text << emphasized(true)
-      text << "  Pay"
+      text << "  PAY"
       text << 9.chr
       text << right(true)
       text << number_to_currency(params[:pay_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
@@ -268,7 +294,7 @@ class Order < ActiveRecord::Base
       text << "\n"
 
       text << emphasized(true)
-      text << "  Change"
+      text << "  CHANGE"
       text << 9.chr
       text << right(true)
       text << number_to_currency((grand_total - params[:pay_amount].to_i), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
