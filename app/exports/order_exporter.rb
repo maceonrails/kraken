@@ -8,9 +8,10 @@ module Exports
 
     def do_export
       last_sync   = Synchronize.order('created_at').last
+      start_date  = last_sync.nil? ? (Date.today - 1.days) : last_sync.created_at
       outlet      = Outlet.first
-      orders      = Order.where(created_at: last_sync.created_at.beginning_of_day..Time.zone.now.end_of_day)
-      order_items = OrderItem.where(created_at: last_sync.created_at.beginning_of_day..Time.zone.now.end_of_day)
+      orders      = Order.where(created_at: start_date.beginning_of_day..Time.zone.now.end_of_day)
+      order_items = OrderItem.where(created_at: start_date.beginning_of_day..Time.zone.now.end_of_day)
       data        = { orders: orders, order_items: order_items, outlet: outlet }
 
       response    = HTTParty.post("http://#{@base_uri}/orders/import", { body: data.to_json })
