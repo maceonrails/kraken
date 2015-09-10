@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150906094916) do
+ActiveRecord::Schema.define(version: 20150910021802) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -190,9 +190,9 @@ ActiveRecord::Schema.define(version: 20150906094916) do
     t.datetime "updated_at",                                                      null: false
     t.text     "description"
     t.string   "category"
-    t.uuid     "updated_by"
     t.string   "picture_extension"
     t.text     "picture_base64"
+    t.uuid     "updated_by"
     t.uuid     "product_sub_category_id"
     t.decimal  "price",                   precision: 10, scale: 2
     t.decimal  "default_price",           precision: 10, scale: 2
@@ -212,6 +212,11 @@ ActiveRecord::Schema.define(version: 20150906094916) do
     t.date     "contract_until"
     t.datetime "created_at",     null: false
     t.datetime "updated_at",     null: false
+  end
+
+  create_table "synchronizes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "tables", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
