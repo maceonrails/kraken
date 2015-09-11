@@ -80,6 +80,18 @@ class V1::OrdersController < V1::BaseController
     end
   end
 
+  def void_order
+    if user = User.can_void?(params[:email], params[:password])
+      if Order.void_order(params[:order_id], user, pay_params)
+        render json: { message: 'Ok' }, status: 201
+      else
+        render json: { message: "create order failed" }, status: 409
+      end
+    else
+      render json: { message: "not verified" }, status: 409  
+    end   
+  end
+
   def make_order
     if Order.make_order(pay_params)
       render json: { message: 'Ok' }, status: 201
@@ -170,7 +182,7 @@ class V1::OrdersController < V1::BaseController
     end
 
     def pay_params
-      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :cash_amount,
+      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :cash_amount, :void,
         order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
           :pay_quantity, :paid, :void_by, :note, :product_id, :price]
       )

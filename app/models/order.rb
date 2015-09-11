@@ -48,6 +48,19 @@ class Order < ActiveRecord::Base
     # end
   end
 
+  def self.void_order(order_id, user, params)
+    order = find(order_id)
+    params['order_items'].each do |item|
+      order_item = OrderItem.find(item['id'])
+      item["void_by"] = user.id
+      item["void_quantity"] = order_item.quantity
+      item["void"] = true
+      order_item.update(item.except(:id, :price))
+    end
+    order.update(waiting: false);
+    return true
+  end
+
   def self.save_from_servant(params)
     begin
       if params['id']

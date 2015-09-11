@@ -68,6 +68,7 @@ Rails.application.routes.draw do
       collection { post 'from_servant' }
       member { post 'pay_order' }
       member { post 'make_order' }
+      member { post 'void_order' }
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
 

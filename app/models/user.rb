@@ -60,6 +60,19 @@ class User < ActiveRecord::Base
     build_profile({})
   end
 
+  def self.can_void? (email, password)
+    user = User.where(email: email).first
+    if user
+      if user.valid_password?(password)
+        return user
+      else
+        return false
+      end
+    else
+      return false
+    end
+  end
+
   private
 
     def generate_authentication_token
