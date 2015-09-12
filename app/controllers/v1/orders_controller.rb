@@ -111,16 +111,16 @@ class V1::OrdersController < V1::BaseController
     if params[:type]
       @orders = Order
                 .includes(:table, :order_items, order_items: :product)
-                .where(created_at: (Date.today-1.days).beginning_of_day..Date.today.end_of_day)
+                .where(created_at: (Date.today-3.days).beginning_of_day..Date.today.end_of_day)
                 .all
-      @total  = @orders.count
+      @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
       orders = Order.joins(:table)
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
                     .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
       @orders = orders.page(page_params[:page]).per(10)
-      @total  = orders.count
+      @total  = orders.count || 0
     else
       render json: {message: 'order not found'}, status: 404
     end
@@ -169,6 +169,15 @@ class V1::OrdersController < V1::BaseController
     	render json: @order, status: 201
     else
     	render json: @order, status: 409
+    end
+  end
+
+  def destroy
+    @order = Order.find(params['id'])
+    if @order.destroy
+      render json: { message: 'success deleted' }, status: 201
+    else
+      render json: { message: 'delete failed' }, status: 404
     end
   end
 

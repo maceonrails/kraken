@@ -1,5 +1,5 @@
 json.orders @orders do |order|
-  json.extract! order, :id, :name, :created_at, :table_id
+  json.extract! order, :id, :name, :created_at, :table_id, :queue_number
   json.servant do
     json.name order.server.profile.name
     json.email order.server.email
@@ -12,6 +12,7 @@ json.orders @orders do |order|
   json.products order.order_items do |item|
     json.partial! 'v1/products/details', product: item.product
     json.take_away      item.take_away
+    json.served         item.served
     json.type           item.take_away == true ? 'Take Away' : 'Dine In'
     json.quantity       item.quantity
     json.choice         item.saved_choice

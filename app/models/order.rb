@@ -1,9 +1,17 @@
 class Order < ActiveRecord::Base
   include ActionView::Helpers::NumberHelper
+
 	has_many   :order_items
   belongs_to :discount_provider, foreign_key: :discount_by, class_name: 'User'
   belongs_to :table
   belongs_to :server, class_name: 'User', foreign_key: 'servant_id'
+
+  before_create :set_queue
+
+  def set_queue
+    last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
+    self.queue_number = (last_order.try(:queue_number) || 0) + 1
+  end
 
   def self.get_waiting_orders
     where("orders.table_id IS NULL AND orders.waiting IS TRUE")
@@ -23,12 +31,12 @@ class Order < ActiveRecord::Base
   def self.pay_order(params)
     save_from_servant(params)
     order = Order.find(params[:id])
-    # order.transaction do 
-    #   begin
+    order.transaction do
+      begin
         params[:order_items].each do |item|
           order_item = OrderItem.find_by(order_id: params['id'], product_id: item['product_id'])
           if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity']
-            item['pay_quantity'] = item['quantity'] - item['paid_quantity'] 
+            item['pay_quantity'] = item['quantity'] - item['paid_quantity']
           end
           item['paid_quantity'] += item['pay_quantity']
           item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
@@ -40,12 +48,15 @@ class Order < ActiveRecord::Base
           order.update waiting: false
           order.table.update order_id: nil if order.table
         end
+        if params['discount_amount']
+          order.update(discount_amount: params['discount_amount'], discount_by: params['discount_by'])
+        end
         order.do_print(id: order.id, preview: 'no', pay_amount: params['cash_amount'])
         return true
-    #   rescue Exception => e
-    #     return false
-    #   end
-    # end
+      rescue Exception => e
+        return false
+      end
+    end
   end
 
   def self.void_order(order_id, user, params)
@@ -57,7 +68,10 @@ class Order < ActiveRecord::Base
       item["void"] = true
       order_item.update(item.except(:id, :price))
     end
-    order.update(waiting: false);
+    unless Order.joins(:order_items).where("orders.id = ? AND quantity > void_quantity", order.id).exists?
+      order.update waiting: false
+      order.table.update order_id: nil if order.table
+    end
     return true
   end
 
@@ -85,24 +99,28 @@ class Order < ActiveRecord::Base
         product_id = params[:order_items] ? prd['product_id'] : prd[:id]
         order_item_id = params[:order_items] ? prd[:id] : prd['order_item_id']
 
-        discount      = Discount.where(product_id: product_id).last
-        discount      = discount.nil? ? 0 : discount.amount.to_i
-        dsc_qty       = discount * prd['quantity'].to_i
-        prices        = prd['price'].to_i * prd['quantity'].to_i
-        prices_wo_dsc = prices - dsc_qty
-
-
-        tax_component = 0;
-        taxs.each_pair do |name, amount|
-          percentage = amount.to_f / 100
-          tax_component += (percentage * prices_wo_dsc).to_i
-        end rescue true
-
         if order_item_id
           orderItem = OrderItem.find(order_item_id)
         else
           orderItem = OrderItem.create
         end
+
+        orderItem.order_id = order.id
+        orderItem.product_id = product_id
+
+        discount      = Discount.where(product_id: product_id).last
+        discount      = discount.nil? ? 0 : discount.amount.to_i
+        dsc_qty       = discount * prd['quantity'].to_i
+        prices        = orderItem.product.price.to_i * prd['quantity'].to_i
+        prices        = prices - dsc_qty
+
+        # prices = prd['price'].to_i * prd['quantity'].to_i
+
+        tax_component = 0;
+        taxs.each_pair do |name, amount|
+          percentage = amount.to_f / 100
+          tax_component += (percentage * prices).to_i
+        end rescue true
 
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
@@ -111,7 +129,7 @@ class Order < ActiveRecord::Base
           quantity:         prd['quantity'],
           note:             note,
           void:             prd['void'],
-          paid_amount:      (tax_component + prices_wo_dsc),
+          paid_amount:      (tax_component + prices),
           tax_amount:       tax_component,
           discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
@@ -141,7 +159,7 @@ class Order < ActiveRecord::Base
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
-    
+
     text = center(true)
 
     text << outlet.name.to_s + "\n"
@@ -220,7 +238,33 @@ class Order < ActiveRecord::Base
     text << "\n"
 
     if discount_total > 0
-      text << "  DISCOUNT"
+
+      if order.discount_amount && order.discount_amount.to_i > 0
+        discount_total += order.discount_amount.to_i
+        text << "  ORDER DISCOUNTS"
+        text << 9.chr
+        text << right(true)
+        text << " - "
+        text << number_to_currency(order.discount_amount.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+        text << right(false)
+        text << "\n"
+      end
+
+      if order.discount_percent && order.discount_percent.to_i > 0
+        percentage = order.discount_percent.to_f / 100
+        ord_dsc    = (percentage * sub_total).to_i
+
+        discount_total += ord_dsc.to_i
+        text << "  ORDER DISCOUNTS"
+        text << 9.chr
+        text << right(true)
+        text << " - "
+        text << number_to_currency(ord_dsc.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+        text << right(false)
+        text << "\n"
+      end
+
+      text << "  TOTAL DISCOUNTS"
       text << 9.chr
       text << right(true)
       text << " - "
@@ -271,7 +315,7 @@ class Order < ActiveRecord::Base
       text << center(false)
 
       text << emphasized(true)
-      text << "  Pay"
+      text << "  PAY"
       text << 9.chr
       text << right(true)
       text << number_to_currency(params[:pay_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
@@ -280,7 +324,7 @@ class Order < ActiveRecord::Base
       text << "\n"
 
       text << emphasized(true)
-      text << "  Change"
+      text << "  CHANGE"
       text << 9.chr
       text << right(true)
       text << number_to_currency((grand_total - params[:pay_amount].to_i), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)

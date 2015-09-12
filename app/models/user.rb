@@ -60,17 +60,21 @@ class User < ActiveRecord::Base
     build_profile({})
   end
 
-  def self.can_void? (email, password)
-    user = User.where(email: email).first
-    if user
-      if user.valid_password?(password)
-        return user
-      else
-        return false
-      end
+  def self.authorize? email, password, invalid_role = ['cashier', 'waitress']
+    user = find_by_email(email)
+    if user && user.valid_password?(password) && invalid_role.exclude?(user.role) 
+      user
     else
-      return false
+      false
     end
+  end
+
+  def self.can_void? email, password
+    authorize? email, password
+  end
+
+  def self.can_discount? email, password
+    authorize? email, password
   end
 
   private

@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     resources :users do
       collection { get 'search' }
       collection { get 'all' }
+      collection { post 'authorize_for_discount' }
     end
 
     resources :outlets do
@@ -84,6 +85,7 @@ Rails.application.routes.draw do
     resources :order_items do
       collection { get 'search' }
       collection { get 'all' }
+      member { put 'toggle_served'}
       collection { get 'active_items' }
     end
 
