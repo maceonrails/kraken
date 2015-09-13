@@ -28,6 +28,7 @@ class Order < ActiveRecord::Base
   end
   
   def self.print_order(params)
+    order = self.find(params[:id])
     order.do_print(params, preview: true)
   end
 
@@ -72,6 +73,16 @@ class Order < ActiveRecord::Base
       order_item.update(item.except(:id, :price))
     end
     unless Order.joins(:order_items).where("orders.id = ? AND quantity > void_quantity", order.id).exists?
+      order.update waiting: false
+      order.table.update order_id: nil if order.table
+    end
+    return true
+  end
+
+  def self.void_item(item)
+    order_item = OrderItem.find(item['id'])
+    order_item.update(item.except(:id, :price))
+    unless Order.joins(:order_items).where("orders.id = ? AND quantity > void_quantity", order_item.order_id).exists?
       order.update waiting: false
       order.table.update order_id: nil if order.table
     end
