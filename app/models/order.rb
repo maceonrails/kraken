@@ -172,8 +172,10 @@ class Order < ActiveRecord::Base
       text << "Table : "
       text << order.table.name.to_s + "\n"
     else
-      text << 'Take Away'
+      text << "Take Away\n"
     end
+
+    text << Time.now.strftime("%d %B %Y").to_s + "\n"
 
     text << emphasized(false)
     text << center(false)
@@ -195,7 +197,9 @@ class Order < ActiveRecord::Base
     discount_total = 0
     params[:order_items].each do |order_item|
       item = OrderItem.find(order_item['id'])
-      print_qty = item.paid_quantity - item.printed_quantity
+      # print_qty = item.paid_quantity - item.printed_quantity
+      print_qty = order_item['print_quantity']
+
       if !item.void && item.paid && print_qty > 0
         prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
         text << prd_name
