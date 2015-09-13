@@ -92,6 +92,14 @@ class V1::OrdersController < V1::BaseController
     end   
   end
 
+  def void_item
+    if Order.void_item(void_params)
+      render json: { message: 'Ok' }, status: 201
+    else
+      render json: { message: "create order failed" }, status: 409
+    end  
+  end
+
   def make_order
     if Order.make_order(pay_params)
       render json: { message: 'Ok' }, status: 201
@@ -196,6 +204,11 @@ class V1::OrdersController < V1::BaseController
 
     def query_params
       params.permit(:name, :waiting, :id)
+    end
+
+    def void_params
+      params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
+          :pay_quantity, :paid, :void_by, :note, :product_id, :price)
     end
 
     def pay_params

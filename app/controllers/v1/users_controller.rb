@@ -31,6 +31,14 @@ class V1::UsersController < V1::BaseController
     end
   end
 
+  def authorize_for_void
+    if user = User.can_void?(params[:email], params[:password])
+      render json: { user: user }, status: 201
+    else
+      render json: { message: "user not authorize" }, status: 404
+    end
+  end
+
   def search
     field  = search_params[:field].downcase.to_sym
     query  = search_params[:q]
