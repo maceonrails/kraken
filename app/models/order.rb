@@ -210,7 +210,7 @@ class Order < ActiveRecord::Base
     params[:order_items].each do |order_item|
       item = OrderItem.find(order_item['id'])
       # print_qty = item.paid_quantity - item.printed_quantity
-      print_qty = order_item['print_quantity']
+      print_qty = order_item['pay_quantity']
 
       if !item.void && item.paid && print_qty > 0
         prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
