@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     resources :users do
       collection { get 'search' }
       collection { get 'all' }
+      collection { post 'authorize_for_discount' }
     end
 
     resources :outlets do
@@ -68,6 +69,8 @@ Rails.application.routes.draw do
       collection { post 'from_servant' }
       member { post 'pay_order' }
       member { post 'make_order' }
+      member { post 'void_order' }
+      member { post 'print_order' }
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
 

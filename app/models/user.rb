@@ -60,6 +60,23 @@ class User < ActiveRecord::Base
     build_profile({})
   end
 
+  def self.authorize? email, password, invalid_role = ['cashier', 'waitress']
+    user = find_by_email(email)
+    if user && user.valid_password?(password) && invalid_role.exclude?(user.role) 
+      user
+    else
+      false
+    end
+  end
+
+  def self.can_void? email, password
+    authorize? email, password
+  end
+
+  def self.can_discount? email, password
+    authorize? email, password
+  end
+
   private
 
     def generate_authentication_token

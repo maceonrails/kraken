@@ -6,6 +6,13 @@ class Order < ActiveRecord::Base
   belongs_to :table
   belongs_to :server, class_name: 'User', foreign_key: 'servant_id'
 
+  before_create :set_queue
+
+  def set_queue
+    last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
+    self.queue_number = (last_order.try(:queue_number) || 0) + 1
+  end
+
   def self.get_waiting_orders
     where("orders.table_id IS NULL AND orders.waiting IS TRUE")
   end
@@ -17,15 +24,18 @@ class Order < ActiveRecord::Base
   def self.make_order(params)
     if save_from_servant(params)
       order = self.find(params[:id])
-      order.do_print(id: params['id'], preview: 'yes')
     end
+  end
+  
+  def self.print_order(params)
+    order.do_print(params, preview: true)
   end
 
   def self.pay_order(params)
     save_from_servant(params)
     order = Order.find(params[:id])
-    # order.transaction do
-    #   begin
+    order.transaction do
+      begin
         params[:order_items].each do |item|
           order_item = OrderItem.find_by(order_id: params['id'], product_id: item['product_id'])
           if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity']
@@ -41,12 +51,31 @@ class Order < ActiveRecord::Base
           order.update waiting: false
           order.table.update order_id: nil if order.table
         end
-        order.do_print(id: order.id, preview: 'no', pay_amount: params['cash_amount'])
+        if params['discount_amount']
+          order.update(discount_amount: params['discount_amount'], discount_by: params['discount_by'])
+        end
+        order.do_print(params, preview: false)
         return true
-    #   rescue Exception => e
-    #     return false
-    #   end
-    # end
+      rescue Exception => e
+        return false
+      end
+    end
+  end
+
+  def self.void_order(order_id, user, params)
+    order = find(order_id)
+    params['order_items'].each do |item|
+      order_item = OrderItem.find(item['id'])
+      item["void_by"] = user.id
+      item["void_quantity"] = order_item.quantity
+      item["void"] = true
+      order_item.update(item.except(:id, :price))
+    end
+    unless Order.joins(:order_items).where("orders.id = ? AND quantity > void_quantity", order.id).exists?
+      order.update waiting: false
+      order.table.update order_id: nil if order.table
+    end
+    return true
   end
 
   def self.save_from_servant(params)
@@ -73,24 +102,28 @@ class Order < ActiveRecord::Base
         product_id = params[:order_items] ? prd['product_id'] : prd[:id]
         order_item_id = params[:order_items] ? prd[:id] : prd['order_item_id']
 
-        discount      = Discount.where(product_id: product_id).last
-        discount      = discount.nil? ? 0 : discount.amount.to_i
-        dsc_qty       = discount * prd['quantity'].to_i
-        prices        = prd['price'].to_i * prd['quantity'].to_i
-        prices_wo_dsc = prices - dsc_qty
-
-
-        tax_component = 0;
-        taxs.each_pair do |name, amount|
-          percentage = amount.to_f / 100
-          tax_component += (percentage * prices_wo_dsc).to_i
-        end rescue true
-
         if order_item_id
           orderItem = OrderItem.find(order_item_id)
         else
           orderItem = OrderItem.create
         end
+
+        orderItem.order_id = order.id
+        orderItem.product_id = product_id
+
+        discount      = Discount.where(product_id: product_id).last
+        discount      = discount.nil? ? 0 : discount.amount.to_i
+        dsc_qty       = discount * prd['quantity'].to_i
+        prices        = orderItem.product.price.to_i * prd['quantity'].to_i
+        prices        = prices - dsc_qty
+
+        # prices = prd['price'].to_i * prd['quantity'].to_i
+
+        tax_component = 0;
+        taxs.each_pair do |name, amount|
+          percentage = amount.to_f / 100
+          tax_component += (percentage * prices).to_i
+        end rescue true
 
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
@@ -99,7 +132,7 @@ class Order < ActiveRecord::Base
           quantity:         prd['quantity'],
           note:             note,
           void:             prd['void'],
-          paid_amount:      (tax_component + prices_wo_dsc),
+          paid_amount:      (tax_component + prices),
           tax_amount:       tax_component,
           discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
@@ -120,12 +153,10 @@ class Order < ActiveRecord::Base
   #   self.new.execute_print(params)
   # end
 
-  def do_print(params)
+  def do_print(params, opts = { preview: true })
     #params :   pay_amount = cust_pay_amount
               # id = order_id
-              # preview = 'yes' || 'no'
-
-    params[:preview] = params[:preview] || 'yes'
+              # opts[:preview] = 'yes' || 'no'
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
@@ -162,8 +193,8 @@ class Order < ActiveRecord::Base
     #order items
     sub_total      = 0
     discount_total = 0
-
-    order.order_items.each do |item|
+    params[:order_items].each do |order_item|
+      item = OrderItem.find(order_item['id'])
       print_qty = item.paid_quantity - item.printed_quantity
       if !item.void && item.paid && print_qty > 0
         prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
@@ -279,7 +310,7 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << "\n"
 
-    if params[:preview] == 'no'
+    unless opts[:preview]
       text << center(true)
       text << line
       text << center(false)
@@ -339,7 +370,7 @@ class Order < ActiveRecord::Base
         succeed = false
       end
 
-      if succeed && params[:preview] == 'no'
+      if succeed && !opts[:preview]
         order.order_items.each do |item|
           item.update(printed_quantity: item.paid_quantity)
         end
