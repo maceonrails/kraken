@@ -24,8 +24,11 @@ class Order < ActiveRecord::Base
   def self.make_order(params)
     if save_from_servant(params)
       order = self.find(params[:id])
-      order.do_print(id: params['id'], preview: 'yes')
     end
+  end
+  
+  def self.print_order(params)
+    order.do_print(params, preview: true)
   end
 
   def self.pay_order(params)
@@ -51,7 +54,7 @@ class Order < ActiveRecord::Base
         if params['discount_amount']
           order.update(discount_amount: params['discount_amount'], discount_by: params['discount_by'])
         end
-        order.do_print(id: order.id, preview: 'no', pay_amount: params['cash_amount'])
+        order.do_print(params, preview: false)
         return true
       rescue Exception => e
         return false
@@ -150,12 +153,10 @@ class Order < ActiveRecord::Base
   #   self.new.execute_print(params)
   # end
 
-  def do_print(params)
+  def do_print(params, opts = { preview: true })
     #params :   pay_amount = cust_pay_amount
               # id = order_id
-              # preview = 'yes' || 'no'
-
-    params[:preview] = params[:preview] || 'yes'
+              # opts[:preview] = 'yes' || 'no'
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
@@ -192,8 +193,8 @@ class Order < ActiveRecord::Base
     #order items
     sub_total      = 0
     discount_total = 0
-
-    order.order_items.each do |item|
+    params[:order_items].each do |order_item|
+      item = OrderItem.find(order_item['id'])
       print_qty = item.paid_quantity - item.printed_quantity
       if !item.void && item.paid && print_qty > 0
         prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
@@ -309,7 +310,7 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << "\n"
 
-    if params[:preview] == 'no'
+    unless opts[:preview]
       text << center(true)
       text << line
       text << center(false)
@@ -369,7 +370,7 @@ class Order < ActiveRecord::Base
         succeed = false
       end
 
-      if succeed && params[:preview] == 'no'
+      if succeed && !opts[:preview]
         order.order_items.each do |item|
           item.update(printed_quantity: item.paid_quantity)
         end

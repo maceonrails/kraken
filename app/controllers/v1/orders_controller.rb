@@ -126,6 +126,14 @@ class V1::OrdersController < V1::BaseController
     end
   end
 
+  def print_order
+    if Order.print_order(pay_params)
+      render json: { message: 'Ok' }, status: 200
+    else
+      render json: { message: 'No data to print' }, status: 400
+    end
+  end
+
   def print
     order = Order.where(id: params[:id])
 

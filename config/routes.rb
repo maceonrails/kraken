@@ -70,6 +70,7 @@ Rails.application.routes.draw do
       member { post 'pay_order' }
       member { post 'make_order' }
       member { post 'void_order' }
+      member { post 'print_order' }
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
 
