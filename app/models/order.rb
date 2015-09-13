@@ -50,7 +50,8 @@ class Order < ActiveRecord::Base
         end
         unless Order.joins(:order_items).where("orders.id = ? AND quantity > paid_quantity", order.id).exists?
           order.update waiting: false
-          order.table.update order_id: nil if order.table
+          # order.table.update order_id: nil if order.table
+          Table.where(order_id: order.id).update_all(order_id: nil)
         end
         if params['discount_amount']
           order.update(discount_amount: params['discount_amount'], discount_by: params['discount_by'])
