@@ -27,7 +27,7 @@ class V1::UsersController < V1::BaseController
     if user = User.can_discount?(params[:email], params[:password])
       render json: { user: user }, status: 201
     else
-      render json: { message: "user not authorize" }, status: 404
+      render json: { message: "user not authorize" }, status: 403
     end
   end
 
@@ -35,7 +35,7 @@ class V1::UsersController < V1::BaseController
     if user = User.can_void?(params[:email], params[:password])
       render json: { user: user }, status: 201
     else
-      render json: { message: "user not authorize" }, status: 404
+      render json: { message: "user not authorize" }, status: 403
     end
   end
 
