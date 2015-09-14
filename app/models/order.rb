@@ -46,7 +46,10 @@ class Order < ActiveRecord::Base
           item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
           item['paid'] = true
           item['pay_quantity'] = 0
+
           order_item.update!(item.except(:id, :price))
+
+          item['print_quantity'] = item['paid_quantity']
         end
         unless Order.joins(:order_items).where("orders.id = ? AND quantity > paid_quantity", order.id).exists?
           order.update waiting: false
@@ -166,9 +169,29 @@ class Order < ActiveRecord::Base
   # end
 
   def do_print(params, opts = { preview: true })
-    #params :   pay_amount = cust_pay_amount
-              # id = order_id
-              # opts[:preview] = 'yes' || 'no'
+
+    #  params = {
+    #  "id"=>"af85849c-315e-4312-b789-e73c42e24e98",
+    #  "servant_id"=>nil,
+    #  "table_id"=>nil,
+    #  "name"=>"cek",
+    #  "discount_amount"=>0,
+    #  "cash_amount"=>0,
+    #  "order_items"=>
+    #   [{"id"=>"3795a944-ffb7-4258-bddf-4fe52074009e",
+    #     "quantity"=>2,
+    #     "print_quantity"=>2,
+    #     "take_away"=>nil,
+    #     "void"=>nil,
+    #     "void_note"=>nil,
+    #     "saved_choice"=>nil,
+    #     "paid_quantity"=>0,
+    #     "pay_quantity"=>0,
+    #     "paid"=>false,
+    #     "void_by"=>nil,
+    #     "note"=>nil,
+    #     "product_id"=>"d0841ed1-a218-4de4-8f05-e63b270c384e",
+    #     "price"=>"13500.0"}]
 
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
@@ -176,7 +199,7 @@ class Order < ActiveRecord::Base
     text = center(true)
 
     text << outlet.name.to_s + "\n"
-    text << outlet.address.gsub!("\n", " ").to_s + "\n"
+    text << outlet.address.to_s.gsub!("\n", " ").to_s + "\n"
     text << "Telp:" + outlet.phone.to_s + "/" + outlet.mobile.to_s + "\n"
     text << "\n"
     text << emphasized(true)
@@ -210,7 +233,7 @@ class Order < ActiveRecord::Base
     params[:order_items].each do |order_item|
       item = OrderItem.find(order_item['id'])
       # print_qty = item.paid_quantity - item.printed_quantity
-      print_qty = order_item['pay_quantity']
+      print_qty = order_item['print_quantity']
 
       if !item.void && item.paid && print_qty > 0
         prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
