@@ -169,7 +169,6 @@ class Order < ActiveRecord::Base
   # end
 
   def do_print(params, opts = { preview: true })
-
     #  params = {
     #  "id"=>"af85849c-315e-4312-b789-e73c42e24e98",
     #  "servant_id"=>nil,
@@ -231,7 +230,7 @@ class Order < ActiveRecord::Base
     sub_total      = 0
     discount_total = 0
     params[:order_items].each do |order_item|
-      item = OrderItem.find(order_item['id'])
+      item = OrderItem.find_by_product_id(order_item['product_id'])
       # print_qty = item.paid_quantity - item.printed_quantity
       print_qty = order_item['print_quantity']
 
