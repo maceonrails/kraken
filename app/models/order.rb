@@ -26,7 +26,7 @@ class Order < ActiveRecord::Base
       order = self.find(params[:id])
     end
   end
-  
+
   def self.print_order(params)
     order = self.find(params[:id])
     order.do_print(params, preview: true)
@@ -191,7 +191,7 @@ class Order < ActiveRecord::Base
     #     "note"=>nil,
     #     "product_id"=>"d0841ed1-a218-4de4-8f05-e63b270c384e",
     #     "price"=>"13500.0"}]
-
+    params = recursive_symbolize_keys params
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
 
@@ -230,11 +230,11 @@ class Order < ActiveRecord::Base
     sub_total      = 0
     discount_total = 0
     params[:order_items].each do |order_item|
-      item = OrderItem.find_by_product_id(order_item['product_id'])
+      item = OrderItem.find_by_product_id(order_item[:product_id])
       # print_qty = item.paid_quantity - item.printed_quantity
-      print_qty = order_item['print_quantity']
+      print_qty = order_item[:print_quantity]
 
-      if !item.void && item.paid && print_qty > 0
+      if !item.void && print_qty > 0
         prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
         text << prd_name
 
@@ -357,7 +357,7 @@ class Order < ActiveRecord::Base
       text << "  PAY"
       text << 9.chr
       text << right(true)
-      text << number_to_currency(params[:pay_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << number_to_currency(params[:cash_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << emphasized(false)
       text << "\n"
@@ -366,7 +366,7 @@ class Order < ActiveRecord::Base
       text << "  CHANGE"
       text << 9.chr
       text << right(true)
-      text << number_to_currency((grand_total - params[:pay_amount].to_i), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << number_to_currency((params[:cash_amount].to_i - grand_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << emphasized(false)
       text << "\n"
@@ -387,25 +387,21 @@ class Order < ActiveRecord::Base
 
     if sub_total > 0
       begin
+        printer = Printer.where(default: true).first
+        fd = IO.sysopen(printer.printer, 'w+')
+        printer = IO.new(fd)
+        printer.puts text
+        printer.close
+      rescue Exception => e
         begin
-          printer = Printer.where(default: true).first
+          printer = Printer.where.not(default: true).first
           fd = IO.sysopen(printer.printer, 'w+')
           printer = IO.new(fd)
           printer.puts text
           printer.close
         rescue Exception => e
-          begin
-            printer = Printer.where.not(default: true).first
-            fd = IO.sysopen(printer.printer, 'w+')
-            printer = IO.new(fd)
-            printer.puts text
-            printer.close
-          rescue Exception => e
-            succeed = false
-          end
+          succeed = false
         end
-      rescue Exception => e
-        succeed = false
       end
 
       if succeed && !opts[:preview]
@@ -420,6 +416,21 @@ class Order < ActiveRecord::Base
 
   def breaks
     return "\n\n"
+  end
+
+  def recursive_symbolize_keys(h)
+    case h
+    when Hash
+      Hash[
+        h.map do |k, v|
+          [ k.respond_to?(:to_sym) ? k.to_sym : k, recursive_symbolize_keys(v) ]
+        end
+      ]
+    when Enumerable
+      h.map { |v| recursive_symbolize_keys(v) }
+    else
+      h
+    end
   end
 
   def emphasized(on)
