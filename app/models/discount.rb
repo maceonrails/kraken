@@ -2,6 +2,8 @@ class Discount < ActiveRecord::Base
   include Total
   belongs_to :product
 
+  scope :active, -> { where("start_date <= ? AND end_date >= ?", Time.now, Time.now) }
+
   def self.sync(discounts)
     self.unscoped.delete_all
     discounts.each do |discount|

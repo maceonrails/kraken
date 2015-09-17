@@ -75,6 +75,10 @@ class Product < ActiveRecord::Base
     self.connection.execute sql
   end
 
+  def active_discount
+    discount.try(:active).try(:last)
+  end
+
   def self.create_from_seed()
 
   end

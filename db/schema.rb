@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150910021802) do
+ActiveRecord::Schema.define(version: 20150917145215) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,6 +45,8 @@ ActiveRecord::Schema.define(version: 20150910021802) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid     "updated_by"
+    t.datetime "start_date"
+    t.datetime "end_date"
   end
 
   create_table "inventories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -100,6 +102,8 @@ ActiveRecord::Schema.define(version: 20150910021802) do
     t.decimal  "discount_amount",  precision: 10, scale: 2
     t.decimal  "discount_percent", precision: 5,  scale: 2
     t.uuid     "discount_by"
+    t.integer  "person"
+    t.integer  "cashier_id"
   end
 
   create_table "outlets", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|

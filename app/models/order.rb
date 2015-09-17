@@ -5,6 +5,7 @@ class Order < ActiveRecord::Base
   belongs_to :discount_provider, foreign_key: :discount_by, class_name: 'User'
   belongs_to :table
   belongs_to :server, class_name: 'User', foreign_key: 'servant_id'
+  belongs_to :cashier, class_name: 'User', foreign_key: 'cashier_id'
 
   before_create :set_queue
 
@@ -47,7 +48,7 @@ class Order < ActiveRecord::Base
           item['paid'] = true
           item['pay_quantity'] = 0
 
-          order_item.update!(item.except(:id, :price))
+          order_item.update!(item.except(:id, :price, :print_quantity))
 
           item['print_quantity'] = item['paid_quantity']
         end
@@ -102,7 +103,13 @@ class Order < ActiveRecord::Base
       end
 
       #save or update order
-      order.update name: params['name'], table_id: params['table_id'], servant_id: params['servant_id']
+      order.update(
+        name: params['name'], 
+        table_id: params['table_id'], 
+        servant_id: params['servant_id'], 
+        person: params['person'], 
+        cashier_id: params['cashier_id']
+      )
 
       # update table data with order id
       Table.update(params['table_id'], order_id: order.id) if params['table_id']
@@ -125,8 +132,9 @@ class Order < ActiveRecord::Base
 
         orderItem.order_id = order.id
         orderItem.product_id = product_id
+        product = Product.find_by_id(product_id)
 
-        discount      = Discount.where(product_id: product_id).last
+        discount      = product.active_discount
         discount      = discount.nil? ? 0 : discount.amount.to_i
         dsc_qty       = discount * prd['quantity'].to_i
         prices        = orderItem.product.price.to_i * prd['quantity'].to_i
