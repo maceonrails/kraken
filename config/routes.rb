@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   apipie
-  get '/manager' => 'errors#manager'
-  get '/kitchen' => 'errors#kitchen'
+  get '/manager', :to => redirect('/manager/')
+  get '/kitchen', :to => redirect('/kitchen/')
 
   namespace :v1, defaults: { format: :json } do
     post '/sessions' => "sessions#create"
