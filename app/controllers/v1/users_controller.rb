@@ -43,13 +43,22 @@ class V1::UsersController < V1::BaseController
     field  = search_params[:field].downcase.to_sym
     query  = search_params[:q]
     users  = User.arel_table
-    if (search_params[:field] == 'Name')
+    if search_params[:field] == 'Name'
       @users = User.joins(:profile)
                    .where("profiles.name LIKE ?", "%#{query}%")
                    .page(page_params[:page])
                    .per(page_params[:page_size])
       @total = User.joins(:profile)
                    .where("profiles.name LIKE ?", "%#{query}%")
+                   .count
+    elsif search_params[:field] == 'Role'
+      roles  = User.roles.select {|k, v| k.include? query}.map {|k, v| v}
+      @users = User.joins(:profile)
+                   .where("users.role IN (?)", roles)
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total = User.joins(:profile)
+                   .where("users.role IN (?)", roles)
                    .count
     else
       @users = User.where(users[field]
