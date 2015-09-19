@@ -1,8 +1,13 @@
 json.orders @orders do |order|
-  json.extract! order, :id, :name, :created_at, :table_id, :queue_number
+  json.extract! order, :id, :name, :person, :created_at, :table_id, :queue_number
   json.servant do
     json.name order.server.profile.name
     json.email order.server.email
+  end
+
+  json.cashier do
+    json.name order.cashier.profile.name rescue ''
+    json.email order.cashier.email rescue ''
   end
 
   json.table do

@@ -114,10 +114,10 @@ class Order < ActiveRecord::Base
 
       #save or update order
       order.update(
-        name: params['name'], 
-        table_id: params['table_id'], 
-        servant_id: params['servant_id'], 
-        person: params['person'], 
+        name: params['name'],
+        table_id: params['table_id'],
+        servant_id: params['servant_id'],
+        person: params['person'],
         cashier_id: params['cashier_id']
       )
 
@@ -231,6 +231,17 @@ class Order < ActiveRecord::Base
 
     text << emphasized(false)
     text << center(false)
+    text << "PAX: "
+    text << order.person.to_i.to_s
+    text << 9.chr
+    text << right(true)
+    text << "Cashier: "
+    text << (order.cashier.try(:profile).try(:name) || order.cashier.try(:email) || outlet.name)
+    text << right(false)
+    text << "\n"
+
+    text << emphasized(false)
+    text << center(false)
     text << "Cust: "
     text << order.name.to_s
     text << 9.chr
@@ -270,7 +281,7 @@ class Order < ActiveRecord::Base
         text << right(false)
         text << "\n"
 
-        if item.product.discount
+        if item.product.discount && item.product.discount.is_active
           text << "   Discount: " + item.product.discount.name.to_s
           text << 9.chr
           text << right(true)

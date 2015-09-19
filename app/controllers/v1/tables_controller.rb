@@ -30,7 +30,7 @@ class V1::TablesController < V1::BaseController
 
   def search
     query = search_params[:q]
-    @tables = Table.includes(:parts).where("location LIKE ?", "%#{query}%")
+    @tables = Table.includes(:parts).where("location ILIKE ?", "%#{query}%")
     @total  = @tables.count
 
     respond_with(@tables) do |format|

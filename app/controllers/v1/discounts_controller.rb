@@ -15,9 +15,34 @@ class V1::DiscountsController < V1::BaseController
     end
   end
 
+  def search
+    field  = search_params[:field].downcase.to_sym
+    query  = search_params[:q]
+    discounts  = Discount.arel_table
+    if search_params[:field] == 'Product'
+      @discounts = Discount.joins(:product)
+                   .where("products.name ILIKE ?", "%#{query}%")
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total     = Discount.joins(:product)
+                   .where("products.name ILIKE ?", "%#{query}%")
+                   .count
+    else
+      @discounts = Discount.where(discounts[field]
+                   .matches("%#{query}%"))
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total     = Discount.where(discounts[field]
+                   .matches("%#{query}%"))
+                   .count
+    end
+
+    respond_with @discounts
+  end
+
   private
     def discount_params
-      params.require(:discount).permit(:name, :amount, :product_id)
+      params.require(:discount).permit(:name, :amount, :product_id, :start_date, :end_date)
     end
 
     def query_params

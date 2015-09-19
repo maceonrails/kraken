@@ -21,6 +21,7 @@ class Product < ActiveRecord::Base
   has_many :product_choices
   has_many :choices, through: :product_choices
   has_one :discount
+  has_many :order_items
 
   accepts_nested_attributes_for :product_choices
   accepts_nested_attributes_for :choices
@@ -33,6 +34,9 @@ class Product < ActiveRecord::Base
     keys   = products.first.keys
 
     keys.delete('choices')
+    keys.delete('available')
+    keys.delete('serv_category')
+    keys.delete('serv_sub_category')
     keys   = keys.join(',')
     values = []
 
@@ -60,6 +64,9 @@ class Product < ActiveRecord::Base
 
         val = product.values.map { |s| "'#{s}'" }
         val.pop
+        val.pop
+        val.pop
+        val.pop
         val = val.join(',')
 
         values << "( #{val} )"
@@ -76,7 +83,7 @@ class Product < ActiveRecord::Base
   end
 
   def active_discount
-    discount.try(:active).try(:last)
+    discount if discount.is_active
   end
 
   def self.create_from_seed()
