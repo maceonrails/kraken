@@ -19,7 +19,7 @@ class Order < ActiveRecord::Base
   end
 
   def get_active_items
-    order_items.where("quantity > paid_quantity")
+    order_items.where("quantity > (paid_quantity + void_quantity + oc_quantity)")
   end
 
   def self.make_order(params)
@@ -36,12 +36,12 @@ class Order < ActiveRecord::Base
   def self.pay_order(params)
     save_from_servant(params)
     order = Order.find(params[:id])
-    order.transaction do
-      begin
+    # order.transaction do
+    #   begin
         params[:order_items].each do |item|
           order_item = OrderItem.find_by(order_id: params['id'], product_id: item['product_id'])
-          if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity']
-            item['pay_quantity'] = item['quantity'] - item['paid_quantity']
+          if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
+            item['pay_quantity'] = item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
           end
           item['paid_quantity'] += item['pay_quantity']
           item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
@@ -52,20 +52,16 @@ class Order < ActiveRecord::Base
 
           item['print_quantity'] = item['paid_quantity']
         end
-        unless Order.joins(:order_items).where("orders.id = ? AND quantity > paid_quantity", order.id).exists?
-          order.update waiting: false
-          # order.table.update order_id: nil if order.table
-          Table.where(order_id: order.id).update_all(order_id: nil)
-        end
+        clear_complete_order(order)
         if params['discount_amount']
           order.update(discount_amount: params['discount_amount'], discount_by: params['discount_by'])
         end
         order.do_print(params, preview: false)
         return true
-      rescue Exception => e
-        return false
-      end
-    end
+    #   rescue Exception => e
+    #     return false
+    #   end
+    # end
   end
 
   def self.void_order(order_id, user, params)
@@ -73,25 +69,39 @@ class Order < ActiveRecord::Base
     params['order_items'].each do |item|
       order_item = OrderItem.find(item['id'])
       item["void_by"] = user.id
-      item["void_quantity"] = order_item.quantity
-      item["void"] = true
-      order_item.update(item.except(:id, :price))
+      item["void_note"] = params['note']
+      item["void_quantity"] = item["pay_quantity"] + order_item.void_quantity
+      order_item.update(item.except(:id, :price, :pay_quantity))
     end
-    unless Order.joins(:order_items).where("orders.id = ? AND quantity > void_quantity", order.id).exists?
-      order.update waiting: false
-      order.table.update order_id: nil if order.table
+    clear_complete_order(order)
+    return true
+  end
+
+  def self.oc_order(order_id, user, params)
+    order = find(order_id)
+    params['order_items'].each do |item|
+      order_item = OrderItem.find(item['id'])
+      item["oc_by"] = user.id
+      item["oc_note"] = params['note']
+      item["oc_quantity"] = item["pay_quantity"] + order_item.oc_quantity
+      order_item.update(item.except(:id, :price, :pay_quantity))
     end
+    clear_complete_order(order)
     return true
   end
 
   def self.void_item(item)
     order_item = OrderItem.find(item['id'])
     order_item.update(item.except(:id, :price))
-    unless Order.joins(:order_items).where("orders.id = ? AND quantity > void_quantity", order_item.order_id).exists?
+    clear_complete_order(order_item.order)
+    return true
+  end
+
+  def self.clear_complete_order(order)
+    unless Order.joins(:order_items).where("orders.id = ? AND quantity > (void_quantity + oc_quantity + paid_quantity)", order.id).exists?
       order.update waiting: false
       order.table.update order_id: nil if order.table
     end
-    return true
   end
 
   def self.save_from_servant(params)

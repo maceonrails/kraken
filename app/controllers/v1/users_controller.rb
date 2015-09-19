@@ -39,6 +39,14 @@ class V1::UsersController < V1::BaseController
     end
   end
 
+  def authorize_for_oc
+    if user = User.can_oc?(params[:email], params[:password])
+      render json: { user: user }, status: 201
+    else
+      render json: { message: "user not authorize" }, status: 403
+    end
+  end
+
   def search
     field  = search_params[:field].downcase.to_sym
     query  = search_params[:q]

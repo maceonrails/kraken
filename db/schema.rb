@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150917145215) do
+ActiveRecord::Schema.define(version: 20150919000338) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -87,6 +87,9 @@ ActiveRecord::Schema.define(version: 20150917145215) do
     t.integer  "paid_quantity",                             default: 0
     t.integer  "printed_quantity",                          default: 0
     t.integer  "pay_quantity",                              default: 0
+    t.integer  "oc_quantity",                               default: 0
+    t.uuid     "oc_by"
+    t.string   "oc_note"
   end
 
   add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree
