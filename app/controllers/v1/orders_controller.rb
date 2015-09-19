@@ -147,14 +147,16 @@ class V1::OrdersController < V1::BaseController
 
   def search
     if params[:type]
+      puts '==========='
+      puts 'today'
       @orders = Order
                 .includes(:table, :order_items, order_items: :product)
-                .where(created_at: (Date.today-3.days).beginning_of_day..Date.today.end_of_day)
+                .where(created_at: Date.today.beginning_of_day..Date.today.end_of_day)
                 .all
       @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
-      orders = Order.joins(:table)
+      orders = Order.joins('LEFT OUTER JOIN tables on tables.id = order.table_id')
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
                     .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
       @orders = orders.page(page_params[:page]).per(10)
