@@ -72,6 +72,16 @@ class V1::OrdersController < V1::BaseController
     render json: data, status: 200
   end
 
+  def get_order_quantity
+    order = 'ASC'
+    data  = Product.joins('LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"')
+                   .select("(products.name) as name, sum(order_items.quantity) as price")
+                   .group('products.name')
+                   .order("price")
+                   .map{|o| [o.name, o.price.to_i]}
+    render json: data, status: 200
+  end
+
   def pay_order
     if Order.pay_order(pay_params)
       render json: { message: 'Ok' }, status: 201
@@ -88,8 +98,8 @@ class V1::OrdersController < V1::BaseController
         render json: { message: "create order failed" }, status: 409
       end
     else
-      render json: { message: "not verified" }, status: 409  
-    end   
+      render json: { message: "not verified" }, status: 409
+    end
   end
 
   def void_item
@@ -97,7 +107,7 @@ class V1::OrdersController < V1::BaseController
       render json: { message: 'Ok' }, status: 201
     else
       render json: { message: "create order failed" }, status: 409
-    end  
+    end
   end
 
   def make_order
@@ -207,7 +217,7 @@ class V1::OrdersController < V1::BaseController
     end
 
     def void_params
-      params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
+      params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity,
           :pay_quantity, :paid, :void_by, :note, :product_id, :price)
     end
 

@@ -45,11 +45,11 @@ class V1::UsersController < V1::BaseController
     users  = User.arel_table
     if search_params[:field] == 'Name'
       @users = User.joins(:profile)
-                   .where("profiles.name LIKE ?", "%#{query}%")
+                   .where("profiles.name ILIKE ?", "%#{query}%")
                    .page(page_params[:page])
                    .per(page_params[:page_size])
       @total = User.joins(:profile)
-                   .where("profiles.name LIKE ?", "%#{query}%")
+                   .where("profiles.name ILIKE ?", "%#{query}%")
                    .count
     elsif search_params[:field] == 'Role'
       roles  = User.roles.select {|k, v| k.include? query}.map {|k, v| v}
@@ -59,6 +59,15 @@ class V1::UsersController < V1::BaseController
                    .per(page_params[:page_size])
       @total = User.joins(:profile)
                    .where("users.role IN (?)", roles)
+                   .count
+    elsif search_params[:field] == 'Outlet'
+      roles  = User.roles.select {|k, v| k.include? query}.map {|k, v| v}
+      @users = User.joins(:outlet)
+                   .where("outlets.name ILIKE ?", "%#{query}%")
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total = User.joins(:outlet)
+                   .where("outlets.name ILIKE ?", "%#{query}%")
                    .count
     else
       @users = User.where(users[field]

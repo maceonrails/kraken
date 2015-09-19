@@ -18,6 +18,40 @@ class V1::ProductsController < V1::BaseController
     super
   end
 
+  def search
+    field  = search_params[:field].downcase.to_sym
+    query  = search_params[:q]
+    products  = Product.arel_table
+    if search_params[:field] == 'Category'
+      @products = Product.joins(product_sub_category: :product_category)
+                   .where("product_categories.name ILIKE ?", "%#{query}%")
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total    = Product.joins(product_sub_category: :product_category)
+                   .where("product_categories.name ILIKE ?", "%#{query}%")
+                   .count
+    elsif search_params[:field] == 'Sub Category'
+      @products = Product.joins(:product_sub_category)
+                   .where("product_sub_categories.name ILIKE ?", "%#{query}%")
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total    = Product.joins(:product_sub_category)
+                   .where("product_sub_categories.name ILIKE ?", "%#{query}%")
+                   .count
+    else
+      @products = Product.where(products[field]
+                   .matches("%#{query}%"))
+                   .includes(:choices, :product_sub_category)
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total    = Product.where(products[field]
+                   .matches("%#{query}%"))
+                   .count
+    end
+
+    respond_with @products
+  end
+
   def update
     encode64
     super
@@ -28,7 +62,7 @@ class V1::ProductsController < V1::BaseController
       if current_user.role == 'manager'
         params.require(:product).permit(:name, :category, :picture,
           :description, :picture_base64, :product_sub_category_id, :picture_extension, :active,
-          :price, :sold_out, :serv_category, :serv_sub_category)
+          :price, :sold_out, :serv_category, :serv_sub_category, choices: [:name, :id])
       else
           params.require(:product).permit(:name, :category, :default_price, :sold_out, :serv_category, :serv_sub_category)
       end
@@ -47,6 +81,16 @@ class V1::ProductsController < V1::BaseController
         File.open(path, 'wb') {
           |f| f.write(Base64.decode64(resource_params[:picture_base64].split('base64,').last))}
       end
+
+      # product choices
+      choice_arr = []
+      resource_params[:choices].each do |choice|
+        unless choice[:name].blank?
+          choice_obj = Choice.find_or_create_by(name: choice[:name])
+          choice_arr << choice_obj
+        end
+      end
+      resource_params[:choices] = choice_arr
 
       #product categories and params
       product_category     = ProductCategory.find_or_create_by(name: resource_params[:serv_category])
@@ -69,6 +113,6 @@ class V1::ProductsController < V1::BaseController
     end
 
     def attach_includes
-      [:choices, :product_sub_category, product_sub_category: :product_category]
+      [:choices, :product_sub_category, :discount, product_sub_category: :product_category]
     end
 end
