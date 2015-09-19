@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       collection { get 'all' }
       collection { post 'authorize_for_discount' }
       collection { post 'authorize_for_void' }
+      collection { post 'authorize_for_oc' }
     end
 
     resources :outlets do
@@ -74,6 +75,7 @@ Rails.application.routes.draw do
       member { post 'pay_order' }
       member { post 'make_order' }
       member { post 'void_order' }
+      member { post 'oc_order' }
       member { post 'void_item' }
       member { post 'print_order' }
       collection { get 'graph_by_revenue' }

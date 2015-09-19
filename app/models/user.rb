@@ -77,6 +77,10 @@ class User < ActiveRecord::Base
     authorize? email, password
   end
 
+  def self.can_oc? email, password
+    authorize? email, password
+  end
+
   private
 
     def generate_authentication_token

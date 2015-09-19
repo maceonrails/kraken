@@ -82,7 +82,27 @@ class V1::OrdersController < V1::BaseController
 
   def void_order
     if user = User.can_void?(params[:email], params[:password])
-      if Order.void_order(params[:order_id], user, pay_params)
+      if Order.void_order(params[:order_id], user, void_params)
+        render json: { message: 'Ok' }, status: 201
+      else
+        render json: { message: "create order failed" }, status: 409
+      end
+    else
+      render json: { message: "not verified" }, status: 409  
+    end   
+  end
+
+  def discount_order
+    if user = User.can_discount?(params[:email], params[:password])
+      render json: { user: user }, status: 201
+    else
+      render json: { message: "not verified" }, status: 409  
+    end
+  end
+
+  def oc_order
+    if user = User.can_oc?(params[:email], params[:password])
+      if Order.oc_order(params[:order_id], user, oc_params)
         render json: { message: 'Ok' }, status: 201
       else
         render json: { message: "create order failed" }, status: 409
@@ -93,7 +113,7 @@ class V1::OrdersController < V1::BaseController
   end
 
   def void_item
-    if Order.void_item(void_params)
+    if Order.void_item(void_item_params)
       render json: { message: 'Ok' }, status: 201
     else
       render json: { message: "create order failed" }, status: 409
@@ -206,9 +226,21 @@ class V1::OrdersController < V1::BaseController
       params.permit(:name, :waiting, :id)
     end
 
-    def void_params
+    def void_item_params
       params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
           :pay_quantity, :paid, :void_by, :note, :product_id, :price)
+    end
+
+    def void_params
+      params.permit(:id, :order_id, :servant_id, :table_id, :name, :cashier_id, :email, :password, :note,
+        order_items: [:id, :quantity, :pay_quantity, :take_away, :print_quantity, :product_id]
+      )
+    end
+
+    def oc_params
+      params.permit(:id, :order_id, :servant_id, :table_id, :name, :cashier_id, :email, :password, :note,
+        order_items: [:id, :quantity, :pay_quantity, :take_away, :print_quantity, :product_id]
+      )
     end
 
     def pay_params
