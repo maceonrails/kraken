@@ -1,5 +1,5 @@
 # config/unicorn/staging.rb
-app_path = "/home/azureuser/Project/backend/staging/current"
+app_path = "/home/bober/application/backend"
 
 worker_processes   1
 preload_app        true
@@ -8,7 +8,8 @@ listen             '0.0.0.0:9000'
 listen             '0.0.0.0:9001'
 listen             '0.0.0.0:9002'
 listen             '0.0.0.0:9003'
-user               'azureuser', 'azureuser'
+listen		   '0.0.0.0:9004'
+user               'bober', 'bober'
 working_directory  app_path
 pid                "#{app_path}/tmp/pids/unicorn.pid"
 stderr_path        "log/unicorn.log"

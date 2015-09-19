@@ -422,6 +422,9 @@ class Order < ActiveRecord::Base
         printer.puts text
         printer.close
       rescue Exception => e
+	puts '======================'
+	puts e.inspect
+	puts '=================='
         begin
           printer = Printer.where.not(default: true).first
           fd = IO.sysopen(printer.printer, 'w+')
@@ -429,6 +432,9 @@ class Order < ActiveRecord::Base
           printer.puts text
           printer.close
         rescue Exception => e
+	  puts '====================='
+	  puts e.inspect 
+ 	  puts '====================='
           succeed = false
         end
       end
