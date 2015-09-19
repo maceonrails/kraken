@@ -83,7 +83,7 @@ class Product < ActiveRecord::Base
   end
 
   def active_discount
-    discount.try(:active).try(:last)
+    discount if discount.is_active
   end
 
   def self.create_from_seed()
