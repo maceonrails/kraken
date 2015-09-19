@@ -156,7 +156,7 @@ class V1::OrdersController < V1::BaseController
       @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
-      orders = Order.joins('LEFT OUTER JOIN tables on tables.id = order.table_id')
+      orders = Order.joins('LEFT OUTER JOIN "tables" on "tables"."id" = "orders"."table_id"')
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
                     .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
       @orders = orders.page(page_params[:page]).per(10)
