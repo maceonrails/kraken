@@ -112,17 +112,17 @@ class Order < ActiveRecord::Base
         order = Order.create
       end
 
+      order.name = params['name'] if params['name'].present?
+      order.table_id = params['table_id'] if params['table_id'].present?
+      order.servant_id = params['servant_id'] if params['servant_id'].present?
+      order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
+      order.person = params['person'] if params['person'].present?
+
       #save or update order
-      order.update(
-        name: params['name'],
-        table_id: params['table_id'],
-        servant_id: params['servant_id'],
-        person: params['person'],
-        cashier_id: params['cashier_id']
-      )
+      order.save!
 
       # update table data with order id
-      Table.update(params['table_id'], order_id: order.id) if params['table_id']
+      Table.update(params['table_id'], order_id: order.id) if params['table_id'].present?
 
       #get taxs
       taxs  = Outlet.first.taxs;
@@ -407,8 +407,6 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << center(false)
     text << "\n\n\n\n\n\n\n"
-
-    binding.pry
 
     succeed = true
     puts "==================="
