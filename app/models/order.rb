@@ -232,7 +232,7 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << center(false)
     text << "PAX: "
-    text << order.person.to_i == 0 ? '1' : order.person.to_i.to_s
+    text << order.person.to_i.to_s
     text << 9.chr
     text << right(true)
     text << "Cashier: "
