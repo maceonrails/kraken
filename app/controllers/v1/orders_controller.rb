@@ -28,9 +28,12 @@ class V1::OrdersController < V1::BaseController
     when 'this_month'
       date_start = date.beginning_of_month
       date_end   = date.end_of_month
-    else
+    when 'this_week'
       date_start = date.beginning_of_week
       date_end   = date.end_of_week
+    else
+      date_start = date.beginning_of_day
+      date_end   = date.end_of_day
     end
     data = Order
             .joins(:order_items)
@@ -59,9 +62,12 @@ class V1::OrdersController < V1::BaseController
     when 'this_month'
       date_start = date.beginning_of_month
       date_end   = date.end_of_month
-    else
+    when 'this_week'
       date_start = date.beginning_of_week
       date_end   = date.end_of_week
+    else
+      date_start = date.beginning_of_day
+      date_end   = date.end_of_day
     end
     data = Order
             .joins(:order_items)
@@ -98,15 +104,15 @@ class V1::OrdersController < V1::BaseController
         render json: { message: "create order failed" }, status: 409
       end
     else
-      render json: { message: "not verified" }, status: 409  
-    end   
+      render json: { message: "not verified" }, status: 409
+    end
   end
 
   def discount_order
     if user = User.can_discount?(params[:email], params[:password])
       render json: { user: user }, status: 201
     else
-      render json: { message: "not verified" }, status: 409  
+      render json: { message: "not verified" }, status: 409
     end
   end
 
@@ -239,7 +245,7 @@ class V1::OrdersController < V1::BaseController
     end
 
     def void_item_params
-      params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, 
+      params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity,
           :pay_quantity, :paid, :void_by, :note, :product_id, :price)
     end
 
