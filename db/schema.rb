@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150919000338) do
+ActiveRecord::Schema.define(version: 20150920021055) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -76,9 +76,6 @@ ActiveRecord::Schema.define(version: 20150919000338) do
     t.datetime "created_at",                                                null: false
     t.datetime "updated_at",                                                null: false
     t.boolean  "paid",                                      default: false
-    t.decimal  "paid_amount",      precision: 10, scale: 2
-    t.decimal  "tax_amount",       precision: 10, scale: 2
-    t.decimal  "discount_amount",  precision: 5,  scale: 2
     t.string   "void_note"
     t.integer  "void_quantity",                             default: 0
     t.string   "saved_choice"
@@ -90,6 +87,9 @@ ActiveRecord::Schema.define(version: 20150919000338) do
     t.integer  "oc_quantity",                               default: 0
     t.uuid     "oc_by"
     t.string   "oc_note"
+    t.decimal  "paid_amount",      precision: 25, scale: 2
+    t.decimal  "tax_amount",       precision: 25, scale: 2
+    t.decimal  "discount_amount",  precision: 25, scale: 2
   end
 
   add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree
@@ -102,11 +102,11 @@ ActiveRecord::Schema.define(version: 20150919000338) do
     t.datetime "updated_at",                                               null: false
     t.boolean  "waiting",                                   default: true
     t.integer  "queue_number"
-    t.decimal  "discount_amount",  precision: 10, scale: 2
-    t.decimal  "discount_percent", precision: 5,  scale: 2
     t.uuid     "discount_by"
     t.integer  "person"
     t.integer  "cashier_id"
+    t.decimal  "discount_amount",  precision: 25, scale: 2
+    t.decimal  "discount_percent", precision: 25, scale: 2
   end
 
   create_table "outlets", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -124,12 +124,12 @@ ActiveRecord::Schema.define(version: 20150919000338) do
   create_table "payments", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.uuid     "order_id"
     t.string   "payment_type"
-    t.decimal  "amount",       precision: 10, scale: 2
-    t.decimal  "discount",     precision: 10, scale: 2
     t.boolean  "void"
     t.string   "note"
     t.datetime "created_at",                            null: false
     t.datetime "updated_at",                            null: false
+    t.decimal  "amount",       precision: 25, scale: 2
+    t.decimal  "discount",     precision: 25, scale: 2
   end
 
   create_table "printers", force: :cascade do |t|
@@ -201,10 +201,10 @@ ActiveRecord::Schema.define(version: 20150919000338) do
     t.string   "picture_extension"
     t.text     "picture_base64"
     t.uuid     "product_sub_category_id"
-    t.decimal  "price",                   precision: 10, scale: 2
-    t.decimal  "default_price",           precision: 10, scale: 2
     t.boolean  "available",                                        default: true
     t.boolean  "sold_out"
+    t.decimal  "price",                   precision: 25, scale: 2
+    t.decimal  "default_price",           precision: 25, scale: 2
   end
 
   add_index "products", ["active"], name: "index_products_on_active", using: :btree

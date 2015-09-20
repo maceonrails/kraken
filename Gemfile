@@ -23,6 +23,8 @@ gem 'httparty'
 gem 'whenever', require: false
 gem 'rufus-scheduler'
 
+gem 'yajl-ruby'
+
 gem 'mina-unicorn', :require => false
 
 group :development do

@@ -168,6 +168,7 @@ GEM
     websocket (1.2.2)
     whenever (0.9.4)
       chronic (>= 0.6.3)
+    yajl-ruby (1.2.1)
 
 PLATFORMS
   ruby
@@ -199,3 +200,4 @@ DEPENDENCIES
   unicorn
   validates_email_format_of
   whenever
+  yajl-ruby

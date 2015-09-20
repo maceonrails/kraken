@@ -100,7 +100,7 @@ class Order < ActiveRecord::Base
   def self.clear_complete_order(order)
     unless Order.joins(:order_items).where("orders.id = ? AND quantity > (void_quantity + oc_quantity + paid_quantity)", order.id).exists?
       order.update waiting: false
-      order.table.update order_id: nil if order.table
+      Table.where(order_id: order.id).update_all(order_id: nil) if order.table
     end
   end
 
@@ -232,7 +232,7 @@ class Order < ActiveRecord::Base
     text << emphasized(false)
     text << center(false)
     text << "PAX: "
-    text << order.person.to_i.to_s
+    text << order.person.to_i == 0 ? '1' : order.person.to_i.to_s
     text << 9.chr
     text << right(true)
     text << "Cashier: "
@@ -294,11 +294,22 @@ class Order < ActiveRecord::Base
       end
     end
 
+    if params[:discount_amount] && params[:discount_amount].to_i > 0
+      discount_total += params[:discount_amount].to_i
+      text << "  ORDER DISCOUNTS"
+      text << 9.chr
+      text << right(true)
+      text << " - "
+      text << number_to_currency(params[:discount_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << "\n"
+    end
+
     text << center(true)
     text << line
     text << center(false)
 
-    text << "  SUBTOTAL"
+    text << "  TOTAL"
     text << 9.chr
     text << right(true)
     text << number_to_currency(sub_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
@@ -306,37 +317,22 @@ class Order < ActiveRecord::Base
     text << "\n"
 
     if discount_total > 0
-
-      if order.discount_amount && order.discount_amount.to_i > 0
-        discount_total += order.discount_amount.to_i
-        text << "  ORDER DISCOUNTS"
-        text << 9.chr
-        text << right(true)
-        text << " - "
-        text << number_to_currency(order.discount_amount.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-        text << right(false)
-        text << "\n"
-      end
-
-      if order.discount_percent && order.discount_percent.to_i > 0
-        percentage = order.discount_percent.to_f / 100
-        ord_dsc    = (percentage * sub_total).to_i
-
-        discount_total += ord_dsc.to_i
-        text << "  ORDER DISCOUNTS"
-        text << 9.chr
-        text << right(true)
-        text << " - "
-        text << number_to_currency(ord_dsc.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-        text << right(false)
-        text << "\n"
-      end
-
       text << "  TOTAL DISCOUNTS"
       text << 9.chr
       text << right(true)
       text << " - "
       text << number_to_currency(discount_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << "\n"
+
+      text << center(true)
+      text << line
+      text << center(false)
+
+      text << ""
+      text << 9.chr
+      text << right(true)
+      text << number_to_currency((sub_total - discount_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << "\n"
     end
@@ -368,7 +364,7 @@ class Order < ActiveRecord::Base
     text << center(false)
 
     text << emphasized(true)
-    text << "  TOTAL"
+    text << "  GRAND TOTAL"
     text << 9.chr
     text << right(true)
     grand_total += taxs
@@ -412,16 +408,26 @@ class Order < ActiveRecord::Base
     text << center(false)
     text << "\n\n\n\n\n\n\n"
 
-    succeed = true
+    binding.pry
 
+    succeed = true
+    puts "==================="
+    puts "start printing "
+    puts "\n"
+    puts sub_total.to_s
     if sub_total > 0
       begin
         printer = Printer.where(default: true).first
+        puts printer.inspect
+        puts "========================"
         fd = IO.sysopen(printer.printer, 'w+')
         printer = IO.new(fd)
         printer.puts text
         printer.close
       rescue Exception => e
+	puts '======================'
+	puts e.inspect
+	puts '=================='
         begin
           printer = Printer.where.not(default: true).first
           fd = IO.sysopen(printer.printer, 'w+')
@@ -429,6 +435,9 @@ class Order < ActiveRecord::Base
           printer.puts text
           printer.close
         rescue Exception => e
+	  puts '====================='
+	  puts e.inspect
+ 	  puts '====================='
           succeed = false
         end
       end

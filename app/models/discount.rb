@@ -5,7 +5,11 @@ class Discount < ActiveRecord::Base
   scope :active, -> { where("DATE(start_date) <= ? AND DATE(end_date) >= ?", Date.today, Date.today) }
 
   def is_active
-    self.start_date.to_date <= Date.today && self.end_date.to_date >= Date.today
+    if self.start_date && self.end_date
+      self.start_date.to_date <= Date.today && self.end_date.to_date >= Date.today
+    else 
+      true
+    end	
   end
 
   def self.sync(discounts)
@@ -20,6 +24,8 @@ class Discount < ActiveRecord::Base
     values = []
 
     discounts.each do |discount|
+      discount[:start_date] = discount[:start_date].to_datetime
+      discount[:end_date]   = discount[:end_date].to_datetime.end_of_day
       val = discount.values.map { |s| "'#{s}'" }
       val.pop
       val = val.join(',')

@@ -30,6 +30,7 @@ class User < ActiveRecord::Base
          :recoverable, :rememberable, :trackable, :validatable
 
   has_one :profile, :autosave => true
+  belongs_to :outlet
   accepts_nested_attributes_for :profile
 
   before_save  :ensure_authentication_token
