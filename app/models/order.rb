@@ -100,7 +100,7 @@ class Order < ActiveRecord::Base
   def self.clear_complete_order(order)
     unless Order.joins(:order_items).where("orders.id = ? AND quantity > (void_quantity + oc_quantity + paid_quantity)", order.id).exists?
       order.update waiting: false
-      order.table.update order_id: nil if order.table
+      Table.where(order_id: order.id).update_all(order_id: nil) if order.table
     end
   end
 
@@ -433,7 +433,7 @@ class Order < ActiveRecord::Base
           printer.close
         rescue Exception => e
 	  puts '====================='
-	  puts e.inspect 
+	  puts e.inspect
  	  puts '====================='
           succeed = false
         end
