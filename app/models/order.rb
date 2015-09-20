@@ -408,8 +408,6 @@ class Order < ActiveRecord::Base
     text << center(false)
     text << "\n\n\n\n\n\n\n"
 
-    binding.pry
-
     succeed = true
     puts "==================="
     puts "start printing "
