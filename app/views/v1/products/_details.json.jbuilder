@@ -3,7 +3,7 @@ json.name           product.name
 json.description    product.description
 json.category       product.product_sub_category.name
 json.default_price  product.default_price
-json.price          product.price - product.active_discount.try(:amount).to_i
+json.price          product.price - product.active_discount.try(:amount).to_i rescue 0
 json.discount       product.active_discount.try(:amount).to_i
 json.default_price  product.price
 json.picture        request.protocol + request.host_with_port + product.picture
