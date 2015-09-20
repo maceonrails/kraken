@@ -294,11 +294,22 @@ class Order < ActiveRecord::Base
       end
     end
 
+    if params[:discount_amount] && params[:discount_amount].to_i > 0
+      discount_total += params[:discount_amount].to_i
+      text << "  ORDER DISCOUNTS"
+      text << 9.chr
+      text << right(true)
+      text << " - "
+      text << number_to_currency(params[:discount_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << "\n"
+    end
+
     text << center(true)
     text << line
     text << center(false)
 
-    text << "  SUBTOTAL"
+    text << "  TOTAL"
     text << 9.chr
     text << right(true)
     text << number_to_currency(sub_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
@@ -306,37 +317,22 @@ class Order < ActiveRecord::Base
     text << "\n"
 
     if discount_total > 0
-
-      if order.discount_amount && order.discount_amount.to_i > 0
-        discount_total += order.discount_amount.to_i
-        text << "  ORDER DISCOUNTS"
-        text << 9.chr
-        text << right(true)
-        text << " - "
-        text << number_to_currency(order.discount_amount.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-        text << right(false)
-        text << "\n"
-      end
-
-      if order.discount_percent && order.discount_percent.to_i > 0
-        percentage = order.discount_percent.to_f / 100
-        ord_dsc    = (percentage * sub_total).to_i
-
-        discount_total += ord_dsc.to_i
-        text << "  ORDER DISCOUNTS"
-        text << 9.chr
-        text << right(true)
-        text << " - "
-        text << number_to_currency(ord_dsc.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-        text << right(false)
-        text << "\n"
-      end
-
       text << "  TOTAL DISCOUNTS"
       text << 9.chr
       text << right(true)
       text << " - "
       text << number_to_currency(discount_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << right(false)
+      text << "\n"
+
+      text << center(true)
+      text << line
+      text << center(false)
+
+      text << ""
+      text << 9.chr
+      text << right(true)
+      text << number_to_currency((sub_total - discount_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << "\n"
     end
@@ -368,7 +364,7 @@ class Order < ActiveRecord::Base
     text << center(false)
 
     text << emphasized(true)
-    text << "  TOTAL"
+    text << "  GRAND TOTAL"
     text << 9.chr
     text << right(true)
     grand_total += taxs
