@@ -24,6 +24,8 @@ class Discount < ActiveRecord::Base
     values = []
 
     discounts.each do |discount|
+      discount[:start_date] = discount[:start_date].to_datetime
+      discount[:end_date]   = discount[:end_date].to_datetime.end_of_day
       val = discount.values.map { |s| "'#{s}'" }
       val.pop
       val = val.join(',')

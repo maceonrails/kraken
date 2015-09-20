@@ -124,7 +124,9 @@ class V1::BaseController < ApplicationController
       users = sync_params[:users]
       ids   = users.collect{|u| u[:id]}
       User.where.not(role: 3).where.not(id: ids).destroy_all
+      outlet = Outlet.first
       users.each do |user|
+        user[:outlet] = outlet
         if !User.where(id: user[:id]).blank?
           User.update user[:id], role: user[:role]
         else

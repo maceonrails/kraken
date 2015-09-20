@@ -408,11 +408,18 @@ class Order < ActiveRecord::Base
     text << center(false)
     text << "\n\n\n\n\n\n\n"
 
-    succeed = true
+    binding.pry
 
+    succeed = true
+    puts "==================="
+    puts "start printing "
+    puts "\n"
+    puts sub_total.to_s
     if sub_total > 0
       begin
         printer = Printer.where(default: true).first
+        puts printer.inspect
+        puts "========================"
         fd = IO.sysopen(printer.printer, 'w+')
         printer = IO.new(fd)
         printer.puts text
