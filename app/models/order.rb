@@ -8,10 +8,18 @@ class Order < ActiveRecord::Base
   belongs_to :cashier, class_name: 'User', foreign_key: 'cashier_id'
 
   before_create :set_queue
+  before_create :set_struck_id
 
   def set_queue
     last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
-    self.queue_number = (last_order.try(:queue_number) || 0) + 1
+    self.queue_number = (last_order.try(:queue_number) || 0) + 1 if self.take_away
+  end
+
+  def set_struck_id
+    holder = '0000000'
+    orders = Order.where("created_at >= ?", Time.zone.now.beginning_of_day).count + 1
+    orders = holder[0..(holder.length - orders.to_s.length)] + orders.to_s
+    self.struck_id = 'BT-' + orders + '-' + Time.now.strftime('%d/%m/%Y') 
   end
 
   def self.get_waiting_orders
@@ -217,7 +225,13 @@ class Order < ActiveRecord::Base
 
     text << outlet.name.to_s + "\n"
     text << outlet.address.to_s.gsub!("\n", " ").to_s + "\n"
-    text << "Telp:" + outlet.phone.to_s + "/" + outlet.mobile.to_s + "\n"
+    text << "Telp:" + outlet.phone.to_s 
+    if outlet.mobile 
+      text << "/" + outlet.mobile.to_s + "\n" 
+    else
+      text << "\n"
+    end
+
     text << "\n"
     text << emphasized(true)
     if order.table
@@ -227,28 +241,22 @@ class Order < ActiveRecord::Base
       text << "Take Away\n"
     end
 
-    text << Time.now.strftime("%d %B %Y").to_s + "\n"
+    text << Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
 
     text << emphasized(false)
     text << center(false)
-    text << "PAX: "
-    text << order.person.to_i.to_s
-    text << 9.chr
-    text << right(true)
-    text << "Cashier: "
-    text << (order.cashier.try(:profile).try(:name) || order.cashier.try(:email) || outlet.name)
-    text << right(false)
-    text << "\n"
-
-    text << emphasized(false)
-    text << center(false)
-    text << "Cust: "
+    text << "Receipt ID      : "
+    text << order.struck_id.to_s
+    text << "/n"
+    text << "Customer        : "
     text << order.name.to_s
-    text << 9.chr
-    text << right(true)
-    text << "Serv: "
+    text << " / "
+    text << order.person.to_i == 0 ? '1' : order.person.to_i.to_s
+    text << "\n"
+    text << "Servant/Cashier : "
     text << (order.server.try(:profile).try(:name) || order.server.try(:email) || outlet.name)
-    text << right(false)
+    text << " / "
+    text << (order.cashier.try(:profile).try(:name) || order.cashier.try(:email) || outlet.name)
     text << "\n"
 
     text << center(true)
