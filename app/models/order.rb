@@ -12,11 +12,11 @@ class Order < ActiveRecord::Base
 
   def set_queue
     last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
-    self.queue_number = (last_order.try(:queue_number) || 0) + 1 if self.take_away
+    self.queue_number = (last_order.try(:queue_number) || 0) + 1 if self.table_id.blank?
   end
 
   def set_struck_id
-    holder = '0000000'
+    holder = '0000'
     orders = Order.where("created_at >= ?", Time.zone.now.beginning_of_day).count + 1
     orders = holder[0..(holder.length - orders.to_s.length)] + orders.to_s
     self.struck_id = 'BT-' + orders + '-' + Time.now.strftime('%d/%m/%Y') 
@@ -245,15 +245,15 @@ class Order < ActiveRecord::Base
 
     text << emphasized(false)
     text << center(false)
-    text << "Receipt ID      : "
+    text << "Receipt ID  : "
     text << order.struck_id.to_s
-    text << "/n"
-    text << "Customer        : "
+    text << "\n"
+    text << "Customer    : "
     text << order.name.to_s
     text << " / "
-    text << order.person.to_i == 0 ? '1' : order.person.to_i.to_s
+    text << order.person.to_i
     text << "\n"
-    text << "Servant/Cashier : "
+    text << "Serv/Cashier: "
     text << (order.server.try(:profile).try(:name) || order.server.try(:email) || outlet.name)
     text << " / "
     text << (order.cashier.try(:profile).try(:name) || order.cashier.try(:email) || outlet.name)
