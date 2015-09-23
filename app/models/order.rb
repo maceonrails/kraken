@@ -225,7 +225,7 @@ class Order < ActiveRecord::Base
 
     text << outlet.name.to_s + "\n"
     text << outlet.address.to_s.gsub!("\n", " ").to_s + "\n"
-    text << "Telp:" + outlet.phone.to_s 
+    text << "Telp: 0" + outlet.phone.to_s 
     if outlet.mobile 
       text << "/" + outlet.mobile.to_s + "\n" 
     else
@@ -251,7 +251,7 @@ class Order < ActiveRecord::Base
     text << "Customer    : "
     text << order.name.to_s
     text << " / "
-    text << order.person.to_i
+    text << order.person.to_i.to_s
     text << "\n"
     text << "Serv/Cashier: "
     text << (order.server.try(:profile).try(:name) || order.server.try(:email) || outlet.name)
