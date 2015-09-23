@@ -10,6 +10,16 @@ class V1::OrdersController < V1::BaseController
     render json: @orders, status: 201
   end
 
+  def toggle_served
+    order = Order.find(params[:id])
+    order.toggle :created 
+    if order.save
+      render json: order, status: 201
+    else
+      render json: order, status: 409
+    end
+  end
+
   def graph_by_revenue
     date  = Date.today
     case params[:timeframe]

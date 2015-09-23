@@ -78,6 +78,7 @@ Rails.application.routes.draw do
       member { post 'oc_order' }
       member { post 'void_item' }
       member { post 'print_order' }
+      member { put 'toggle_served'}
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
       collection { get 'get_order_quantity' }
