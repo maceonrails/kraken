@@ -34,8 +34,14 @@ class V1::BaseController < ApplicationController
 
   # DELETE /api/{plural_resource_name}/1
   def destroy
-    get_resource.destroy
-    head :no_content
+    begin
+      get_resource.destroy
+      head :no_content
+    rescue => e
+      relations = resource_class.reflect_on_all_associations.map { |e| e.name.to_s }
+      error_msg = "Cannot deactive/delete #{resource_name}, still have link with the following: #{relations.join(',')}"
+      render json: { message: error_msg }, status: 409
+    end
   end
 
   def search
@@ -73,14 +79,16 @@ class V1::BaseController < ApplicationController
   end
 
   # GET /api/{plural_resource_name}/all
-  def all
+  def all(render_auto = true)
     plural_resource_name = "@#{resource_name.pluralize}"
     resources = resource_class.where(query_params)
     resources = resources.includes(attach_includes) if attach_includes
 
     instance_variable_set(plural_resource_name, resources)
-    respond_with(instance_variable_get(plural_resource_name)) do |format|
-      format.json { render :index }
+    if render_auto
+      respond_with(instance_variable_get(plural_resource_name)) do |format|
+        format.json { render :index }
+      end
     end
   end
 
