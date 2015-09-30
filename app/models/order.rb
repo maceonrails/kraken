@@ -10,6 +10,11 @@ class Order < ActiveRecord::Base
   before_create :set_queue
   before_create :set_struck_id
 
+  scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
+  scope :latest, -> { order(updated_at: :desc) }
+  scope :histories, -> { where("orders.waiting IS NOT TRUE").latest }
+  scope :search, -> (query) { where('name ILIKE ? OR struck_id ILIKE ?', '%' + query + '%') if query }
+
   def set_queue
     last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
     self.queue_number = (last_order.try(:queue_number) || 0) + 1 if self.table_id.blank?
@@ -22,12 +27,8 @@ class Order < ActiveRecord::Base
     self.struck_id = 'BT-' + orders + '-' + Time.now.strftime('%d/%m/%Y') 
   end
 
-  def self.get_waiting_orders
-    where("orders.table_id IS NULL AND orders.waiting IS TRUE")
-  end
-
   def get_active_items
-    order_items.where("quantity > (paid_quantity + void_quantity + oc_quantity)")
+    waiting ? order_items.where("quantity > (paid_quantity + void_quantity + oc_quantity)") : order_items
   end
 
   def self.make_order(params)
@@ -178,7 +179,7 @@ class Order < ActiveRecord::Base
           discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
           take_away:        prd['take_away'],
-          saved_choice:     prd['choice'],
+          saved_choice:     prd['choice'] || prd['saved_choice'],
           void_by:          prd['void_by'],
           pay_quantity:     prd['pay_quantity'] || 0
         )

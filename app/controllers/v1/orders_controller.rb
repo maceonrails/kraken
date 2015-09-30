@@ -6,7 +6,12 @@ class V1::OrdersController < V1::BaseController
   end
 
   def waiting_orders
-    @orders = Order.get_waiting_orders
+    @orders = Order.waiting_orders
+    render json: @orders, status: 201
+  end
+
+  def history_orders
+    @orders = Order.histories.search(params[:q]).page(page_params[:page]).per(page_params[:page_size])
     render json: @orders, status: 201
   end
 
