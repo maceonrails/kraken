@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150920084658) do
+ActiveRecord::Schema.define(version: 20150923081003) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -98,8 +98,8 @@ ActiveRecord::Schema.define(version: 20150920084658) do
     t.string   "name"
     t.uuid     "table_id"
     t.uuid     "servant_id"
-    t.datetime "created_at",                                               null: false
-    t.datetime "updated_at",                                               null: false
+    t.datetime "created_at",                                                null: false
+    t.datetime "updated_at",                                                null: false
     t.boolean  "waiting",                                   default: true
     t.integer  "queue_number"
     t.uuid     "discount_by"
@@ -108,6 +108,7 @@ ActiveRecord::Schema.define(version: 20150920084658) do
     t.decimal  "discount_percent", precision: 25, scale: 2
     t.uuid     "cashier_id"
     t.string   "struck_id"
+    t.boolean  "created",                                   default: false
   end
 
   add_index "orders", ["struck_id"], name: "index_orders_on_struck_id", using: :btree
