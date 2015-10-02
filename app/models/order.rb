@@ -13,7 +13,7 @@ class Order < ActiveRecord::Base
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }
   scope :histories, -> { where("orders.waiting IS NOT TRUE").latest }
-  scope :search, -> (query) { where('name ILIKE ? OR struck_id ILIKE ?', '%' + query + '%') if query }
+  scope :search, -> (query) { where('name || struck_id ILIKE :q', q: "%#{query}%") if query }
 
   def set_queue
     last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
