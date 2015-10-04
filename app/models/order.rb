@@ -13,7 +13,17 @@ class Order < ActiveRecord::Base
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }
   scope :histories, -> { where("orders.waiting IS NOT TRUE").latest }
-  scope :search, -> (query) { where('name || struck_id ILIKE :q', q: "%#{query}%") if query }
+  scope :search, -> (query) do 
+    if query
+      if query.downcase.include?("table")
+        joins(:table).where('tables.name ILIKE :q', q: "%#{query.split(" ").last}%")
+      elsif query.downcase.include?("queue")
+        where('queue_number::text ILIKE :q', q: "%#{query.split(" ").last}%") 
+      else 
+        where('name || struck_id ILIKE :q', q: "%#{query}%")
+      end
+    end
+  end
 
   def set_queue
     last_order = Order.order(:created_at).where("created_at >= ?", Time.zone.now.beginning_of_day).last
@@ -126,6 +136,7 @@ class Order < ActiveRecord::Base
       order.servant_id = params['servant_id'] if params['servant_id'].present?
       order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
       order.person = params['person'] if params['person'].present?
+      order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
 
       #save or update order
       order.save!
@@ -153,10 +164,10 @@ class Order < ActiveRecord::Base
         orderItem.product_id = product_id
         product = Product.find_by_id(product_id)
 
-        discount      = product.active_discount
+        discount      = product.discounts.find_by_id(prd['discount_id'])
         discount      = discount.nil? ? 0 : discount.amount.to_i
         dsc_qty       = discount * prd['quantity'].to_i
-        prices        = orderItem.product.price.to_i * prd['quantity'].to_i
+        prices        = product.price.to_i * prd['quantity'].to_i
         prices        = prices - dsc_qty
 
         # prices = prd['price'].to_i * prd['quantity'].to_i
@@ -176,6 +187,7 @@ class Order < ActiveRecord::Base
           void:             prd['void'],
           paid_amount:      (tax_component + prices),
           tax_amount:       tax_component,
+          discount_id:      prd['discount_id'],
           discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
           take_away:        prd['take_away'],
@@ -196,28 +208,6 @@ class Order < ActiveRecord::Base
   # end
 
   def do_print(params, opts = { preview: true })
-    #  params = {
-    #  "id"=>"af85849c-315e-4312-b789-e73c42e24e98",
-    #  "servant_id"=>nil,
-    #  "table_id"=>nil,
-    #  "name"=>"cek",
-    #  "discount_amount"=>0,
-    #  "cash_amount"=>0,
-    #  "order_items"=>
-    #   [{"id"=>"3795a944-ffb7-4258-bddf-4fe52074009e",
-    #     "quantity"=>2,
-    #     "print_quantity"=>2,
-    #     "take_away"=>nil,
-    #     "void"=>nil,
-    #     "void_note"=>nil,
-    #     "saved_choice"=>nil,
-    #     "paid_quantity"=>0,
-    #     "pay_quantity"=>0,
-    #     "paid"=>false,
-    #     "void_by"=>nil,
-    #     "note"=>nil,
-    #     "product_id"=>"d0841ed1-a218-4de4-8f05-e63b270c384e",
-    #     "price"=>"13500.0"}]
     params = recursive_symbolize_keys params
     outlet = Outlet.first
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
@@ -290,11 +280,11 @@ class Order < ActiveRecord::Base
         text << right(false)
         text << "\n"
 
-        if item.product.discount && item.product.discount.is_active
-          text << "   Discount: " + item.product.discount.name.to_s
+        if item.discount
+          text << "   Discount: " + item.discount.name.to_s
           text << 9.chr
           text << right(true)
-          disc_pric = item.product.discount.amount.to_i * print_qty
+          disc_pric = item.discount.amount.to_i * print_qty
           text << number_to_currency(disc_pric, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
           text << right(false)
           text << "\n"

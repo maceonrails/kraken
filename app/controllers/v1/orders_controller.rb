@@ -279,7 +279,7 @@ class V1::OrdersController < V1::BaseController
     def pay_params
       params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :cash_amount, :void, :cashier_id,
         order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, :print_quantity,
-          :pay_quantity, :paid, :void_by, :note, :product_id, :price]
+          :pay_quantity, :paid, :void_by, :note, :product_id, :price, :discount_id]
       )
     end
 

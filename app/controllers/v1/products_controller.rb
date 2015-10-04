@@ -113,6 +113,6 @@ class V1::ProductsController < V1::BaseController
     end
 
     def attach_includes
-      [:choices, :product_sub_category, :discount, product_sub_category: :product_category]
+      [:choices, :product_sub_category, :discounts, product_sub_category: :product_category]
     end
 end
