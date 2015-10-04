@@ -19,8 +19,9 @@ class Product < ActiveRecord::Base
 
   belongs_to :product_sub_category
   has_many :product_choices
+  has_many :product_discounts
   has_many :choices, through: :product_choices
-  has_one :discount
+  has_many :discounts, through: :product_discounts
   has_many :order_items
 
   accepts_nested_attributes_for :product_choices
@@ -83,10 +84,18 @@ class Product < ActiveRecord::Base
   end
 
   def active_discount
-    discount if discount.try(:is_active)
+    discounts.active
   end
 
   def self.create_from_seed()
 
+  end
+
+  def create_discount opts = {}
+    opts[:name] ||= "Discount #{Time.now.to_date}"
+    opts[:start_date] ||= Time.now
+    opts[:end_date] ||= 1.week.from_now
+    opts[:amount] ||= self.price * 0.1
+    self.discounts.create opts
   end
 end
