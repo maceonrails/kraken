@@ -72,9 +72,14 @@ class Order < ActiveRecord::Base
           item['print_quantity'] = item['paid_quantity']
         end
         clear_complete_order(order)
-        if params['discount_amount']
-          order.update(discount_amount: params['discount_amount'], discount_by: params['discount_by'])
+        if params['discount_amount'] 
+          order.update(
+            discount_amount: params['discount_amount'], 
+            discount_percent: params['discount_percent'], 
+            discount_by: params['discount_by']
+          )
         end
+
         order.do_print(params, preview: false)
         return true
     #   rescue Exception => e
@@ -137,6 +142,7 @@ class Order < ActiveRecord::Base
       order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
       order.person = params['person'] if params['person'].present?
       order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
+      order.discount_percent = params['discount_percent'] if params['discount_amount'].present?
 
       #save or update order
       order.save!
