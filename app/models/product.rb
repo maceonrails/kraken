@@ -28,9 +28,10 @@ class Product < ActiveRecord::Base
   accepts_nested_attributes_for :choices
 
   def self.sync(products)
-    self.unscoped.delete_all
     Choice.delete_all
     ProductChoice.delete_all
+    ProductDiscount.delete_all
+    self.unscoped.delete_all
 
     keys   = products.first.keys
 
@@ -57,20 +58,26 @@ class Product < ActiveRecord::Base
         require 'open-uri'
         path.gsub!('%2B', '')
         open(path, 'wb') do |file|
-          file << open(product[:picture]).read
+          file << open(product[:picture]).read rescue true
         end
 
         filename.gsub!('%2B', '')
         product[:picture] = '/uploads'+filename
 
-        val = product.values.map { |s| "'#{s}'" }
-        val.pop
-        val.pop
-        val.pop
-        val.pop
-        val = val.join(',')
+        # val = product.values.map { |s| "'#{s}'" }
+        # val.pop
+        # val.pop
+        # val.pop
+        # val.pop
+        product.delete(:available)
+        product.delete(:choices)
+        product.delete(:serv_category)
+        product.delete(:serv_sub_category)
 
-        values << "( #{val} )"
+        # val = val.join(',')
+
+        # values << "( #{val} )"
+        Product.create!(product.permit!)
 
         # create choices
         product['choices'].each do |choice|
@@ -79,8 +86,8 @@ class Product < ActiveRecord::Base
         end unless product['choices'].nil?
     end
 
-    sql = "INSERT INTO products (#{keys} ) VALUES #{values.join(", ")}"
-    self.connection.execute sql
+    # sql = "INSERT INTO products (#{keys} ) VALUES #{values.join(", ")}"
+    # self.connection.execute sql
   end
 
   def active_discount

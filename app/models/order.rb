@@ -13,13 +13,13 @@ class Order < ActiveRecord::Base
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }
   scope :histories, -> { where("orders.waiting IS NOT TRUE").latest }
-  scope :search, -> (query) do 
+  scope :search, -> (query) do
     if query
       if query.downcase.include?("table")
         joins(:table).where('tables.name ILIKE :q', q: "%#{query.split(" ").last}%")
       elsif query.downcase.include?("queue")
-        where('queue_number::text ILIKE :q', q: "%#{query.split(" ").last}%") 
-      else 
+        where('queue_number::text ILIKE :q', q: "%#{query.split(" ").last}%")
+      else
         where('name || struck_id ILIKE :q', q: "%#{query}%")
       end
     end
@@ -34,7 +34,7 @@ class Order < ActiveRecord::Base
     holder = '0000'
     orders = Order.where("created_at >= ?", Time.zone.now.beginning_of_day).count + 1
     orders = holder[0..(holder.length - orders.to_s.length)] + orders.to_s
-    self.struck_id = 'BT-' + orders + '-' + Time.now.strftime('%d/%m/%Y') 
+    self.struck_id = 'BT-' + orders + '-' + Time.now.strftime('%d/%m/%Y')
   end
 
   def get_active_items
@@ -72,10 +72,10 @@ class Order < ActiveRecord::Base
           item['print_quantity'] = item['paid_quantity']
         end
         clear_complete_order(order)
-        if params['discount_amount'] 
+        if params['discount_amount']
           order.update(
-            discount_amount: params['discount_amount'], 
-            discount_percent: params['discount_percent'], 
+            discount_amount: params['discount_amount'],
+            discount_percent: params['discount_percent'],
             discount_by: params['discount_by']
           )
         end
@@ -142,7 +142,7 @@ class Order < ActiveRecord::Base
       order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
       order.person = params['person'] if params['person'].present?
       order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
-      order.discount_percent = params['discount_percent'] if params['discount_amount'].present?
+      order.discount_percent = params['discount_percent'] if params['discount_percent'].present?
 
       #save or update order
       order.save!
@@ -219,14 +219,19 @@ class Order < ActiveRecord::Base
     order  = Order.includes(:table, :order_items, :server).find(params[:id])
 
     text = center(true)
-
     text << outlet.name.to_s + "\n"
     text << outlet.address.to_s.gsub!("\n", " ").to_s + "\n"
-    text << "Telp: 0" + outlet.phone.to_s 
-    if outlet.mobile 
-      text << "/" + outlet.mobile.to_s + "\n" 
+    text << "Telp: 0" + outlet.phone.to_s
+    if outlet.mobile
+      text << "/" + outlet.mobile.to_s + "\n"
     else
       text << "\n"
+    end
+
+    unless order.waiting
+      text << center(false)
+      text << "\nREPRINT \n"
+      text << center(true)
     end
 
     text << "\n"
@@ -285,12 +290,18 @@ class Order < ActiveRecord::Base
         text << number_to_currency(price_qty, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
         text << right(false)
         text << "\n"
-
+        item.discount = Discount.where(id: order_item[:discount_id]).first
         if item.discount
           text << "   Discount: " + item.discount.name.to_s
           text << 9.chr
           text << right(true)
-          disc_pric = item.discount.amount.to_i * print_qty
+          if item.discount.percentage.to_i > 0
+            discount_holder = item.product.price.to_i * item.discount.percentage.to_i / 100
+          else
+            discount_holder = item.discount.amount
+          end
+
+          disc_pric = discount_holder.to_i * print_qty
           text << number_to_currency(disc_pric, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
           text << right(false)
           text << "\n"
@@ -302,6 +313,9 @@ class Order < ActiveRecord::Base
     if params[:discount_amount] && params[:discount_amount].to_i > 0
       discount_total += params[:discount_amount].to_i
       text << "  ORDER DISCOUNTS"
+      if (params[:discount_percent].to_i > 0)
+        text << " #{params[:discount_percent].to_i}%"
+      end
       text << 9.chr
       text << right(true)
       text << " - "
@@ -417,7 +431,8 @@ class Order < ActiveRecord::Base
     puts "==================="
     puts "start printing "
     puts "\n"
-    puts sub_total.to_s
+    puts text.to_s
+
     if sub_total > 0
       begin
         printer = Printer.where(default: true).first
@@ -428,9 +443,9 @@ class Order < ActiveRecord::Base
         printer.puts text
         printer.close
       rescue Exception => e
-	puts '======================'
-	puts e.inspect
-	puts '=================='
+        puts '======================'
+        puts e.inspect
+        puts '=================='
         begin
           printer = Printer.where.not(default: true).first
           fd = IO.sysopen(printer.printer, 'w+')
@@ -438,9 +453,9 @@ class Order < ActiveRecord::Base
           printer.puts text
           printer.close
         rescue Exception => e
-	  puts '====================='
-	  puts e.inspect
- 	  puts '====================='
+          puts '====================='
+          puts e.inspect
+          puts '====================='
           succeed = false
         end
       end

@@ -20,9 +20,9 @@ class Discount < ActiveRecord::Base
   def is_active
     if self.start_date && self.end_date
       self.start_date.to_date <= Date.today && self.end_date.to_date >= Date.today
-    else 
+    else
       true
-    end	
+    end
   end
 
   def self.sync(discounts)
@@ -30,22 +30,13 @@ class Discount < ActiveRecord::Base
     discounts.each do |discount|
       discount.delete(:id)
       discount.delete(:outlets)
+      products = Product.find discount[:products] rescue false
+      unless products
+        discount.delete(:products)
+      else
+        discount[:products] = products
+      end
+      Discount.create!(discount.permit!)
     end
-    keys   = discounts.first.keys
-    keys.delete('product')
-    keys   = keys.join(',')
-    values = []
-
-    discounts.each do |discount|
-      discount[:start_date] = discount[:start_date].to_datetime
-      discount[:end_date]   = discount[:end_date].to_datetime.end_of_day
-      val = discount.values.map { |s| "'#{s}'" }
-      val.pop
-      val = val.join(',')
-      values << "( #{val} )"
-    end
-
-    sql = "INSERT INTO discounts (#{keys} ) VALUES #{values.join(", ")}"
-    self.connection.execute sql
   end
 end

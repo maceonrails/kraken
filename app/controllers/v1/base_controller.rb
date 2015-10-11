@@ -8,7 +8,11 @@ class V1::BaseController < ApplicationController
   # POST /api/sync
   def sync
     if outlet_params
-      Outlet.destroy_all if Outlet.all.count > 1
+      outlet = Outlet.where(id: outlet_params[:id])
+      if outlet.blank?
+        User.destroy_all
+        Outlet.destroy_all
+      end
       outlet = Outlet.find_or_initialize_by(id: outlet_params[:id])
       outlet.update(outlet_params)
     end

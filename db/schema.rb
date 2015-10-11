@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150923081003) do
+ActiveRecord::Schema.define(version: 20151011021019) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -39,14 +39,18 @@ ActiveRecord::Schema.define(version: 20150923081003) do
 
   create_table "discounts", force: :cascade do |t|
     t.string   "name"
-    t.string   "amount"
     t.uuid     "product_id"
-    t.text     "outlets",                 array: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.text     "outlets",                                                                                                                                   array: true
+    t.datetime "created_at",                                                                                                                   null: false
+    t.datetime "updated_at",                                                                                                                   null: false
     t.uuid     "updated_by"
     t.datetime "start_date"
     t.datetime "end_date"
+    t.time     "start_time",                          default: '2000-01-01 00:00:00'
+    t.time     "end_time",                            default: '2000-01-01 23:59:00'
+    t.text     "days",                                default: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],              array: true
+    t.decimal  "amount",     precision: 25, scale: 2
+    t.string   "percentage"
   end
 
   create_table "inventories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -90,8 +94,10 @@ ActiveRecord::Schema.define(version: 20150923081003) do
     t.decimal  "paid_amount",      precision: 25, scale: 2
     t.decimal  "tax_amount",       precision: 25, scale: 2
     t.decimal  "discount_amount",  precision: 25, scale: 2
+    t.integer  "discount_id"
   end
 
+  add_index "order_items", ["discount_id"], name: "index_order_items_on_discount_id", using: :btree
   add_index "order_items", ["void_by"], name: "index_order_items_on_void_by", using: :btree
 
   create_table "orders", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -158,6 +164,16 @@ ActiveRecord::Schema.define(version: 20150923081003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
+
+  create_table "product_discounts", force: :cascade do |t|
+    t.uuid     "product_id"
+    t.integer  "discount_id"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+  end
+
+  add_index "product_discounts", ["discount_id"], name: "index_product_discounts_on_discount_id", using: :btree
+  add_index "product_discounts", ["product_id"], name: "index_product_discounts_on_product_id", using: :btree
 
   create_table "product_images", force: :cascade do |t|
     t.string   "file"
@@ -270,8 +286,11 @@ ActiveRecord::Schema.define(version: 20150923081003) do
   add_foreign_key "inventories", "companies"
   add_foreign_key "inventory_outlets", "inventories"
   add_foreign_key "inventory_outlets", "outlets"
+  add_foreign_key "order_items", "discounts"
   add_foreign_key "outlets", "companies"
   add_foreign_key "product_categories", "companies"
+  add_foreign_key "product_discounts", "discounts"
+  add_foreign_key "product_discounts", "products"
   add_foreign_key "product_outlets", "outlets"
   add_foreign_key "product_outlets", "products"
   add_foreign_key "product_varians", "products"

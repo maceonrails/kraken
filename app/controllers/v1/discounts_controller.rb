@@ -40,9 +40,30 @@ class V1::DiscountsController < V1::BaseController
     respond_with @discounts
   end
 
+  def create
+    products = Product.find params[:discount][:products] rescue false
+        if products
+          resource_params[:products] = products
+        else
+          resource_params.delete(:products)
+        end
+    super
+  end
+
+  def update
+    products = Product.find params[:discount][:products] rescue false
+    if products
+      resource_params[:products] = products
+    else
+      resource_params.delete(:products)
+    end
+    super
+  end
+
   private
     def discount_params
-      params.require(:discount).permit(:name, :amount, :product_id, :start_date, :end_date)
+      params.require(:discount).permit(:name, :amount,
+        :product_id, :start_date, :end_date, :end_time, :start_time, :percentage, days: [])
     end
 
     def query_params
@@ -50,7 +71,7 @@ class V1::DiscountsController < V1::BaseController
     end
 
     def attach_includes
-      [:product]
+      [:products]
     end
 
     def search_params
