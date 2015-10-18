@@ -23,6 +23,17 @@ class V1::UsersController < V1::BaseController
     respond_with @users
   end
 
+  def rekap
+    user = User.find(params[:id])
+    if user
+      order = Order.new
+      order.print_rekap(user)
+      render json: { message: "ok" }, status: 200
+    else
+      render json: { message: "user not found" }, status: 404
+    end
+  end
+
   def authorize_for_discount
     if user = User.can_discount?(params[:email], params[:password])
       render json: { user: user }, status: 201

@@ -17,7 +17,7 @@ class V1::OrdersController < V1::BaseController
 
   def toggle_served
     order = Order.find(params[:id])
-    order.toggle :created 
+    order.toggle :created
     if order.save
       render json: order, status: 201
     else
@@ -98,6 +98,40 @@ class V1::OrdersController < V1::BaseController
             .joins(:order_items)
             .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
             .select("DATE(orders.created_at) as created_at, count(order_items.id) as name")
+            .group('orders.created_at')
+            .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
+    render json: data, status: 200
+  end
+
+  def graph_by_pax
+    date  = Date.today
+    case params[:timeframe]
+    when 'last_three_months'
+      date_start = (date - 3.months).beginning_of_month
+      date_end   = date.end_of_month
+    when 'last_six_months'
+      date_start = (date - 6.months).beginning_of_month
+      date_end   = date.end_of_month
+    when 'this_year'
+      date_start = date.beginning_of_year
+      date_end   = date.end_of_month
+    when 'last_three_year'
+      date_start = (date - 3.years).beginning_of_year
+      date_end   = date.end_of_month
+    when 'this_month'
+      date_start = date.beginning_of_month
+      date_end   = date.end_of_month
+    when 'this_week'
+      date_start = date.beginning_of_week
+      date_end   = date.end_of_week
+    else
+      date_start = date.beginning_of_day
+      date_end   = date.end_of_day
+    end
+    data = Order
+            .joins(:order_items)
+            .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
+            .select("DATE(orders.created_at) as created_at, sum(orders.person) as name")
             .group('orders.created_at')
             .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
     render json: data, status: 200
@@ -287,9 +321,10 @@ class V1::OrdersController < V1::BaseController
     end
 
     def pay_params
-      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :discount_percent, :cash_amount, :void, :cashier_id,
+      params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :credit_amount,:debit_amount, :discount_percent, :cash_amount,:debit_name,:credit_name,:credit_number, :debit_number, :void, :cashier_id,
         order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, :print_quantity,
-          :pay_quantity, :paid, :void_by, :note, :product_id, :price, :discount_id]
+          :pay_quantity, :paid, :void_by, :note,  :product_id,
+          :price,:discount_id]
       )
     end
 

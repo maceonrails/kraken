@@ -3,6 +3,8 @@ class V1::SessionsController < ApplicationController
     user = User.where(username_params).first
     if user
       if user.valid_password?(password_params[:password])
+        user.start_login = DateTime.now
+        user.save
         string = user.token
         string = AESCrypt.encrypt string, '\n'
         render json: { token:  Base64.urlsafe_encode64(string), role: user.role, id: user.id, name: user.profile.try(:name) || user.email }
