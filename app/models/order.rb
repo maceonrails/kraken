@@ -53,26 +53,44 @@ class Order < ActiveRecord::Base
   end
 
   def self.pay_order(params)
-    save_from_servant(params)
-    order = Order.find(params[:id])
+    order = save_from_servant(params)
+    base_order = Order.find(params[:id])
+    return false unless order
     # order.transaction do
     #   begin
         params[:order_items].each do |item|
-          order_item = OrderItem.find_by(order_id: params['id'], product_id: item['product_id'])
-          if item['pay_quantity'].zero? || item['pay_quantity'] > item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
-            item['pay_quantity'] = item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
+          order_item = order.order_items.find_by(product_id: item['product_id'])
+          if params[:type] == 'move'
+            base_item = base_order.order_items.find_by(product_id: item['product_id'])
+            item['quantity'] = item['pay_quantity']
+            item['paid_quantity'] = item['pay_quantity']
+            item['void_quantity'] = 0
+            item['oc_quantity'] = 0
+            base_item.quantity -= item['pay_quantity']
+            if base_item.quantity <= 0
+              base_item.destroy
+            else
+              base_item.save
+            end
+          else
+            active_quantity = item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
+          
+            if item['pay_quantity'].zero? || item['pay_quantity'] > active_quantity
+              item['pay_quantity'] = active_quantity
+            end
+            item['paid_quantity'] += item['pay_quantity']
+            item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
           end
-          item['paid_quantity'] += item['pay_quantity']
-          item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
+
           item['paid'] = true
           item['pay_quantity'] = 0
 
           order_item.update!(item.except(:id, :price, :print_quantity))
 
-          item['print_quantity'] = item['paid_quantity']
+          item['print_quantity'] = order_item.paid_quantity
         end
         clear_complete_order(order)
-        if params['discount_amount']
+        if params['discount_amount'] && params['type'] != 'move'
           order.update(
             discount_amount: params['discount_amount'],
             discount_percent: params['discount_percent'],
@@ -95,7 +113,7 @@ class Order < ActiveRecord::Base
       item["void_by"] = user.id
       item["void_note"] = params['note']
       item["void_quantity"] = item["pay_quantity"] + order_item.void_quantity
-      order_item.update(item.except(:id, :price, :pay_quantity))
+      order_item.update(item.except(:id, :price, :pay_quantity, :quantity))
     end
     clear_complete_order(order)
     return true
@@ -108,7 +126,7 @@ class Order < ActiveRecord::Base
       item["oc_by"] = user.id
       item["oc_note"] = params['note']
       item["oc_quantity"] = item["pay_quantity"] + order_item.oc_quantity
-      order_item.update(item.except(:id, :price, :pay_quantity))
+      order_item.update(item.except(:id, :price, :pay_quantity, :quantity))
     end
     clear_complete_order(order)
     return true
@@ -130,10 +148,10 @@ class Order < ActiveRecord::Base
 
   def self.save_from_servant(params)
     begin
-      if params['id']
-        order = Order.find(params['id'])
-      else
+      if params['id'].blank? || params['type'] == 'move'
         order = Order.create
+      else
+        order = Order.find(params['id'])
       end
 
       order.name = params['name'] if params['name'].present?
@@ -152,11 +170,16 @@ class Order < ActiveRecord::Base
       order.credit_name = params['credit_name'] if params['credit_name'].present?
       order.credit_number = params['credit_number'] if params['credit_number'].present?
 
+      if params['type'] == 'move'
+        order.name = "split from " + order.name
+        order.person = 0
+      end
+
       #save or update order
       order.save!
 
       # update table data with order id
-      Table.update(params['table_id'], order_id: order.id) if params['table_id'].present?
+      Table.update(params['table_id'], order_id: order.id) if params['table_id'].present? && params["type"] != 'move'
 
       #get taxs
       taxs  = Outlet.first.taxs;
@@ -168,14 +191,12 @@ class Order < ActiveRecord::Base
         product_id = params[:order_items] ? prd['product_id'] : prd[:id]
         order_item_id = params[:order_items] ? prd[:id] : prd['order_item_id']
 
-        if order_item_id
-          orderItem = OrderItem.find(order_item_id)
+        if order_item_id.blank? || params['type'] == 'move'
+          orderItem = order.order_items.create(product_id: product_id)
         else
-          orderItem = OrderItem.create
+          orderItem = order.order_items.find(order_item_id)
         end
 
-        orderItem.order_id = order.id
-        orderItem.product_id = product_id
         product = Product.find_by_id(product_id)
 
         discount      = product.discounts.find_by_id(prd['discount_id'])
@@ -194,8 +215,6 @@ class Order < ActiveRecord::Base
 
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
-          order_id:         order.id,
-          product_id:       product_id,
           quantity:         prd['quantity'],
           note:             note,
           void:             prd['void'],
@@ -211,7 +230,7 @@ class Order < ActiveRecord::Base
         )
       end
 
-      return true
+      return order
     rescue Exception => e
       return false
     end
