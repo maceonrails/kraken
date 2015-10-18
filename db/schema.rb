@@ -115,6 +115,7 @@ ActiveRecord::Schema.define(version: 20151018114522) do
     t.uuid     "cashier_id"
     t.string   "struck_id"
     t.boolean  "created",                                   default: false
+    t.boolean  "pantry_created",                            default: false
     t.string   "debit_amount"
     t.string   "credit_amount"
     t.string   "cash_amount"
