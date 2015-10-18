@@ -8,6 +8,9 @@ Rails.application.routes.draw do
     post '/sync'     => "base#sync"
     get '/me'        => 'base#me'
 
+
+    get '/users/:id/rekap' => 'users#rekap'
+
     resources :tables do
       collection { get 'search' }
       collection { get 'all' }
@@ -83,6 +86,7 @@ Rails.application.routes.draw do
       member { put 'toggle_pantry' }
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
+      collection { get 'graph_by_pax' }
       collection { get 'get_order_quantity' }
 
       member { get 'get' }

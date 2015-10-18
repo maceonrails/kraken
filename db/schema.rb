@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151011021019) do
+ActiveRecord::Schema.define(version: 20151018114522) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -115,6 +115,13 @@ ActiveRecord::Schema.define(version: 20151011021019) do
     t.uuid     "cashier_id"
     t.string   "struck_id"
     t.boolean  "created",                                   default: false
+    t.string   "debit_amount"
+    t.string   "credit_amount"
+    t.string   "cash_amount"
+    t.string   "debit_name"
+    t.string   "debit_number"
+    t.string   "credit_name"
+    t.string   "credit_number"
   end
 
   add_index "orders", ["struck_id"], name: "index_orders_on_struck_id", using: :btree
@@ -277,6 +284,7 @@ ActiveRecord::Schema.define(version: 20151011021019) do
     t.uuid     "outlet_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "start_login"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree

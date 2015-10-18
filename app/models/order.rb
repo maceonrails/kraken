@@ -144,6 +144,14 @@ class Order < ActiveRecord::Base
       order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
       order.discount_percent = params['discount_percent'] if params['discount_percent'].present?
 
+      order.debit_amount = params['debit_amount'] if params['debit_amount'].present?
+      order.credit_amount = params['credit_amount'] if params['credit_amount'].present?
+      order.cash_amount = params['cash_amount'] if params['cash_amount'].present?
+      order.debit_name = params['debit_name'] if params['debit_name'].present?
+      order.debit_number = params['debit_number'] if params['debit_number'].present?
+      order.credit_name = params['credit_name'] if params['credit_name'].present?
+      order.credit_number = params['credit_number'] if params['credit_number'].present?
+
       #save or update order
       order.save!
 
@@ -212,6 +220,44 @@ class Order < ActiveRecord::Base
   # def self.do_print(params)
   #   self.new.execute_print(params)
   # end
+
+  def print_rekap(user)
+    start_login = user.start_login
+    text = center(true)
+
+    text << "Rekap Omzet Kasir\n"
+    text << "============================\n\n"
+    text << center(false)
+    text << "Kasir     : "+ ( user.try(:name) || user.try(:email) ) +"\n"
+    text << "Mulai jam : "+ start_login.strftime("%d %B %Y %H:%M").to_s rescue '' + "\n"
+    text << "s/d jam   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n\n\n"
+
+    begin
+      printer = Printer.where(default: true).first
+      puts printer.inspect
+      puts "========================"
+      fd = IO.sysopen(printer.printer, 'w+')
+      printer = IO.new(fd)
+      printer.puts text
+      printer.close
+    rescue Exception => e
+      puts '======================'
+      puts e.inspect
+      puts '=================='
+      begin
+        printer = Printer.where.not(default: true).first
+        fd = IO.sysopen(printer.printer, 'w+')
+        printer = IO.new(fd)
+        printer.puts text
+        printer.close
+      rescue Exception => e
+        puts '====================='
+        puts e.inspect
+        puts '====================='
+        succeed = false
+      end
+    end
+  end
 
   def do_print(params, opts = { preview: true })
     params = recursive_symbolize_keys params
@@ -397,11 +443,13 @@ class Order < ActiveRecord::Base
       text << line
       text << center(false)
 
+      pay_amnt = params[:debit_amount].to_i + params[:cash_amount].to_i + params[:credit_amount].to_i
+
       text << emphasized(true)
       text << "  PAY"
       text << 9.chr
       text << right(true)
-      text << number_to_currency(params[:cash_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << number_to_currency(pay_amnt.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << emphasized(false)
       text << "\n"
@@ -410,7 +458,7 @@ class Order < ActiveRecord::Base
       text << "  CHANGE"
       text << 9.chr
       text << right(true)
-      text << number_to_currency((params[:cash_amount].to_i - grand_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+      text << number_to_currency((pay_amnt.to_i - grand_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << emphasized(false)
       text << "\n"
