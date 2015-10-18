@@ -95,7 +95,7 @@ class Order < ActiveRecord::Base
       item["void_by"] = user.id
       item["void_note"] = params['note']
       item["void_quantity"] = item["pay_quantity"] + order_item.void_quantity
-      order_item.update(item.except(:id, :price, :pay_quantity))
+      order_item.update(item.except(:id, :price, :pay_quantity, :quantity))
     end
     clear_complete_order(order)
     return true
@@ -108,7 +108,7 @@ class Order < ActiveRecord::Base
       item["oc_by"] = user.id
       item["oc_note"] = params['note']
       item["oc_quantity"] = item["pay_quantity"] + order_item.oc_quantity
-      order_item.update(item.except(:id, :price, :pay_quantity))
+      order_item.update(item.except(:id, :price, :pay_quantity, :quantity))
     end
     clear_complete_order(order)
     return true
