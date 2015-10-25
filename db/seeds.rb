@@ -3,8 +3,9 @@ company = Company.create( name: 'Bober Cafe')
 outlet = company.outlets.create( name: 'Bober Cafe pahlawan', taxs: {ppn: 0.1 , service: 0.05})
 
 puts "create user"
-outlet.users.create( role: :manager, password: 'super123', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
-outlet.users.create( role: :cashier, password: 'super123', email: 'riska@bobercafe.com', company_id: outlet.company_id)
+outlet.users.create( role: :manager, password: 'password', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
+outlet.users.create( role: :cashier, password: 'password', email: 'riska@bobercafe.com', company_id: outlet.company_id)
+outlet.users.create( role: :waitress, password: 'password', email: 'erna@bobercafe.com', company_id: outlet.company_id)
 	
 
 # choices
@@ -743,7 +744,7 @@ categories.each do |cat|
 end
 
 puts "start create table"
-20.times do |i|
+40.times do |i|
 	puts "create table #{i + 1}"
 	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Utama"
 	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Halaman"
