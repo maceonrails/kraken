@@ -1,11 +1,20 @@
-puts "create bober company"
-company = Company.create( name: 'Bober Cafe')
-outlet = company.outlets.create( name: 'Bober Cafe pahlawan', taxs: {ppn: 0.1 , service: 0.05})
+puts "create S'avenue company"
+company = Company.create( name: "S'avenue")
+outlet = company.outlets.create( name: "S'Avenue BIP", taxs: {ppn: 10, service: 5})
 
 puts "create user"
-outlet.users.create( role: :manager, password: 'password', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
-outlet.users.create( role: :cashier, password: 'password', email: 'riska@bobercafe.com', company_id: outlet.company_id)
-outlet.users.create( role: :waitress, password: 'password', email: 'erna@bobercafe.com', company_id: outlet.company_id)
+outlet.users.create( role: :manager, password: 'password', email: 'manager@savenue.com', company_id: outlet.company_id)
+outlet.users.create( role: :cashier, password: 'password', email: 'cashier@savenue.com', company_id: outlet.company_id)
+tenant1 = outlet.users.create( role: :tenant, password: 'password', email: 'ayam@savenue.com', company_id: outlet.company_id)
+tenant2 = outlet.users.create( role: :tenant, password: 'password', email: 'bebek@savenue.com', company_id: outlet.company_id)
+tenant3 = outlet.users.create( role: :tenant, password: 'password', email: 'sapi@savenue.com', company_id: outlet.company_id)
+tenant4 = outlet.users.create( role: :tenant, password: 'password', email: 'batagor@savenue.com', company_id: outlet.company_id)
+tenant5 = outlet.users.create( role: :tenant, password: 'password', email: 'jus@savenue.com', company_id: outlet.company_id)
+tenant6 = outlet.users.create( role: :tenant, password: 'password', email: 'nasgor@savenue.com', company_id: outlet.company_id)
+tenant7 = outlet.users.create( role: :tenant, password: 'password', email: 'mie@savenue.com', company_id: outlet.company_id)
+tenant8 = outlet.users.create( role: :tenant, password: 'password', email: 'es@savenue.com', company_id: outlet.company_id)
+tenant9 = outlet.users.create( role: :tenant, password: 'password', email: 'baso@savenue.com', company_id: outlet.company_id)
+tenant10 = outlet.users.create( role: :tenant, password: 'password', email: 'cemilan@savenue.com', company_id: outlet.company_id)
 	
 
 # choices
@@ -737,17 +746,16 @@ categories.each do |cat|
 				picture = ProductImage.new
 				picture.file = File.open(File.join(Rails.root, "db/product_images/#{cat[:name].titleize}/#{sub_cat[:name].titleize}/#{menu[:name].titleize}.jpg"))
 				picture.save!
-				product.update!(picture: picture.file.url, default_price: menu[:price])
+				product.update!(picture: picture.file.url, default_price: menu[:price], tenant: eval("tenant#{rand(1..10)}"))
 			end
 		end
 	end
 end
 
 puts "start create table"
-40.times do |i|
+200.times do |i|
 	puts "create table #{i + 1}"
-	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Utama"
-	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Halaman"
+	Table.create name: "#{i + 1}", location: 'savenue'
 end
 
 

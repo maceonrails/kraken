@@ -39,7 +39,7 @@ class User < ActiveRecord::Base
   enum role:
     [
       :eresto, :owner, :superadmin, :manager, :bartender,
-      :waitress, :captain, :cashier, :chef
+      :waitress, :captain, :cashier, :chef, :tenant
     ]
 
   ## Remove email field
@@ -61,7 +61,7 @@ class User < ActiveRecord::Base
     build_profile({})
   end
 
-  def self.authorize? email, password, invalid_role = ['cashier', 'waitress']
+  def self.authorize? email, password, invalid_role = ['cashier', 'waitress', 'tenant']
     user = find_by_email(email)
     if user && user.valid_password?(password) && invalid_role.exclude?(user.role) 
       user

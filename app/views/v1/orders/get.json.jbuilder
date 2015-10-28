@@ -1,7 +1,7 @@
 json.order do
   json.extract! @order, :id, :name, :servant_id, :table_id
   json.table @order.table
-  json.products @order.order_items do |item|
+  json.products @order.order_items.joins(:product).where("products.tenant_id = ?", current_user) do |item|
     json.partial! 'v1/products/details', product: item.product
     json.take_away      item.take_away
     json.type           item.take_away == true ? 'Take Away' : 'Dine In'
@@ -13,6 +13,7 @@ json.order do
     json.saved          true
     json.void_by        item.void_by
     json.order_item_id  item.id
+    json.tenant_id      item.product.tenant_id
   end
 end
 

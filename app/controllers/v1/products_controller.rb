@@ -2,6 +2,13 @@ class V1::ProductsController < V1::BaseController
   skip_before_action :authenticate, only: %w(all)
   skip_before_action :set_token_response, only: %w(all)
 
+  def get_by_tenant
+    @products = Product.where(tenant: current_user)
+    respond_with(@products) do |format|
+      format.json { render :index }
+    end
+  end
+
   def get_by_sub_category
     @products = Product.where(query_params)
     render json: @products, only: [:id, :name, :price, :picture, :sold_out]

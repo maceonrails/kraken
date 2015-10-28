@@ -63,6 +63,7 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'category' }
       collection { get 'all' }
+      collection { get 'get_by_tenant' }
     end
 
     resources :discounts do

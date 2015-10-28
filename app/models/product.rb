@@ -23,6 +23,7 @@ class Product < ActiveRecord::Base
   has_many :choices, through: :product_choices
   has_many :discounts, through: :product_discounts
   has_many :order_items
+  belongs_to :tenant, class_name: 'User' 
 
   accepts_nested_attributes_for :product_choices
   accepts_nested_attributes_for :choices
