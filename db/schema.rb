@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151018114522) do
+ActiveRecord::Schema.define(version: 20151028220851) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -51,6 +51,7 @@ ActiveRecord::Schema.define(version: 20151018114522) do
     t.text     "days",                                default: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],              array: true
     t.decimal  "amount",     precision: 25, scale: 2
     t.string   "percentage"
+    t.boolean  "isactive",                            default: true
   end
 
   create_table "inventories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -115,7 +116,6 @@ ActiveRecord::Schema.define(version: 20151018114522) do
     t.uuid     "cashier_id"
     t.string   "struck_id"
     t.boolean  "created",                                   default: false
-    t.boolean  "pantry_created",                            default: false
     t.string   "debit_amount"
     t.string   "credit_amount"
     t.string   "cash_amount"
@@ -123,6 +123,7 @@ ActiveRecord::Schema.define(version: 20151018114522) do
     t.string   "debit_number"
     t.string   "credit_name"
     t.string   "credit_number"
+    t.boolean  "pantry_created",                            default: false
   end
 
   add_index "orders", ["struck_id"], name: "index_orders_on_struck_id", using: :btree

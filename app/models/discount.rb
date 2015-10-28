@@ -1,5 +1,6 @@
 class Discount < ActiveRecord::Base
   include Total
+  default_scope { where(isactive: true) }
   has_many :product_discounts
   has_many :products, through: :product_discounts
 
@@ -26,7 +27,7 @@ class Discount < ActiveRecord::Base
   end
 
   def self.sync(discounts)
-    self.unscoped.delete_all
+    self.update_all(isactive: false)
     discounts.each do |discount|
       discount.delete(:id)
       discount.delete(:outlets)
