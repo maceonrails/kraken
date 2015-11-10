@@ -15,6 +15,14 @@ class V1::OrdersController < V1::BaseController
     render json: @orders, status: 201
   end
 
+  def discount_order
+    if user = User.can_discount?(params[:email], params[:password])
+      render json: { user: user }, status: 201
+    else
+      render json: { message: "not verified" }, status: 409
+    end
+  end
+
   def toggle_served
     order = Order.find(params[:id])
     order.toggle :created
@@ -147,54 +155,6 @@ class V1::OrdersController < V1::BaseController
     render json: data, status: 200
   end
 
-  def pay_order
-    if Order.pay_order(pay_params)
-      render json: { message: 'Ok' }, status: 201
-    else
-      render json: { message: "pay order failed" }, status: 409
-    end
-  end
-
-  def void_order
-    if user = User.can_void?(params[:email], params[:password])
-      if Order.void_order(params[:order_id], user, void_params)
-        render json: { message: 'Ok' }, status: 201
-      else
-        render json: { message: "create order failed" }, status: 409
-      end
-    else
-      render json: { message: "not verified" }, status: 409
-    end
-  end
-
-  def discount_order
-    if user = User.can_discount?(params[:email], params[:password])
-      render json: { user: user }, status: 201
-    else
-      render json: { message: "not verified" }, status: 409
-    end
-  end
-
-  def oc_order
-    if user = User.can_oc?(params[:email], params[:password])
-      if Order.oc_order(params[:order_id], user, oc_params)
-        render json: { message: 'Ok' }, status: 201
-      else
-        render json: { message: "create order failed" }, status: 409
-      end
-    else
-      render json: { message: "not verified" }, status: 409
-    end
-  end
-
-  def void_item
-    if Order.void_item(void_item_params)
-      render json: { message: 'Ok' }, status: 201
-    else
-      render json: { message: "create order failed" }, status: 409
-    end
-  end
-
   def make_order
     if Order.make_order(pay_params)
       render json: { message: 'Ok' }, status: 201
@@ -292,6 +252,11 @@ class V1::OrdersController < V1::BaseController
     else
       render json: { message: 'delete failed' }, status: 404
     end
+  end
+
+  def set_resource(resource = nil)
+    tables = Table.where(name: params[:id].split(","))
+    @orders = Order.find(tables.map(&:order_id))
   end
 
   private

@@ -79,9 +79,6 @@ Rails.application.routes.draw do
       collection { post 'from_servant' }
       member { post 'pay_order' }
       member { post 'make_order' }
-      member { post 'void_order' }
-      member { post 'oc_order' }
-      member { post 'void_item' }
       member { post 'print_order' }
       member { put 'toggle_served' }
       member { put 'toggle_pantry' }
@@ -104,11 +101,14 @@ Rails.application.routes.draw do
       collection { get 'all' }
       member { put 'toggle_served'}
       collection { get 'active_items' }
+      collection { post 'void_items' }
+      collection { post 'oc_items' }
     end
 
     resources :payments do
       collection { get 'search' }
       collection { get 'all' }
+      member { post 'void_item' }
     end
 
     resources :printers do

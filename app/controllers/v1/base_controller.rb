@@ -232,6 +232,7 @@ class V1::BaseController < ApplicationController
 
     # Use callbacks to share common setup or constraints between actions.
     def set_resource(resource = nil)
+      binding.pry
       resource ||= resource_class.find(params[:id])
       instance_variable_set("@#{resource_name}", resource)
     end

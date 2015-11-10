@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151027134129) do
+ActiveRecord::Schema.define(version: 20151102155602) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -123,8 +123,10 @@ ActiveRecord::Schema.define(version: 20151027134129) do
     t.string   "debit_number"
     t.string   "credit_name"
     t.string   "credit_number"
+    t.uuid     "payment_id"
   end
 
+  add_index "orders", ["payment_id"], name: "index_orders_on_payment_id", using: :btree
   add_index "orders", ["struck_id"], name: "index_orders_on_struck_id", using: :btree
 
   create_table "outlets", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -144,10 +146,22 @@ ActiveRecord::Schema.define(version: 20151027134129) do
     t.string   "payment_type"
     t.boolean  "void"
     t.string   "note"
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
-    t.decimal  "amount",       precision: 25, scale: 2
-    t.decimal  "discount",     precision: 25, scale: 2
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
+    t.decimal  "amount",           precision: 25, scale: 2
+    t.decimal  "discount",         precision: 25, scale: 2
+    t.string   "receipt_number"
+    t.string   "debit_amount"
+    t.string   "credit_amount"
+    t.string   "cash_amount"
+    t.string   "debit_name"
+    t.string   "credit_name"
+    t.string   "debit_number"
+    t.string   "credit_number"
+    t.string   "discount_amount"
+    t.string   "discount_percent"
+    t.uuid     "discount_by"
+    t.uuid     "cashier_id"
   end
 
   create_table "printers", force: :cascade do |t|

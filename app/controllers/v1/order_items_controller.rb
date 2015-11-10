@@ -14,6 +14,37 @@ class V1::OrderItemsController < V1::BaseController
     end
   end
 
+  def void_items
+    if user = User.can_void?(params[:email], params[:password])
+      if orders = OrderItem.void_items(user, void_params)
+        render json: { message: 'Ok', orders: orders }, status: 201
+      else
+        render json: { message: "Void items failed" }, status: 409
+      end
+    else
+      render json: { message: "not verified" }, status: 409
+    end
+  end
+
+  def oc_items
+    if user = User.can_oc?(params[:email], params[:password])
+      if orders = OrderItem.oc_items(user, void_params)
+        render json: { message: 'Ok', orders: orders }, status: 201
+      else
+        render json: { message: "OC items failed" }, status: 409
+      end
+    else
+      render json: { message: "not verified" }, status: 409
+    end
+  end
+
+  def void_item
+    if Order.void_item(void_item_params)
+      render json: { message: 'Ok' }, status: 201
+    else
+      render json: { message: "create order failed" }, status: 409
+    end
+  end
 
   def toggle_served
     order_item = OrderItem.find(params[:id])
@@ -47,6 +78,10 @@ class V1::OrderItemsController < V1::BaseController
   private
     def order_item_params
      	params.require(:order_item).permit(:order_id, :product_id, :quantity, :choice_id, :paid_amount, :note, :served, :void, :paid)
+    end
+
+    def void_params
+      params.permit!
     end
 
     def query_params
