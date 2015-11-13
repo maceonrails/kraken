@@ -23,7 +23,7 @@ test:
 production:
   <<: *default
   username: bober
-	password: p@ssw0rd
+  password: p@ssw0rd
   database: local_eresto_core_prod
 
 staging:
