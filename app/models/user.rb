@@ -31,6 +31,7 @@ class User < ActiveRecord::Base
 
   has_one :profile, :autosave => true
   belongs_to :outlet
+  has_many :billings, foreign_key: "cashier_id", class_name: "Order"
   accepts_nested_attributes_for :profile
 
   before_save  :ensure_authentication_token

@@ -10,6 +10,32 @@ class Order < ActiveRecord::Base
   before_create :set_queue
   before_create :set_struck_id
 
+  scope :recap, ->(user) { between_date(user.start_login, user.current_sign_in_at || Time.now).where(cashier_id: user.id) }
+  scope :between_date, -> (start, finish){ where("orders.updated_at >= ? AND orders.updated_at <= ?", start, finish) }
+  scope :total_cash, -> { sum('cash_amount::float - return_amount::float') }
+  scope :total_debit, -> { sum('debit_amount::float') }
+  scope :total_credit, -> { sum('credit_amount::float') }
+  scope :total_non_cash, -> { sum('debit_amount::float + credit_amount::float') }
+  scope :total_transaction, -> { sum('cash_amount::float - return_amount::float + debit_amount::float + credit_amount::float') }
+  scope :total_sales, -> { joins(order_items: :product).sum('order_items.paid_quantity * products.price') }
+  scope :total_product_discount, -> { joins(order_items: :discount).sum('discounts.amount') }
+  scope :total_order_discount, -> { sum('discount_amount') }
+  scope :total_taxes, -> { sum('tax_amount') }
+  scope :total_per_category, -> { 
+      joins(order_items: {product: {product_sub_category: :product_category}})
+      .select("product_categories.name as name, sum(order_items.quantity) as quantity, sum(order_items.paid_amount) as amount")
+      .group("product_categories.id")
+      .to_a
+  }
+  scope :total_receipt, -> { sum('cash_amount - return_amount') }
+  scope :average_per_receipt, -> { sum('cash_amount - return_amount') }
+  scope :total_pax, -> { sum('cash_amount - return_amount') }
+  scope :average_per_pax, -> { sum('cash_amount - return_amount') }
+
+  Outlet.first.taxs.each do |tax, amount|
+    scope "total_#{tax}".to_sym, -> { amount.to_f/100 * total_sales }
+  end
+
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }
   scope :histories, -> { where("orders.waiting IS NOT TRUE").latest }
@@ -165,6 +191,7 @@ class Order < ActiveRecord::Base
       order.debit_amount = params['debit_amount'] if params['debit_amount'].present?
       order.credit_amount = params['credit_amount'] if params['credit_amount'].present?
       order.cash_amount = params['cash_amount'] if params['cash_amount'].present?
+      order.return_amount = params['return_amount'] if params['return_amount'].present?
       order.debit_name = params['debit_name'] if params['debit_name'].present?
       order.debit_number = params['debit_number'] if params['debit_number'].present?
       order.credit_name = params['credit_name'] if params['credit_name'].present?
@@ -243,13 +270,77 @@ class Order < ActiveRecord::Base
   def print_rekap(user)
     start_login = user.start_login
     text = center(true)
+    recap = Order.recap(user)
 
     text << "Rekap Omzet Kasir\n"
-    text << "============================\n\n"
+    text << double_line
+    text << "\n"
     text << center(false)
-    text << "Kasir     : "+ ( user.try(:name) || user.try(:email) ) +"\n"
-    text << "Mulai jam : "+ start_login.strftime("%d %B %Y %H:%M").to_s rescue '' + "\n"
-    text << "s/d jam   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n\n\n"
+    text << "Kasir : "+ ( user.try(:name) || user.try(:email) ) +"\n"
+    text << "Mulai : "+ (start_login.strftime("%d %B %Y %H:%M").to_s rescue '') + "\n"
+    text << "s/d   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
+    text << double_line
+    text << "\n\n"
+
+    text << print_line("Saldo Awal")
+    text << print_line("CASH", recap.total_cash)
+    text << line
+    text << print_line("Saldo Akhir(Cash)", recap.total_cash)
+    text << print_line("NON CASH", recap.total_non_cash)
+    text << line
+    text << print_line("Total Transaksi", recap.total_transaction)
+    text << "\n"
+
+    text << print_line("Penjualan", recap.total_sales)
+    user.outlet.taxs.each do |tax, amount|
+      text << print_line("Total #{tax}", recap.send("total_#{tax}"))
+    end
+    text << line
+    text << print_line("Discount Produk", recap.total_product_discount)
+    text << print_line("Discount Order", recap.total_order_discount)
+    text << line
+    text << print_line("", recap.total_transaction)
+    text << "\n"
+
+    text << "*** Jenis Pembayaran ***\n"
+    text << print_line("(+) Cash", recap.total_cash)
+    text << print_line("(+) Debit", recap.total_debit)
+    text << print_line("(+) Credit", recap.total_credit)
+    text << line
+    text << print_line("Total Trans.", recap.total_transaction)
+    text << line
+    text << "\n"
+
+    text << "Jumlah yang terjual : \n"
+    text << line
+    text << "qty | Jenis           Amount\n"
+    text << line
+
+    recap.total_per_category.each do |cat|
+      text << print_line("#{cat.quantity} #{cat.name}", cat.amount)
+    end
+    text << line
+    text << "\n"
+
+    text << print_line("Jumlah struk", recap.count, '')
+    text << print_line("Rata2 per struk", (recap.total_transaction / recap.count rescue 0))
+    text << print_line("Jumlah tamu", recap.sum(:person), '')
+    text << print_line("Rata2 per tamu", (recap.total_transaction / recap.sum(:person) rescue 0))
+    text << "\n"
+    text << print_line("Total", recap.total_transaction)
+
+    text << "\n\n"
+
+    text << "Yg menyerahkan       Yg menerima"
+    text << "\n\n\n\n\n"
+    text << "--------------      -------------"
+    text << "\n"
+
+    succeed = true
+    puts "==================="
+    puts "start printing "
+    puts "\n"
+    puts text.to_s
 
     begin
       printer = Printer.where(default: true).first
@@ -473,6 +564,28 @@ class Order < ActiveRecord::Base
       text << emphasized(false)
       text << "\n"
 
+      if params[:debit_amount]
+        text << emphasized(true)
+        text << "  *DEBIT"
+        text << 9.chr
+        text << right(true)
+        text << number_to_currency(params[:debit_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+        text << right(false)
+        text << emphasized(false)
+        text << "\n"
+      end
+
+      if params[:credit_amount]
+        text << emphasized(true)
+        text << "  *CREDIT"
+        text << 9.chr
+        text << right(true)
+        text << number_to_currency(params[:credit_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
+        text << right(false)
+        text << emphasized(false)
+        text << "\n"
+      end
+
       text << emphasized(true)
       text << "  CHANGE"
       text << 9.chr
@@ -481,6 +594,18 @@ class Order < ActiveRecord::Base
       text << right(false)
       text << emphasized(false)
       text << "\n"
+
+      if params[:debit_number]
+        text << "\n"
+        text << "  *DEBIT CARD #{params[:debit_name]}: ****#{params[:debit_number][-4, 4]}"
+        text << "\n"
+      end
+
+      if params[:credit_number]
+        text << "\n"
+        text << "  *CREDIT CARD #{params[:debit_name]}: ****#{params[:credit_number][-4, 4]}"
+        text << "\n"
+      end
     end
 
     text << center(true)
@@ -593,7 +718,39 @@ class Order < ActiveRecord::Base
     return text
   end
 
-  def line
-    return "---------------------------------\n"
+  def line(number = 33)
+    "-" * number + "\n"
+  end
+
+  def double_line(number = 33)
+    "=" * number + "\n"
+  end
+
+  def repeat(char = '-', number = 33, new_line = true)
+    result = char * number
+    new_line ? result : result + "\n"
+  end
+
+  def pull_left(text, currency = 'Rp.', length = 18)
+    (text.length <= length ? text + " " * (length - text.length) : text.truncate(length, :omission => '')) + ": " + currency
+  end
+
+  def pull_right(text, length = 9)
+    amount = number_to_currency(text, unit: "", separator: ",", delimiter: ".", precision: 0)
+    return " " * (length - amount.length) + amount
+  end
+
+  def print_line(text, amount = 0, currency = 'Rp.')
+    result = ''
+    result << pull_left(text, currency)
+    result << pull_right(amount, 33 - result.length)
+    result << "\n"
+  end
+
+  def print_amount(amount)
+    result = ''
+    result << right(true)
+    result << number_to_currency(amount, unit: "", separator: ",", delimiter: ".", precision: 0)
+    result << right(false)
   end
 end

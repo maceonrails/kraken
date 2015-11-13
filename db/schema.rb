@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151028220851) do
+ActiveRecord::Schema.define(version: 20151112080442) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -116,6 +116,7 @@ ActiveRecord::Schema.define(version: 20151028220851) do
     t.uuid     "cashier_id"
     t.string   "struck_id"
     t.boolean  "created",                                   default: false
+    t.boolean  "pantry_created",                            default: false
     t.string   "debit_amount"
     t.string   "credit_amount"
     t.string   "cash_amount"
@@ -123,7 +124,7 @@ ActiveRecord::Schema.define(version: 20151028220851) do
     t.string   "debit_number"
     t.string   "credit_name"
     t.string   "credit_number"
-    t.boolean  "pantry_created",                            default: false
+    t.string   "return_amount",                             default: "0.0"
   end
 
   add_index "orders", ["struck_id"], name: "index_orders_on_struck_id", using: :btree

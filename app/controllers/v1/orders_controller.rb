@@ -322,7 +322,7 @@ class V1::OrdersController < V1::BaseController
 
     def pay_params
       params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :discount_percent, :void, :cashier_id,
-        :credit_amount, :debit_amount, :cash_amount, :debit_name, :credit_name, :credit_number, :debit_number, :type,
+        :credit_amount, :debit_amount, :cash_amount, :return_amount, :debit_name, :credit_name, :credit_number, :debit_number, :type,
         order_items: [:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity, :print_quantity,
           :pay_quantity, :paid, :void_by, :note,  :product_id,
           :price,:discount_id]
