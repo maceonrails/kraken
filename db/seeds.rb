@@ -1,13 +1,16 @@
-puts "create bober company"
-company = Company.create( name: 'Bober Cafe')
-outlet = company.outlets.create( name: 'Bober Cafe pahlawan', taxs: {ppn: 10 , service: 5})
+# puts "create bober company"
+# company = Company.create( name: 'Bober Cafe')
+# outlet = company.outlets.create( name: 'Bober Cafe pahlawan', taxs: {ppn: 10 , service: 5})
 
-puts "create user"
-outlet.users.create( role: :manager, password: 'password', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
-outlet.users.create( role: :cashier, password: 'password', email: 'riska@bobercafe.com', company_id: outlet.company_id)
-outlet.users.create( role: :waitress, password: 'password', email: 'erna@bobercafe.com', company_id: outlet.company_id)
+# puts "create user"
+# outlet.users.create( role: :manager, password: 'password', email: 'bober1@bobercafe.com', company_id: outlet.company_id)
+# outlet.users.create( role: :cashier, password: 'password', email: 'riska@bobercafe.com', company_id: outlet.company_id)
+# outlet.users.create( role: :waitress, password: 'password', email: 'erna@bobercafe.com', company_id: outlet.company_id)
 	
-
+ProductCategory.delete_all
+ProductSubCategory.delete_all
+Product.delete_all
+Choice.delete_all
 # choices
 puts "create choice"
 hot = Choice.create name: "HOT"
@@ -743,12 +746,12 @@ categories.each do |cat|
 	end
 end
 
-puts "start create table"
-40.times do |i|
-	puts "create table #{i + 1}"
-	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Utama"
-	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Halaman"
-end
+# puts "start create table"
+# 40.times do |i|
+# 	puts "create table #{i + 1}"
+# 	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Utama"
+# 	Table.create name: "#{i + 1}", status: 'available', location: "Ruang Halaman"
+# end
 
 
 
