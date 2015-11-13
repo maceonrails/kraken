@@ -75,7 +75,7 @@ class Order < ActiveRecord::Base
 
   def self.print_order(params)
     order = self.find(params[:id])
-    order.do_print(params, preview: true)
+    order.do_print(params, preview: false)
   end
 
   def self.pay_order(params)
@@ -564,7 +564,7 @@ class Order < ActiveRecord::Base
       text << emphasized(false)
       text << "\n"
 
-      if params[:debit_amount]
+      if params[:debit_amount].to_i > 0
         text << emphasized(true)
         text << "  *DEBIT"
         text << 9.chr
@@ -575,7 +575,7 @@ class Order < ActiveRecord::Base
         text << "\n"
       end
 
-      if params[:credit_amount]
+      if params[:credit_amount].to_i > 0
         text << emphasized(true)
         text << "  *CREDIT"
         text << 9.chr
@@ -593,17 +593,15 @@ class Order < ActiveRecord::Base
       text << number_to_currency((pay_amnt.to_i - grand_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
       text << right(false)
       text << emphasized(false)
-      text << "\n"
+      text << "\n\n"
 
-      if params[:debit_number]
-        text << "\n"
-        text << "  *DEBIT CARD #{params[:debit_name]}: ****#{params[:debit_number][-4, 4]}"
+      if params[:debit_amount].to_i > 0
+        text << "  *DEBIT CARD #{params[:debit_name]}: ****#{params[:debit_number].to_s[-4, 4]}"
         text << "\n"
       end
 
-      if params[:credit_number]
-        text << "\n"
-        text << "  *CREDIT CARD #{params[:debit_name]}: ****#{params[:credit_number][-4, 4]}"
+      if params[:credit_amount].to_i > 0
+        text << "  *CREDIT CARD #{params[:credit_name]}: ****#{params[:credit_number].to_s[-4, 4]}"
         text << "\n"
       end
     end

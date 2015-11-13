@@ -296,7 +296,7 @@ class V1::OrdersController < V1::BaseController
 
   private
     def order_params
-      params.require(:order).permit(:name, :person, :cashier_id)
+      params.require(:order).permit(:name, :person, :cashier_id, :servant_id, :table_id)
     end
 
     def query_params

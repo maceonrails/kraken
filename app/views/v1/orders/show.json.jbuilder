@@ -10,6 +10,7 @@ json.discount_percent @order.discount_percent
 json.cash_amount 			@order.cash_amount
 json.debit_amount 		@order.debit_amount
 json.credit_amount 		@order.credit_amount
+json.return_amount 		@order.return_amount
 json.credit_name 			@order.credit_name
 json.credit_number 		@order.credit_number
 json.debit_name 			@order.debit_name
