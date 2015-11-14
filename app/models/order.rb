@@ -338,9 +338,19 @@ class Order < ActiveRecord::Base
     text << "\n\n"
 
     text << "Yg menyerahkan       Yg menerima"
-    text << "\n\n\n\n\n"
-    text << "--------------      -------------"
     text << "\n\n\n\n\n\n"
+    text << "--------------      -------------"
+    text << "\n\n\n\n"
+
+    text << center(true)
+    text << "=================================\n"
+
+    text << "\n"
+    text << emphasized(true)
+    text << "Bober Cafe Print Rekap\n"
+    text << emphasized(false)
+    text << center(false)
+    text << "\n\n\n\n\n\n\n"
 
     succeed = true
     puts "==================="
