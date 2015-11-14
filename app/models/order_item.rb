@@ -6,7 +6,6 @@ class OrderItem < ActiveRecord::Base
 	belongs_to :discount
 
 	def self.void_items(user, params)
-		binding.pry
 		orders = []
     params[:orders].each do |order|
       orders << void_item(user, order, params)

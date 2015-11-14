@@ -17,7 +17,7 @@ class V1::OrderItemsController < V1::BaseController
   def void_items
     if user = User.can_void?(params[:email], params[:password])
       if orders = OrderItem.void_items(user, void_params)
-        render json: { message: 'Ok', orders: orders }, status: 201
+        render json: { message: 'Ok' }, status: 201
       else
         render json: { message: "Void items failed" }, status: 409
       end
@@ -29,7 +29,7 @@ class V1::OrderItemsController < V1::BaseController
   def oc_items
     if user = User.can_oc?(params[:email], params[:password])
       if orders = OrderItem.oc_items(user, void_params)
-        render json: { message: 'Ok', orders: orders }, status: 201
+        render json: { message: 'Ok' }, status: 201
       else
         render json: { message: "OC items failed" }, status: 409
       end
