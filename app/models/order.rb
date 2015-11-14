@@ -75,11 +75,23 @@ class Order < ActiveRecord::Base
 
   def self.print_order(params)
     order = self.find(params[:id])
-    order.do_print(params, preview: false)
+    order.do_print(params, preview: order.waiting)
   end
 
   def self.pay_order(params)
     order = save_from_servant(params)
+    order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
+    order.discount_percent = params['discount_percent'] if params['discount_percent'].present?
+    order.debit_amount = params['debit_amount'] if params['debit_amount'].present?
+    order.credit_amount = params['credit_amount'] if params['credit_amount'].present?
+    order.cash_amount = params['cash_amount'] if params['cash_amount'].present?
+    order.return_amount = params['return_amount'] if params['return_amount'].present?
+    order.debit_name = params['debit_name'] if params['debit_name'].present?
+    order.debit_number = params['debit_number'] if params['debit_number'].present?
+    order.credit_name = params['credit_name'] if params['credit_name'].present?
+    order.credit_number = params['credit_number'] if params['credit_number'].present?
+    order.save!
+    
     base_order = Order.find(params[:id])
     return false unless order
     # order.transaction do
@@ -160,7 +172,7 @@ class Order < ActiveRecord::Base
 
   def self.void_item(item)
     order_item = OrderItem.find(item['id'])
-    order_item.update(item.except(:id, :price))
+    order_item.update(item.except(:id))
     clear_complete_order(order_item.order)
     return true
   end
@@ -185,17 +197,6 @@ class Order < ActiveRecord::Base
       order.servant_id = params['servant_id'] if params['servant_id'].present?
       order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
       order.person = params['person'] if params['person'].present?
-      order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
-      order.discount_percent = params['discount_percent'] if params['discount_percent'].present?
-
-      order.debit_amount = params['debit_amount'] if params['debit_amount'].present?
-      order.credit_amount = params['credit_amount'] if params['credit_amount'].present?
-      order.cash_amount = params['cash_amount'] if params['cash_amount'].present?
-      order.return_amount = params['return_amount'] if params['return_amount'].present?
-      order.debit_name = params['debit_name'] if params['debit_name'].present?
-      order.debit_number = params['debit_number'] if params['debit_number'].present?
-      order.credit_name = params['credit_name'] if params['credit_name'].present?
-      order.credit_number = params['credit_number'] if params['credit_number'].present?
 
       if params['type'] == 'move'
         order.name = "split from " + order.name
@@ -334,7 +335,7 @@ class Order < ActiveRecord::Base
     text << "Yg menyerahkan       Yg menerima"
     text << "\n\n\n\n\n"
     text << "--------------      -------------"
-    text << "\n"
+    text << "\n\n\n"
 
     succeed = true
     puts "==================="

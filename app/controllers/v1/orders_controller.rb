@@ -304,19 +304,18 @@ class V1::OrdersController < V1::BaseController
     end
 
     def void_item_params
-      params.require(:order_item).permit(:id, :quantity, :take_away, :void, :void_note, :saved_choice, :paid_quantity,
-          :pay_quantity, :paid, :void_by, :note, :product_id, :price)
+      params.require(:order_item).permit(:id, :void, :void_note, :void_by, :void_quantity)
     end
 
     def void_params
       params.permit(:id, :order_id, :servant_id, :table_id, :name, :cashier_id, :email, :password, :note,
-        order_items: [:id, :quantity, :pay_quantity, :take_away, :print_quantity, :product_id]
+        order_items: [:id, :quantity, :pay_quantity, :take_away, :product_id]
       )
     end
 
     def oc_params
       params.permit(:id, :order_id, :servant_id, :table_id, :name, :cashier_id, :email, :password, :note,
-        order_items: [:id, :quantity, :pay_quantity, :take_away, :print_quantity, :product_id]
+        order_items: [:id, :quantity, :pay_quantity, :take_away, :product_id]
       )
     end
 
