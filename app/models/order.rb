@@ -6,6 +6,7 @@ class Order < ActiveRecord::Base
   belongs_to :table
   belongs_to :server, class_name: 'User', foreign_key: 'servant_id'
   belongs_to :cashier, class_name: 'User', foreign_key: 'cashier_id'
+  before_destroy :clear_table
 
   before_create :set_queue
   before_create :set_struck_id
@@ -184,6 +185,10 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def clear_table
+    Table.where(order_id: self.id).update_all(order_id: nil)
+  end
+
   def self.save_from_servant(params)
     begin
       if params['id'].blank? || params['type'] == 'move'
@@ -335,7 +340,7 @@ class Order < ActiveRecord::Base
     text << "Yg menyerahkan       Yg menerima"
     text << "\n\n\n\n\n"
     text << "--------------      -------------"
-    text << "\n\n\n"
+    text << "\n\n\n\n\n\n"
 
     succeed = true
     puts "==================="
