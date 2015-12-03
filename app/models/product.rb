@@ -23,7 +23,9 @@ class Product < ActiveRecord::Base
   has_many :choices, through: :product_choices
   has_many :discounts, through: :product_discounts
   has_many :order_items
-  belongs_to :tenant, class_name: 'User' 
+  belongs_to :tenant, class_name: 'User'
+
+  delegate :product_category, to: :product_sub_category, allow_nil: true
 
   accepts_nested_attributes_for :product_choices
   accepts_nested_attributes_for :choices

@@ -5,6 +5,21 @@ class OrderItem < ActiveRecord::Base
 	belongs_to :choice
 	belongs_to :discount
 
+  before_save :calculate_amount
+
+  def total_price
+    (active_quantity * product.price) - (discount.try(:amount) || 0)
+  end
+
+  def active_quantity
+    res = if order.payment
+      paid_quantity
+    else
+      quantity - void_quantity - oc_quantity - paid_quantity
+    end
+    res > 0 ? res : 0
+  end
+
 	def self.void_items(user, params)
 		orders = []
     params[:orders].each do |order|
@@ -57,6 +72,26 @@ class OrderItem < ActiveRecord::Base
   #   clear_complete_order(order_item.order)
   #   return true
   # end
+
+  def calculate_amount
+    taxs = Outlet.first.taxs;
+    self.discount_amount = 0
+    if self.discount 
+      self.discount_amount = discount.amount || discount.percentage.to_f * product.price
+    end
+
+    dsc_qty       = self.discount_amount.to_f * active_quantity
+    prices        = product.price.to_i * active_quantity
+    prices        = prices - dsc_qty
+
+    self.tax_amount = 0;
+    taxs.each_pair do |name, amount|
+      percentage = amount.to_f / 100
+      self.tax_amount += (percentage * prices).to_i
+    end rescue true
+
+    self.paid_amount = self.tax_amount + prices
+  end
 
   def self.clear_complete_order(order)
     unless Order.joins(:order_items).where("orders.id = ? AND quantity > (void_quantity + oc_quantity + paid_quantity)", order.id).exists?

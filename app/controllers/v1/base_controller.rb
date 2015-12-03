@@ -44,7 +44,7 @@ class V1::BaseController < ApplicationController
     rescue => e
       relations = resource_class.reflect_on_all_associations.map { |e| e.name.to_s }
       error_msg = "Cannot deactive/delete #{resource_name}, still have link with the following: #{relations.join(',')}"
-      render json: { message: error_msg }, status: 409
+      render json: { message: error_msg }, status: 200
     end
   end
 
@@ -232,7 +232,6 @@ class V1::BaseController < ApplicationController
 
     # Use callbacks to share common setup or constraints between actions.
     def set_resource(resource = nil)
-      binding.pry
       resource ||= resource_class.find(params[:id])
       instance_variable_set("@#{resource_name}", resource)
     end

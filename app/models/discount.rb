@@ -6,7 +6,8 @@ class Discount < ActiveRecord::Base
   scope :active_by_date, -> { where("?::date BETWEEN start_date::date AND end_date::date", Date.today) }
   scope :active_by_time, -> { where("?::time BETWEEN start_time::time AND end_time::time", Time.now) }
   scope :active_by_days, -> { where("? = ANY (days)", Date.today.strftime("%A")) }
-  scope :active, -> { active_by_date.active_by_time.active_by_days }
+  scope :activated, -> { where(active: true) }
+  scope :active, -> { active_by_date.active_by_time.active_by_days.activated }
 
   def self.create_discount opts = {}
     opts[:name] ||= "Discount #{Time.now.to_date}"
@@ -19,9 +20,9 @@ class Discount < ActiveRecord::Base
 
   def is_active
     if self.start_date && self.end_date
-      self.start_date.to_date <= Date.today && self.end_date.to_date >= Date.today
+      self.start_date.to_date <= Date.today && self.end_date.to_date >= Date.today && self.active
     else
-      true
+      self.active
     end
   end
 

@@ -17,3 +17,6 @@
 /tmp
 /public/uploads
 .DS_Store
+
+# Ignore application configuration
+/config/application.yml

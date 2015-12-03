@@ -11,3 +11,4 @@ json.end_date    discount.end_date.strftime("%d/%m/%Y") rescue ''
 json.end_time    discount.end_time.strftime("%H:%M") rescue ''
 json.start_time  discount.start_time.strftime("%H:%M") rescue ''
 json.days        discount.days
+json.active        discount.active

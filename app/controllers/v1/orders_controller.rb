@@ -12,7 +12,7 @@ class V1::OrdersController < V1::BaseController
 
   def history_orders
     @orders = Order.histories.search(params[:q]).page(page_params[:page]).per(page_params[:page_size])
-    render json: @orders, status: 201
+    render json: @orders, include: [:table, :payment], status: 201
   end
 
   def discount_order
@@ -68,11 +68,11 @@ class V1::OrdersController < V1::BaseController
       date_start = date.beginning_of_day
       date_end   = date.end_of_day
     end
-    data = Order
-            .joins(:order_items)
-            .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
-            .select("DATE(orders.created_at) as created_at, sum(order_items.paid_amount) as name")
-            .group('orders.created_at')
+    data = Payment
+            .where('payments.created_at >= ? and payments.created_at <= ?', date_start, date_end)
+            .select("DATE(payments.created_at) as created_at, sum(payments.total) as name")
+            .group('payments.created_at')
+            .order('payments.created_at')
             .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
     render json: data, status: 200
   end
@@ -105,8 +105,9 @@ class V1::OrdersController < V1::BaseController
     data = Order
             .joins(:order_items)
             .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
-            .select("DATE(orders.created_at) as created_at, count(order_items.id) as name")
+            .select("DATE(orders.created_at) as created_at, count(order_items.paid_quantity) as name")
             .group('orders.created_at')
+            .order('orders.created_at')
             .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
     render json: data, status: 200
   end
@@ -141,6 +142,7 @@ class V1::OrdersController < V1::BaseController
             .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
             .select("DATE(orders.created_at) as created_at, sum(orders.person) as name")
             .group('orders.created_at')
+            .order('orders.created_at')
             .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
     render json: data, status: 200
   end
@@ -188,34 +190,6 @@ class V1::OrdersController < V1::BaseController
       @total  = orders.count || 0
     else
       render json: {message: 'order not found'}, status: 404
-    end
-  end
-
-  def print_order
-    if Order.print_order(pay_params)
-      render json: { message: 'Ok' }, status: 200
-    else
-      render json: { message: 'No data to print' }, status: 400
-    end
-  end
-
-  def print
-    order = Order.where(id: params[:id])
-
-    if order.blank?
-      render json: { message: 'Order not found' }, status: 404
-
-    else
-      printed = Order.new.do_print(params)
-      if printed[:status]
-        if printed[:printed]
-          render json: { message: 'Ok' }, status: 200
-        else
-          render json: { message: 'No data to print' }, status: 400
-        end
-      else
-        render json: { message: 'Failed to print, please try again.' }, status: 500
-      end
     end
   end
 

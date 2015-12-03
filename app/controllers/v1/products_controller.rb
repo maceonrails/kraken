@@ -15,7 +15,7 @@ class V1::ProductsController < V1::BaseController
   end
 
   def category
-    @categories = Product.uniq.pluck(:category)
+    @categories = ProductCategory.all
     respond_with @categories
   end
 
@@ -45,6 +45,14 @@ class V1::ProductsController < V1::BaseController
       @total    = Product.joins(:product_sub_category)
                    .where("product_sub_categories.name ILIKE ?", "%#{query}%")
                    .count
+    elsif search_params[:field] == 'Tenant'
+      @products = Product.joins(tenant: :profile)
+                   .where("profiles.name ILIKE ?", "%#{query}%")
+                   .page(page_params[:page])
+                   .per(page_params[:page_size])
+      @total    = Product.joins(tenant: :profile)
+                   .where("profiles.name ILIKE ?", "%#{query}%")
+                   .count       
     else
       @products = Product.where(products[field]
                    .matches("%#{query}%"))
@@ -68,10 +76,10 @@ class V1::ProductsController < V1::BaseController
     def product_params
       if current_user.role == 'manager'
         params.require(:product).permit(:name, :category, :picture,
-          :description, :picture_base64, :product_sub_category_id, :picture_extension, :active,
+          :description, :picture_base64, :product_sub_category_id, :picture_extension, :active, :tenant_id,
           :price, :sold_out, :serv_category, :serv_sub_category, choices: [:name, :id])
       else
-          params.require(:product).permit(:name, :category, :default_price, :sold_out, :serv_category, :serv_sub_category)
+          params.require(:product).permit(:name, :category, :picture, :default_price, :sold_out, :serv_category, :serv_sub_category, :tenant_id)
       end
     end
 
@@ -91,6 +99,7 @@ class V1::ProductsController < V1::BaseController
 
       # product choices
       choice_arr = []
+      resource_params[:choices] ||= []
       resource_params[:choices].each do |choice|
         unless choice[:name].blank?
           choice_obj = Choice.find_or_create_by(name: choice[:name])
@@ -106,7 +115,7 @@ class V1::ProductsController < V1::BaseController
 
       resource_params[:product_sub_category_id] = product_sub_category.id
 
-      resource_params.delete(:picture)
+      resource_params.delete(:picture_base64)
       resource_params.delete(:serv_category)
       resource_params.delete(:serv_sub_category)
     end

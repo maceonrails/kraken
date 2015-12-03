@@ -1,21 +1,63 @@
 puts "create S'avenue company"
+
 company = Company.create( name: "S'avenue")
 outlet = company.outlets.create( name: "S'Avenue BIP", taxs: {ppn: 10, service: 5})
 
+puts "create printer"
+3.times do |i|
+  Printer.create(
+    name: "Printer #{i+1}",
+    printer: "/dev/usb/lp#{i}",
+    default: true,
+  )
+  puts "create printer #{i+1}"
+end
+
 puts "create user"
-outlet.users.create( role: :manager, password: 'password', email: 'manager@savenue.com', company_id: outlet.company_id)
-outlet.users.create( role: :cashier, password: 'password', email: 'cashier@savenue.com', company_id: outlet.company_id)
-tenant1 = outlet.users.create( role: :tenant, password: 'password', email: 'ayam@savenue.com', company_id: outlet.company_id)
-tenant2 = outlet.users.create( role: :tenant, password: 'password', email: 'bebek@savenue.com', company_id: outlet.company_id)
-tenant3 = outlet.users.create( role: :tenant, password: 'password', email: 'sapi@savenue.com', company_id: outlet.company_id)
-tenant4 = outlet.users.create( role: :tenant, password: 'password', email: 'batagor@savenue.com', company_id: outlet.company_id)
-tenant5 = outlet.users.create( role: :tenant, password: 'password', email: 'jus@savenue.com', company_id: outlet.company_id)
-tenant6 = outlet.users.create( role: :tenant, password: 'password', email: 'nasgor@savenue.com', company_id: outlet.company_id)
-tenant7 = outlet.users.create( role: :tenant, password: 'password', email: 'mie@savenue.com', company_id: outlet.company_id)
-tenant8 = outlet.users.create( role: :tenant, password: 'password', email: 'es@savenue.com', company_id: outlet.company_id)
-tenant9 = outlet.users.create( role: :tenant, password: 'password', email: 'baso@savenue.com', company_id: outlet.company_id)
-tenant10 = outlet.users.create( role: :tenant, password: 'password', email: 'cemilan@savenue.com', company_id: outlet.company_id)
-	
+
+user = User.create role: :owner, password: '12345678', email: 'owner@savenue.com', company_id: company.id
+user.create_profile(
+	name: 'Jodi', 
+	address: Faker::Address.street_address, 
+	phone: Faker::PhoneNumber.cell_phone, 
+)
+puts "create owner"
+
+3.times do |i|
+	user = User.create role: :manager, password: '12345678', email: "manager#{i+1}@savenue.com", outlet_id: outlet.id
+	user.create_profile(
+		name: "manager #{i+1}", 
+		address: Faker::Address.street_address, 
+		phone: Faker::PhoneNumber.cell_phone, 
+		join_at: Faker::Time.between(1.year.ago, DateTime.now), 
+		contract_until: Faker::Time.between(DateTime.now, 2.year.from_now)
+	)
+	puts "create manager #{i+1}"
+end
+
+5.times do |i|
+	user = User.create role: :cashier, password: '12345678', email: "cashier#{i+1}@savenue.com", outlet_id: outlet.id
+	user.create_profile(
+		name: "Cashier #{i+1}", 
+		address: Faker::Address.street_address, 
+		phone: Faker::PhoneNumber.cell_phone, 
+		join_at: Faker::Time.between(1.year.ago, DateTime.now), 
+		contract_until: Faker::Time.between(DateTime.now, 2.year.from_now)
+	)
+	puts "create cashier #{i+1}"
+end
+
+20.times do |i|
+	user = User.create role: :tenant, password: '12345678', email: "tenant#{i+1}@savenue.com", outlet_id: outlet.id
+	user.create_profile(
+		name: "Tenant #{i+1}", 
+		address: Faker::Address.street_address, 
+		phone: Faker::PhoneNumber.cell_phone, 
+		join_at: Faker::Time.between(1.year.ago, DateTime.now), 
+		contract_until: Faker::Time.between(DateTime.now, 2.year.from_now)
+	)
+	puts "create tenant #{i+1}"
+end
 
 # choices
 puts "create choice"
@@ -746,7 +788,11 @@ categories.each do |cat|
 				picture = ProductImage.new
 				picture.file = File.open(File.join(Rails.root, "db/product_images/#{cat[:name].titleize}/#{sub_cat[:name].titleize}/#{menu[:name].titleize}.jpg"))
 				picture.save!
-				product.update!(picture: picture.file.url, default_price: menu[:price], tenant: eval("tenant#{rand(1..10)}"))
+				product.update!(
+					picture: picture.file.url, 
+					default_price: menu[:price], 
+					tenant: User.tenant.order("RANDOM()").first
+				)
 			end
 		end
 	end
@@ -754,9 +800,134 @@ end
 
 puts "start create table"
 200.times do |i|
-	puts "create table #{i + 1}"
 	Table.create name: "#{i + 1}", location: 'savenue'
+	puts "create table #{i + 1}"
 end
+
+200.times do |i|
+  discount = Discount.create(
+    name: Faker::Lorem.sentence,
+    updated_by: User.manager.order("RANDOM()").first,
+    start_date: Faker::Time.between(DateTime.now - 1, DateTime.now),
+    end_date: Faker::Time.between(DateTime.now - 1, DateTime.now),
+    start_time: "#{Array(1..12).sample}:58".to_time,                     
+    end_time: "#{Array(12..23).sample}:59".to_time,                            
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].sort_by{rand}[0..(Array(0..6).sample)]
+  )
+  if i.odd?
+  	discount.update_attribute :amount, [5000, 10000, 15000, 20000].sample
+  else   
+    discount.update_attribute :percentage, Array(1..100).sample
+  end
+
+  puts "create discount #{i}"
+end
+
+300.times do |i|
+  ProductDiscount.create(
+    product: Product.order("RANDOM()").first,
+    discount: Discount.order("RANDOM()").first,
+  )
+  puts "create product discount #{i}"
+end
+
+500.times do |i|
+  Payment.create(
+    cashier: User.cashier.order("RANDOM()").first,
+    created_at: Faker::Time.between(1.year.ago, DateTime.now)
+  )
+  puts "create payment #{i}"
+end
+
+1000.times do |i|
+  Order.create(
+    name: Faker::Name.name,
+    table: Table.order("RANDOM()").first,
+    waiting: false,                                   
+    discount_by: User.manager.order("RANDOM()").first,
+    person: Array(1..10).sample,
+    cashier: User.cashier.order("RANDOM()").first,
+    created: true,                            
+    payment: Payment.order("RANDOM()").first,
+    created_at: Faker::Time.between(1.year.ago, DateTime.now)
+  )
+  puts "create order #{i}"
+end
+
+4000.times do |i|
+	product = Product.order("RANDOM()").first
+	order = Order.order("RANDOM()").first
+  item = OrderItem.new(
+    order: order,
+    product: product,
+    quantity: Array(1..10).sample,
+    choice: product.choices.sample,
+    note: Faker::Lorem.sentence,
+    served: true,
+    discount: product.discounts.sample,
+    created_at: order.created_at
+  )
+
+  item.paid_quantity = 0
+	item.void_quantity = 0
+	item.oc_quantity = 0
+
+  while item.quantity != (item.void_quantity + item.oc_quantity + item.paid_quantity)
+  	item.paid_quantity = Array(0..item.quantity).sample
+  	item.void_quantity = Array(0..(item.quantity - item.paid_quantity)).sample
+  	item.oc_quantity = item.quantity - (item.paid_quantity + item.void_quantity)
+  end
+
+  if item.void_quantity > 0
+  	item.void_by = User.manager.order("RANDOM()").first
+  	item.void_note = Faker::Lorem.sentence
+  end
+  if item.oc_quantity > 0
+  	item.oc_by = User.manager.order("RANDOM()").first
+  	item.oc_note = Faker::Lorem.sentence
+  end
+
+ 	item.save!
+ 	puts "create order items #{i}"
+end
+
+Payment.all.each_with_index do |payment, i|
+
+	if payment.orders.blank?
+		payment.destroy
+		next
+	end
+
+	if i % 5 == 0
+		payment.discount_amount = payment.sub_total*rand()
+		payment.discount_by = User.manager.order("RANDOM()").first
+	elsif i % 3 == 0
+		payment.discount_percent = rand(0..100)
+		payment.discount_by = User.manager.order("RANDOM()").first
+	end
+
+	payment.debit_amount = rand(0..payment.total.to_i)
+	payment.credit_amount = rand(0..(payment.total.to_i - payment.debit_amount.to_i))
+	payment.cash_amount = payment.total - (payment.debit_amount.to_i + payment.credit_amount.to_i)
+
+  if payment.debit_amount.to_f > 0
+  	payment.debit_name = Faker::Business.credit_card_type
+  	payment.debit_number = Faker::Business.credit_card_number
+  end
+  if payment.credit_amount.to_f > 0
+  	payment.credit_name = Faker::Business.credit_card_type
+  	payment.credit_number = Faker::Business.credit_card_number
+  end
+
+ 	payment.save!
+ 	puts "create payment amount and discount #{i}"
+end
+
+Order.all.each do |order|
+	order.destroy if order.order_items.blank?
+end
+
+
 
 
 

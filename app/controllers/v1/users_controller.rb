@@ -11,15 +11,18 @@ class V1::UsersController < V1::BaseController
 
     if query_params['role'].presence && query_params['role'] == 'eresto'
       @users = User.where(hash_query_params)
-        .includes(attach_includes)
-        .page(page_params[:page])
-        .per(page_params[:page_size])
+        .includes(attach_includes)     
     else
       @users = User.where(hash_query_params).where.not(role: 0)
         .includes(attach_includes)
-        .page(page_params[:page])
-        .per(page_params[:page_size])
     end
+
+    if params[:role]
+      @users = @users.try(params[:role])
+    end
+
+    @total = @users.count if page_params.present?
+    @users = @users.page(page_params[:page]).per(page_params[:page_size]) if page_params.present?
     respond_with @users
   end
 

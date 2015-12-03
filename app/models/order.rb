@@ -4,6 +4,7 @@ class Order < ActiveRecord::Base
 	has_many   :order_items
   belongs_to :discount_provider, foreign_key: :discount_by, class_name: 'User'
   belongs_to :table
+  belongs_to :payment
   belongs_to :server, class_name: 'User', foreign_key: 'servant_id'
   belongs_to :cashier, class_name: 'User', foreign_key: 'cashier_id'
 
@@ -13,15 +14,16 @@ class Order < ActiveRecord::Base
 
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }
-  scope :histories, -> { where("orders.waiting IS NOT TRUE").latest }
+  scope :histories, -> { where("orders.payment_id IS NOT NULL").latest }
   scope :search, -> (query) do
-    if query
-      if query.downcase.include?("table")
+    if query.present?
+      if query.downcase.include?("table") || query.downcase.include?("order")
         joins(:table).where('tables.name ILIKE :q', q: "%#{query.split(" ").last}%")
       elsif query.downcase.include?("queue")
         where('queue_number::text ILIKE :q', q: "%#{query.split(" ").last}%")
       else
-        where('name || struck_id ILIKE :q', q: "%#{query}%")
+        joins(:payment)
+          .where('payments.receipt_number ILIKE :q OR orders.name ILIKE :q', q: "%#{query}%")
       end
     end
   end
@@ -65,6 +67,8 @@ class Order < ActiveRecord::Base
   end
 
   def self.save_from_servant(params)
+    params['products'] = params[:products] ? params[:products] : params[:order_items]
+    return false if params['products'].blank?
     # begin
       if params['id'].blank? || params['type'] == 'move'
         order = Order.create
@@ -77,16 +81,6 @@ class Order < ActiveRecord::Base
       order.servant_id = params['servant_id'] if params['servant_id'].present?
       order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
       order.person = params['person'] if params['person'].present?
-      order.discount_amount = params['discount_amount'] if params['discount_amount'].present?
-      order.discount_percent = params['discount_percent'] if params['discount_percent'].present?
-
-      order.debit_amount = params['debit_amount'] if params['debit_amount'].present?
-      order.credit_amount = params['credit_amount'] if params['credit_amount'].present?
-      order.cash_amount = params['cash_amount'] if params['cash_amount'].present?
-      order.debit_name = params['debit_name'] if params['debit_name'].present?
-      order.debit_number = params['debit_number'] if params['debit_number'].present?
-      order.credit_name = params['credit_name'] if params['credit_name'].present?
-      order.credit_number = params['credit_number'] if params['credit_number'].present?
 
       if params['type'] == 'move'
         order.name = "split from " + order.name
@@ -99,11 +93,6 @@ class Order < ActiveRecord::Base
       # update table data with order id
       Table.update(params['table_id'], order_id: order.id) if params['table_id'].present? && params["type"] != 'move'
 
-      #get taxs
-      taxs  = Outlet.first.taxs;
-
-      params['products'] = params[:products] ? params[:products] : params[:order_items]
-
       # order_item
       params['products'].each do |prd|
         product_id = params[:order_items] ? prd['product_id'] : prd[:id]
@@ -115,31 +104,12 @@ class Order < ActiveRecord::Base
           orderItem = order.order_items.find(order_item_id)
         end
 
-        product = Product.find_by_id(product_id)
-
-        discount      = product.discounts.find_by_id(prd['discount_id'])
-        discount      = discount.nil? ? 0 : discount.amount.to_i
-        dsc_qty       = discount * prd['quantity'].to_i
-        prices        = product.price.to_i * prd['quantity'].to_i
-        prices        = prices - dsc_qty
-
-        # prices = prd['price'].to_i * prd['quantity'].to_i
-
-        tax_component = 0;
-        taxs.each_pair do |name, amount|
-          percentage = amount.to_f / 100
-          tax_component += (percentage * prices).to_i
-        end rescue true
-
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
           quantity:         prd['quantity'],
           note:             note,
           void:             prd['void'],
-          paid_amount:      (tax_component + prices),
-          tax_amount:       tax_component,
           discount_id:      prd['discount_id'],
-          discount_amount:  dsc_qty,
           void_note:        prd['void_note'],
           take_away:        prd['take_away'],
           saved_choice:     prd['choice'] || prd['saved_choice'],
@@ -153,10 +123,6 @@ class Order < ActiveRecord::Base
     #   return false
     # end
   end
-
-  # def self.do_print(params)
-  #   self.new.execute_print(params)
-  # end
 
   
 end

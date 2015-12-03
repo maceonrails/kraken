@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151102155602) do
+ActiveRecord::Schema.define(version: 20151203053704) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -51,6 +51,7 @@ ActiveRecord::Schema.define(version: 20151102155602) do
     t.text     "days",                                default: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],              array: true
     t.decimal  "amount",     precision: 25, scale: 2
     t.string   "percentage"
+    t.boolean  "active",                              default: true
   end
 
   create_table "inventories", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
@@ -151,9 +152,6 @@ ActiveRecord::Schema.define(version: 20151102155602) do
     t.decimal  "amount",           precision: 25, scale: 2
     t.decimal  "discount",         precision: 25, scale: 2
     t.string   "receipt_number"
-    t.string   "debit_amount"
-    t.string   "credit_amount"
-    t.string   "cash_amount"
     t.string   "debit_name"
     t.string   "credit_name"
     t.string   "debit_number"
@@ -162,6 +160,12 @@ ActiveRecord::Schema.define(version: 20151102155602) do
     t.string   "discount_percent"
     t.uuid     "discount_by"
     t.uuid     "cashier_id"
+    t.decimal  "sub_total",        precision: 20, scale: 2
+    t.decimal  "total",            precision: 20, scale: 2
+    t.decimal  "pay_amount",       precision: 20, scale: 2
+    t.decimal  "cash_amount",      precision: 20, scale: 2
+    t.decimal  "credit_amount",    precision: 20, scale: 2
+    t.decimal  "debit_amount",     precision: 20, scale: 2
   end
 
   create_table "printers", force: :cascade do |t|

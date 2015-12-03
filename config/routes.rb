@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+
   apipie
   get '/manager', :to => redirect('/manager/index.html')
   get '/kitchen', :to => redirect('/kitchen/index.html')
@@ -8,6 +9,11 @@ Rails.application.routes.draw do
     post '/sync'     => "base#sync"
     get '/me'        => 'base#me'
 
+    get 'prints/bill'
+    get 'prints/send_bill_to_email'
+    get 'prints/reprint'
+    get 'prints/receipt'
+    get 'prints/recap'
 
     get '/users/:id/rekap' => 'users#rekap'
 
@@ -109,6 +115,7 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'all' }
       member { post 'void_item' }
+      collection { get 'print_bill' }
     end
 
     resources :printers do

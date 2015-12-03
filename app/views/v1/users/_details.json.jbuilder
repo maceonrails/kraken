@@ -1,5 +1,6 @@
 json.id          user.id
 json.email       user.email
+json.name        user.profile.try(:name)
 json.role        user.role
 json.company_id  user.company_id
 json.outlet_id   user.outlet_id

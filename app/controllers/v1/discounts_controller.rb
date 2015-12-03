@@ -60,6 +60,18 @@ class V1::DiscountsController < V1::BaseController
     super
   end
 
+  def destroy
+    begin
+      get_resource.active = !get_resource.active
+      get_resource.save
+      render :show
+    rescue => e
+      relations = resource_class.reflect_on_all_associations.map { |e| e.name.to_s }
+      error_msg = "Cannot deactive/delete #{resource_name}, still have link with the following: #{relations.join(',')}"
+      render json: { message: error_msg }, status: 200
+    end
+  end
+
   private
     def discount_params
       params.require(:discount).permit(:name, :amount,

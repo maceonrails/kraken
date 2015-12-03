@@ -1,218 +1,182 @@
 class Printer < ActiveRecord::Base
+  include ActionView::Helpers::NumberHelper
   after_create :update_default
 
-  def self.print_order(params, opts = { preview: true })
-    params = recursive_symbolize_keys params
-    outlet = Outlet.first
-    order  = Order.includes(:table, :order_items, :server).find(params[:id])
+  def self.print_bill(payment)
+    self.do_print(payment, preview: true)
+  end
 
-    text = center(true)
-    text << outlet.name.to_s + "\n"
-    text << outlet.address.to_s.gsub!("\n", " ").to_s + "\n"
-    text << "Telp: 0" + outlet.phone.to_s
-    if outlet.mobile
-      text << "/" + outlet.mobile.to_s + "\n"
-    else
+  def self.reprint(payment)
+    self.do_print(payment, reprint: true)
+  end
+
+  def self.print_receipt(payment)
+    self.do_print(payment, receipt: true)
+  end
+
+  def self.generate_bill payment, opts = {}
+    text ||= ''
+
+    outlet = payment.cashier.outlet
+    text << center_line(outlet.name.to_s)
+    text << "\n"
+    text << center_line(outlet.address.to_s.gsub!("\n", " ").to_s)
+    text << "\n"
+    text << center_line("Telp: " + outlet.phone.to_s + ("/" + outlet.mobile.to_s if outlet.mobile).to_s)
+    text << "\n"
+    
+    text << center_line(Time.now.strftime("%d %B %Y %H:%M").to_s + "\n")
+
+    if payment.receipt_number
+      text << "\n"
+      text << per_line("Receipt ID : #{payment.receipt_number}")
+    end
+    text << "\n"
+    text << per_line("No Order   : #{payment.orders.map {|a| a.table.name }.join(',')}")
+    text << "\n"
+    text << per_line("Cashier    : #{payment.cashier.try(:profile).try(:name) || payment.cashier.try(:email) || outlet.name}")
+    text << "\n"
+    text << double_line
+    text << "\n"
+
+    payment.orders.each do |order|
+      text << "Order no #{order.table.name} :\n"
+      text << line
+      order.order_items.each do |item|
+        text << print_line("#{item.active_quantity} #{item.product.name}", item.total_price)
+      end
       text << "\n"
     end
-
-    unless order.waiting
-      text << center(false)
-      text << "\nREPRINT \n"
-      text << center(true)
+    text << "\n"
+    text << print_line("Sub Total", payment.sub_total)
+    payment.cashier.outlet.taxs.each do |tax, amount|
+      text << print_line("#{tax}", amount.to_f/100*payment.sub_total)
     end
-
-    text << "\n"
-    text << emphasized(true)
-    if order.table
-      text << "Table : "
-      text << order.table.name.to_s + "\n"
-    else
-      text << "Take Away\n"
-    end
-
-    text << Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
-
-    text << emphasized(false)
-    text << center(false)
-    text << "Receipt ID  : "
-    text << order.struck_id.to_s
-    text << "\n"
-    text << "Customer    : "
-    text << order.name.to_s
-    text << " / "
-    text << order.person.to_i.to_s
-    text << "\n"
-    text << "Serv/Cashier: "
-    text << (order.server.try(:profile).try(:name) || order.server.try(:email) || outlet.name)
-    text << " / "
-    text << (order.cashier.try(:profile).try(:name) || order.cashier.try(:email) || outlet.name)
-    text << "\n"
-
-    text << center(true)
     text << line
-    text << center(false)
+    text << print_line("TOTAL", payment.total)
+    text << "\n"
 
-    #order items
-    sub_total      = 0
-    discount_total = 0
-    params[:order_items].each do |order_item|
-      item = OrderItem.find_by_product_id(order_item[:product_id])
-      # print_qty = item.paid_quantity - item.printed_quantity
-      print_qty = order_item[:print_quantity]
+    if opts[:receipt] || opts[:reprint]
+      if payment.debit_amount.to_i > 0
+        text << print_line("Cash", payment.cash_amount)
+      end
 
-      if !item.void && print_qty > 0
-        prd_name = print_qty.to_s + " " + item.product.name.to_s.capitalize
-        text << prd_name
+      if payment.debit_amount.to_i > 0
+        text << print_line("Debit", payment.debit_amount)
+      end
 
-        if (prd_name.length > 20)
-          text << "\n"
-        end
+      if payment.credit_amount.to_i > 0
+        text << print_line("Credit", payment.credit_amount)
+      end
 
-        text << 9.chr
-        text << right(true)
+      text << line
+      text << print_line("PAY", payment.pay_amount)
 
-        price_qty = print_qty * item.product.price.to_i
-        sub_total += price_qty
+      text << "\n"
+      text << print_line("CHANGE", payment.return_amount)
+      text << "\n\n"
 
-        text << number_to_currency(price_qty, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-        text << right(false)
+      if payment.debit_amount.to_i > 0
+        text << per_line(" *DEBIT CARD #{payment.debit_name}: ****#{payment.debit_number.to_s[-4, 4]}")
         text << "\n"
-        item.discount = Discount.where(id: order_item[:discount_id]).first
-        if item.discount
-          text << "   Discount: " + item.discount.name.to_s
-          text << 9.chr
-          text << right(true)
-          if item.discount.percentage.to_i > 0
-            discount_holder = item.product.price.to_i * item.discount.percentage.to_i / 100
-          else
-            discount_holder = item.discount.amount
-          end
-
-          disc_pric = discount_holder.to_i * print_qty
-          text << number_to_currency(disc_pric, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-          text << right(false)
-          text << "\n"
-          discount_total += disc_pric
-        end
       end
-    end
 
-    if params[:discount_amount] && params[:discount_amount].to_i > 0
-      discount_total += params[:discount_amount].to_i
-      text << "  ORDER DISCOUNTS"
-      if (params[:discount_percent].to_i > 0)
-        text << " #{params[:discount_percent].to_i}%"
+      if payment.credit_amount.to_i > 0
+        text << per_line(" *CREDIT CARD #{payment.credit_name}: ****#{payment.credit_number.to_s[-4, 4]}")
+        text << "\n"
       end
-      text << 9.chr
-      text << right(true)
-      text << " - "
-      text << number_to_currency(params[:discount_amount].to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-      text << right(false)
       text << "\n"
     end
 
-    text << center(true)
-    text << line
-    text << center(false)
+    if opts[:reprint]
+      text << "\nREPRINT\n"
+    end
 
-    text << "  TOTAL"
-    text << 9.chr
-    text << right(true)
-    text << number_to_currency(sub_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-    text << right(false)
+    text << "\n=================================\n"
+
+    text << center_line("Thanks For Your Visit")
+    text << "\n"
+    text << center_line("Till Next Time")
+    text << "\n\n\n\n\n\n\n"
+
+    return text
+  end
+
+  def print_rekap(user)
+    start_login = user.start_login
+    text = center(true)
+    recap = Order.recap(user)
+
+    text << "Rekap Omzet Kasir\n"
+    text << double_line
+    text << "\n"
+    text << center(false)
+    text << "Kasir : "+ ( user.try(:name) || user.try(:email) ) +"\n"
+    text << "Mulai : "+ (start_login.strftime("%d %B %Y %H:%M").to_s rescue '') + "\n"
+    text << "s/d   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
+    text << double_line
+    text << "\n\n"
+
+    text << print_line("Saldo Awal")
+    text << print_line("CASH", recap.total_cash)
+    text << line
+    text << print_line("Saldo Akhir(Cash)", recap.total_cash)
+    text << print_line("NON CASH", recap.total_non_cash)
+    text << line
+    text << print_line("Total Transaksi", recap.total_transaction)
     text << "\n"
 
-    if discount_total > 0
-      text << "  TOTAL DISCOUNTS"
-      text << 9.chr
-      text << right(true)
-      text << " - "
-      text << number_to_currency(discount_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-      text << right(false)
-      text << "\n"
-
-      text << center(true)
-      text << line
-      text << center(false)
-
-      text << ""
-      text << 9.chr
-      text << right(true)
-      text << number_to_currency((sub_total - discount_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-      text << right(false)
-      text << "\n"
+    text << print_line("Penjualan", recap.total_sales)
+    user.outlet.taxs.each do |tax, amount|
+      text << print_line("Total #{tax}", recap.send("total_#{tax}"))
     end
-
-    taxs = 0;
-    if outlet.taxs
-      text << center(true)
-      text << line
-      text << center(false)
-    end
-
-    grand_total     = sub_total - discount_total
-
-    outlet.taxs.each_pair do |name, amount|
-      percentage    = amount.to_f / 100
-      tax_component = (percentage * grand_total.to_i).to_i
-      taxs         += tax_component
-
-      text << "  " + name.to_s.capitalize + " " + amount.to_s + "%"
-      text << 9.chr
-      text << right(true)
-      text << number_to_currency(tax_component, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-      text << right(false)
-      text << "\n"
-    end
-
-    text << center(true)
     text << line
-    text << center(false)
-
-    text << emphasized(true)
-    text << "  GRAND TOTAL"
-    text << 9.chr
-    text << right(true)
-    grand_total += taxs
-    text << number_to_currency(grand_total, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-    text << right(false)
-    text << emphasized(false)
+    text << print_line("Discount Produk", recap.total_product_discount)
+    text << print_line("Discount Order", recap.total_order_discount)
+    text << line
+    text << print_line("", recap.total_transaction)
     text << "\n"
 
-    unless opts[:preview]
-      text << center(true)
-      text << line
-      text << center(false)
+    text << "*** Jenis Pembayaran ***\n"
+    text << print_line("(+) Cash", recap.total_cash)
+    text << print_line("(+) Debit", recap.total_debit)
+    text << print_line("(+) Credit", recap.total_credit)
+    text << line
+    text << print_line("Total Trans.", recap.total_transaction)
+    text << line
+    text << "\n"
 
-      pay_amnt = params[:debit_amount].to_i + params[:cash_amount].to_i + params[:credit_amount].to_i
+    text << "Jumlah yang terjual : \n"
+    text << line
+    text << "qty | Jenis           Amount\n"
+    text << line
 
-      text << emphasized(true)
-      text << "  PAY"
-      text << 9.chr
-      text << right(true)
-      text << number_to_currency(pay_amnt.to_i, unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-      text << right(false)
-      text << emphasized(false)
-      text << "\n"
-
-      text << emphasized(true)
-      text << "  CHANGE"
-      text << 9.chr
-      text << right(true)
-      text << number_to_currency((pay_amnt.to_i - grand_total), unit: "Rp ", separator: ",", delimiter: ".", precision: 0)
-      text << right(false)
-      text << emphasized(false)
-      text << "\n"
+    recap.total_per_category.each do |cat|
+      text << print_line("#{cat.quantity} #{cat.name}", cat.amount)
     end
+    text << line
+    text << "\n"
+
+    text << print_line("Jumlah struk", recap.count, '')
+    text << print_line("Rata2 per struk", (recap.total_transaction / recap.count rescue 0))
+    text << print_line("Jumlah tamu", recap.sum(:person), '')
+    text << print_line("Rata2 per tamu", (recap.total_transaction / recap.sum(:person) rescue 0))
+    text << "\n"
+    text << print_line("Total", recap.total_transaction)
+
+    text << "\n\n"
+
+    text << "Yg menyerahkan       Yg menerima"
+    text << "\n\n\n\n\n\n"
+    text << "--------------      -------------"
+    text << "\n\n\n\n"
 
     text << center(true)
     text << "=================================\n"
 
     text << "\n"
     text << emphasized(true)
-    text << "Thanks For Your Visit\n"
-    text << "Till Next Time"
+    text << "Bober Cafe Print Rekap\n"
     text << emphasized(false)
     text << center(false)
     text << "\n\n\n\n\n\n\n"
@@ -223,7 +187,44 @@ class Printer < ActiveRecord::Base
     puts "\n"
     puts text.to_s
 
-    if sub_total > 0
+    begin
+      printer = Printer.where(default: true).first
+      puts printer.inspect
+      puts "========================"
+      fd = IO.sysopen(printer.printer, 'w+')
+      printer = IO.new(fd)
+      printer.puts text
+      printer.close
+    rescue Exception => e
+      puts '======================'
+      puts e.inspect
+      puts '=================='
+      begin
+        printer = Printer.where.not(default: true).first
+        fd = IO.sysopen(printer.printer, 'w+')
+        printer = IO.new(fd)
+        printer.puts text
+        printer.close
+      rescue Exception => e
+        puts '====================='
+        puts e.inspect
+        puts '====================='
+        succeed = false
+      end
+    end
+  end
+
+  def self.do_print(payment, opts = { preview: true })
+    text = ''
+    text << generate_bill(payment, opts)
+
+    succeed = true
+    puts "==================="
+    puts "start printing "
+    puts "\n"
+    puts text.to_s
+
+    if payment.sub_total > 0
       begin
         printer = Printer.where(default: true).first
         puts printer.inspect
@@ -257,45 +258,7 @@ class Printer < ActiveRecord::Base
       end
     end
 
-    return { status: succeed, printed: sub_total > 0}
-  end
-
-  def self.print_rekap(user)
-    start_login = user.start_login
-    text = center(true)
-
-    text << "Rekap Omzet Kasir\n"
-    text << "============================\n\n"
-    text << center(false)
-    text << "Kasir     : "+ ( user.try(:name) || user.try(:email) ) +"\n"
-    text << "Mulai jam : "+ start_login.strftime("%d %B %Y %H:%M").to_s rescue '' + "\n"
-    text << "s/d jam   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n\n\n"
-
-    begin
-      printer = Printer.where(default: true).first
-      puts printer.inspect
-      puts "========================"
-      fd = IO.sysopen(printer.printer, 'w+')
-      printer = IO.new(fd)
-      printer.puts text
-      printer.close
-    rescue Exception => e
-      puts '======================'
-      puts e.inspect
-      puts '=================='
-      begin
-        printer = Printer.where.not(default: true).first
-        fd = IO.sysopen(printer.printer, 'w+')
-        printer = IO.new(fd)
-        printer.puts text
-        printer.close
-      rescue Exception => e
-        puts '====================='
-        puts e.inspect
-        puts '====================='
-        succeed = false
-      end
-    end
+    return { status: succeed, printed: payment.sub_total > 0}
   end
 
   def self.breaks
@@ -354,8 +317,59 @@ class Printer < ActiveRecord::Base
     return text
   end
 
-  def self.line
-    return "---------------------------------\n"
+  def self.line(number = 33)
+    "-" * number + "\n"
+  end
+
+  def self.double_line(number = 33)
+    "=" * number + "\n"
+  end
+
+  def self.repeat(char = '-', number = 33, new_line = true)
+    result = char * number
+    new_line ? result : result + "\n"
+  end
+
+  def self.per_line(text, number = 33)
+    part1, part2 = text.slice!(0...number), text
+    part2 = (" " * (part1.index(":") + 2)) + part2
+    return part1.to_s + (part2.present? ? "\n" + part2.to_s : "")
+  end
+
+  def self.center_line(text, number = 33)
+    whitespace = number - text.length
+    return (" " * (whitespace/2)) + text
+  end
+
+  def self.pull_left(text, currency = 'Rp.', length = 18)
+    (text.length <= length ? text + " " * (length - text.length) : text.truncate(length, :omission => '')) + ": " + currency
+  end
+
+  def self.pull_right(text, length = 9)
+    amount = number_to_currency(text, unit: "", separator: ",", delimiter: ".", precision: 0)
+    return " " * (length - amount.length) + amount
+  end
+
+  def self.print_line(text, amount = 0, currency = 'Rp.')
+    result = ''
+    result << pull_left(text, currency)
+    result << pull_right(amount, 33 - result.length) rescue binding.pry
+    if text[18..-1].present?
+      result << "\n" 
+      result << "  " + text[18..-1].to_s
+    end
+    result << "\n"
+  end
+
+  def self.print_amount(amount)
+    result = ''
+    result << right(true)
+    result << number_to_currency(amount, unit: "", separator: ",", delimiter: ".", precision: 0)
+    result << right(false)
+  end
+
+  def self.number_to_currency(amount, opts)
+    ActionController::Base.helpers.number_to_currency(amount, opts)
   end
 
   private

@@ -1,4 +1,11 @@
-class V1::PaymentsController < ApplicationController
+class V1::PaymentsController < V1::BaseController
+
+  def show
+    render json: @payment, 
+      include: { 
+        orders: { include: { order_items: { include: :product }, table: {} }, }
+      }
+  end
 
 	def create
     if Payment.pay(pay_params)

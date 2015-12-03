@@ -13,6 +13,7 @@ gem 'aescrypt'
 gem 'rack-cors', :require => 'rack/cors'
 gem 'carrierwave'
 gem "mini_magick"
+gem "figaro"
 
 gem 'unicorn'
 gem 'mina'
@@ -24,6 +25,7 @@ gem 'whenever', require: false
 gem 'rufus-scheduler'
 
 gem 'yajl-ruby'
+gem "faker"
 
 gem 'mina-unicorn', :require => false
 
