@@ -103,7 +103,6 @@ class Order < ActiveRecord::Base
         else
           orderItem = order.order_items.find(order_item_id)
         end
-
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
           quantity:         prd['quantity'],

@@ -4,7 +4,13 @@ class Payment < ActiveRecord::Base
 	belongs_to :cashier, class_name: 'User', foreign_key: 'cashier_id'
 
 	before_create :set_receipt_number
-  before_save :set_sub_total, :set_total, :set_pay_amount
+  before_save :set_all_amount
+
+  def set_all_amount
+    self[:sub_total] = sub_total
+    self[:total] = total
+    self[:pay_amount] = pay_amount
+  end
 
 	def set_receipt_number
     holder = '0000'
@@ -13,26 +19,36 @@ class Payment < ActiveRecord::Base
     self.receipt_number = 'SA-' + payments + '-' + Time.now.strftime('%d/%m/%Y')
   end
 
-  def set_sub_total
+  def sub_total
     result = 0
     self.orders.each do |order|
       order.order_items.each do |item|
         result += item.total_price
       end
     end
-    self.sub_total = result
+    result
   end
 
-  def set_total
-    self.total = self.sub_total + (self.sub_total * (taxs.values.map(&:to_f).sum/100)) - self.discount_amount.to_f
+  def total
+    sub_total + (sub_total * (taxs.values.map(&:to_f).sum/100)) - discount_amount.to_f
+  end
+
+  def discount_products
+    result = 0
+    self.orders.each do |order|
+      order.order_items.each do |item|
+        result += item.calc_discount_amount
+      end
+    end
+    result
   end
 
   def taxs
     self.cashier.outlet.taxs rescue {}
   end
 
-  def set_pay_amount
-    self.pay_amount = self.cash_amount.to_f + self.debit_amount.to_f + self.credit_amount.to_f
+  def pay_amount
+    self.cash_amount.to_f + self.debit_amount.to_f + self.credit_amount.to_f
   end
 
   def return_amount
@@ -88,7 +104,7 @@ class Payment < ActiveRecord::Base
         item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
       end
 
-      item['paid'] = true
+      item['paid'] = true if active_quantity
       item['pay_quantity'] = 0
 
       order_item.update!(item.except(:id, :price, :print_quantity))

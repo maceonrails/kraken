@@ -7,17 +7,17 @@ class OrderItem < ActiveRecord::Base
 
   before_save :calculate_amount
 
-  def total_price
-    (active_quantity * product.price) - (discount.try(:amount) || 0)
-  end
-
   def active_quantity
-    res = if order.payment
-      paid_quantity
+    if quantity.to_i <= void_quantity.to_i + oc_quantity.to_i + paid_quantity.to_i
+      res = paid_quantity.to_i
     else
-      quantity - void_quantity - oc_quantity - paid_quantity
+      res = unpaid_quantity.to_i
     end
     res > 0 ? res : 0
+  end
+
+  def unpaid_quantity
+    quantity - void_quantity - oc_quantity - paid_quantity
   end
 
 	def self.void_items(user, params)
@@ -66,31 +66,31 @@ class OrderItem < ActiveRecord::Base
     return order
   end
 
-  # def self.void_item(item)
-  #   order_item = OrderItem.find(item['id'])
-  #   order_item.update(item.except(:id, :price))
-  #   clear_complete_order(order_item.order)
-  #   return true
-  # end
+  def total_price
+    (active_quantity * product.price)
+  end
 
-  def calculate_amount
+  def calc_discount_amount
+    self.discount_amount = (discount ? discount.amount || discount.percentage.to_f/100 * product.price : 0) * paid_quantity
+  end
+
+  def calc_tax_amount
     taxs = Outlet.first.taxs;
-    self.discount_amount = 0
-    if self.discount 
-      self.discount_amount = discount.amount || discount.percentage.to_f * product.price
-    end
-
-    dsc_qty       = self.discount_amount.to_f * active_quantity
-    prices        = product.price.to_i * active_quantity
-    prices        = prices - dsc_qty
-
     self.tax_amount = 0;
     taxs.each_pair do |name, amount|
       percentage = amount.to_f / 100
-      self.tax_amount += (percentage * prices).to_i
+      tax_amount += (percentage * prices).to_i
     end rescue true
+  end
 
-    self.paid_amount = self.tax_amount + prices
+  def calc_paid_amount
+    self.paid_amount = self.tax_amount + total_price - self.discount_amount
+  end
+
+  def calculate_amount
+    calc_discount_amount
+    calc_tax_amount
+    calc_paid_amount
   end
 
   def self.clear_complete_order(order)

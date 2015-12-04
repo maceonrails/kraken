@@ -52,6 +52,13 @@ class Printer < ActiveRecord::Base
     payment.cashier.outlet.taxs.each do |tax, amount|
       text << print_line("#{tax}", amount.to_f/100*payment.sub_total)
     end
+    if payment.discount_amount.to_f > 0 
+      text << print_line("Payment Discount", payment.discount_amount)
+    end
+    if payment.discount_products.to_f > 0 
+      text << print_line("product Discounts", payment.discount_products)
+    end
+
     text << line
     text << print_line("TOTAL", payment.total)
     text << "\n"
