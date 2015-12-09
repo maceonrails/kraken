@@ -905,7 +905,9 @@ Payment.all.each_with_index do |payment, i|
 		payment.discount_percent = rand(0..100)
 		payment.discount_by = User.manager.order("RANDOM()").first
 	end
-
+	puts "-----------"
+	puts payment.total.to_i
+	puts "-----------"
 	payment.debit_amount = rand(0..payment.total.to_i)
 	payment.credit_amount = rand(0..(payment.total.to_i - payment.debit_amount.to_i))
 	payment.cash_amount = payment.total - (payment.debit_amount.to_i + payment.credit_amount.to_i)

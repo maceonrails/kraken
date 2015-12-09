@@ -43,7 +43,9 @@ class Printer < ActiveRecord::Base
       text << "Order no #{order.table.name} :\n"
       text << line
       order.order_items.each do |item|
-        text << print_line("#{item.active_quantity} #{item.product.name}", item.total_price)
+        unless item.active_quantity == 0
+          text << print_line("#{item.active_quantity} #{item.product.name}", item.total_price)
+        end
       end
       text << "\n"
     end
@@ -53,10 +55,10 @@ class Printer < ActiveRecord::Base
       text << print_line("#{tax}", amount.to_f/100*payment.sub_total)
     end
     if payment.discount_amount.to_f > 0 
-      text << print_line("Payment Discount", payment.discount_amount)
+      text << print_line("Order Discount", payment.discount_amount)
     end
     if payment.discount_products.to_f > 0 
-      text << print_line("product Discounts", payment.discount_products)
+      text << print_line("Product Discounts", payment.discount_products)
     end
 
     text << line
@@ -64,7 +66,7 @@ class Printer < ActiveRecord::Base
     text << "\n"
 
     if opts[:receipt] || opts[:reprint]
-      if payment.debit_amount.to_i > 0
+      if payment.cash_amount.to_i > 0
         text << print_line("Cash", payment.cash_amount)
       end
 
@@ -80,7 +82,7 @@ class Printer < ActiveRecord::Base
       text << print_line("PAY", payment.pay_amount)
 
       text << "\n"
-      text << print_line("CHANGE", payment.return_amount)
+      text << print_line("CHANGE", payment.return_amount < 0 ? 0 : payment.return_amount)
       text << "\n\n"
 
       if payment.debit_amount.to_i > 0
@@ -96,7 +98,7 @@ class Printer < ActiveRecord::Base
     end
 
     if opts[:reprint]
-      text << "\nREPRINT\n"
+      text << center_line("--REPRINT--")
     end
 
     text << "\n=================================\n"

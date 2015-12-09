@@ -68,13 +68,15 @@ class V1::OrdersController < V1::BaseController
       date_start = date.beginning_of_day
       date_end   = date.end_of_day
     end
-    data = Payment
-            .where('payments.created_at >= ? and payments.created_at <= ?', date_start, date_end)
-            .select("DATE(payments.created_at) as created_at, sum(payments.total) as name")
-            .group('payments.created_at')
-            .order('payments.created_at')
-            .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
-    render json: data, status: 200
+    data = OrderItem
+            .where('order_items.created_at >= ? and order_items.created_at <= ?', date_start, date_end)
+            .select("DATE(order_items.created_at) as created_at, sum(order_items.paid_amount) as name")
+            .group('order_items.created_at')
+            .order('order_items.created_at')
+    data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
+    data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
+    render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
 
   def graph_by_order
@@ -102,14 +104,16 @@ class V1::OrdersController < V1::BaseController
       date_start = date.beginning_of_day
       date_end   = date.end_of_day
     end
-    data = Order
-            .joins(:order_items)
-            .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
-            .select("DATE(orders.created_at) as created_at, count(order_items.paid_quantity) as name")
-            .group('orders.created_at')
-            .order('orders.created_at')
-            .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
-    render json: data, status: 200
+    data = OrderItem
+            .where('order_items.created_at >= ? and order_items.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
+            .select("DATE(order_items.created_at) as created_at, count(order_items.paid_quantity) as name")
+            .group('order_items.created_at')
+            .order('order_items.created_at')
+
+    data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
+    data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
+    render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
 
   def graph_by_pax
@@ -137,14 +141,17 @@ class V1::OrdersController < V1::BaseController
       date_start = date.beginning_of_day
       date_end   = date.end_of_day
     end
-    data = Order
-            .joins(:order_items)
-            .where('orders.created_at >= ? and orders.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
-            .select("DATE(orders.created_at) as created_at, sum(orders.person) as name")
-            .group('orders.created_at')
-            .order('orders.created_at')
-            .map{|o| [o.created_at.to_f * 1000, o.name.to_i]}
-    render json: data, status: 200
+    data = OrderItem
+            .where('order_items.created_at >= ? and order_items.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
+            .select("DATE(order_items.created_at) as created_at, count(order_items) as name")
+            .group('order_items.created_at')
+            .order('order_items.created_at')
+
+    data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
+    data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
+            
+    render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
 
   def get_order_quantity
@@ -176,16 +183,22 @@ class V1::OrdersController < V1::BaseController
     if params[:type]
       puts '==========='
       puts 'today'
-      @orders = Order
+      orders = Order
                 .includes(:table, :order_items, order_items: :product)
                 .where(created_at: Date.today.beginning_of_day..Date.today.end_of_day)
                 .all
+      orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
+      orders = orders.where("orders.servant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+      @orders = orders
       @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
       orders = Order.joins('LEFT OUTER JOIN "tables" on "tables"."id" = "orders"."table_id"')
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
                     .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
+      orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
+      orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+      orders = orders.group("products.tenant_id, orders.id") if params[:tenant_id].present?
       @orders = orders.page(page_params[:page]).per(10)
       @total  = orders.count || 0
     else

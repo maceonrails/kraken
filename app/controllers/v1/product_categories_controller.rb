@@ -7,6 +7,13 @@ class V1::ProductCategoriesController < V1::BaseController
     @product_categories = ProductCategory.where(query_params)
   end
 
+  def get_by_tenant
+    @product_categories = ProductCategory.joins(:products).where("products.tenant_id = ?", current_user.id).uniq
+    respond_with(@product_categories) do |format|
+      format.json { render :index }
+    end
+  end
+
   def create
     product_category = ProductCategory.new product_category_params
 

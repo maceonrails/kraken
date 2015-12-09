@@ -8,16 +8,16 @@ class OrderItem < ActiveRecord::Base
   before_save :calculate_amount
 
   def active_quantity
-    if quantity.to_i <= void_quantity.to_i + oc_quantity.to_i + paid_quantity.to_i
+    if paid
       res = paid_quantity.to_i
     else
       res = unpaid_quantity.to_i
     end
-    res > 0 ? res : 0
+    return res > 0 ? res : 0
   end
 
   def unpaid_quantity
-    quantity - void_quantity - oc_quantity - paid_quantity
+    quantity.to_i - void_quantity.to_i - oc_quantity.to_i - paid_quantity.to_i
   end
 
 	def self.void_items(user, params)
@@ -71,15 +71,15 @@ class OrderItem < ActiveRecord::Base
   end
 
   def calc_discount_amount
-    self.discount_amount = (discount ? discount.amount || discount.percentage.to_f/100 * product.price : 0) * paid_quantity
+    self.discount_amount = (discount ? discount.amount || discount.percentage.to_f/100 * product.price : 0) * active_quantity
   end
 
   def calc_tax_amount
-    taxs = Outlet.first.taxs;
+    taxs = order.payment.cashier.outlet.taxs rescue Outlet.first.taxs;
     self.tax_amount = 0;
     taxs.each_pair do |name, amount|
       percentage = amount.to_f / 100
-      tax_amount += (percentage * prices).to_i
+      self.tax_amount += (percentage * total_price).to_i
     end rescue true
   end
 

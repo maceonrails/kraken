@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
     get 'prints/bill'
     get 'prints/send_bill_to_email'
+    get 'prints/send_receipt_to_email'
     get 'prints/reprint'
     get 'prints/receipt'
     get 'prints/recap'
@@ -53,6 +54,7 @@ Rails.application.routes.draw do
       end
       collection { get 'search' }
       collection { get 'all' }
+      collection { get 'get_by_tenant' }
     end
 
     resources :product_sub_categories do

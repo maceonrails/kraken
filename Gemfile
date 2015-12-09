@@ -15,7 +15,7 @@ gem 'carrierwave'
 gem "mini_magick"
 gem "figaro"
 
-gem 'unicorn'
+# gem 'unicorn'
 gem 'mina'
 gem 'validates_email_format_of'
 gem 'tubesock'

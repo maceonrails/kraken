@@ -1,16 +1,13 @@
 class V1::PaymentsController < V1::BaseController
 
   def show
-    render json: @payment, 
-      include: { 
-        orders: { include: { order_items: { include: :product }, table: {} }, }
-      }
   end
 
 	def create
     if Payment.pay(pay_params)
       render json: { message: 'Ok' }, status: 201
     else
+      binding.pry
       render json: { message: "pay order failed" }, status: 409
     end
 	end
@@ -18,7 +15,7 @@ class V1::PaymentsController < V1::BaseController
 	def pay_params
     params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :discount_percent, :void, :cashier_id,
       :credit_amount, :debit_amount, :cash_amount, :debit_name, :credit_name, :credit_number, :debit_number, :type,
-      :pay_amount, :sub_total, :total, :paid_amount, :return_amount, :remain_amount, :note, orders: order_params
+      :pay_amount, :sub_total, :total, :paid_amount, :return_amount, :remain_amount, :email, :print, :note, orders: order_params
     )
   end
 

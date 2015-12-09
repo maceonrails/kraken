@@ -26,7 +26,8 @@ json.orders @orders do |order|
 		json.discount 			item.discount
 		json.product do
 			json.choices item.product.choices
-			json.discounts item.product.discounts
+			json.discounts item.product.discounts.active
+			json.price item.product.price
 		end
 	end
 end
