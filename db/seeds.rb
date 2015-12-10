@@ -1,7 +1,7 @@
 puts "create S'avenue company"
 
-company = Company.create( name: "S'avenue")
-outlet = company.outlets.create( name: "S'Avenue BIP", taxs: {ppn: 10, service: 5})
+company = Company.create( name: "Kaki Lima Square")
+outlet = company.outlets.create( name: "KaLi Square Manunggal", taxs: {ppn: 10, service: 5})
 
 puts "create printer"
 3.times do |i|
@@ -15,18 +15,30 @@ end
 
 puts "create user"
 
-user = User.create role: :owner, password: '12345678', email: 'owner@savenue.com', company_id: company.id
-user.create_profile(
-	name: 'Jodi', 
-	address: Faker::Address.street_address, 
-	phone: Faker::PhoneNumber.cell_phone, 
-)
-puts "create owner"
+8.times do |i|
+	user = User.create role: :owner, password: '12345678', email: "owner#{i+1}@xsquare.com", company_id: company.id
+	user.create_profile(
+		name: "Owner #{i+1}", 
+		address: Faker::Address.street_address, 
+		phone: Faker::PhoneNumber.cell_phone, 
+	)
+	puts "create owner #{i+1}"
+end
 
 3.times do |i|
-	user = User.create role: :manager, password: '12345678', email: "manager#{i+1}@savenue.com", outlet_id: outlet.id
+	user = User.create role: :captain, password: '12345678', email: "captain#{i+1}@xsquare.com", outlet_id: outlet.id
 	user.create_profile(
-		name: "manager #{i+1}", 
+		name: "Captain #{i+1}", 
+		address: Faker::Address.street_address, 
+		phone: Faker::PhoneNumber.cell_phone, 
+	)
+	puts "create captain #{i+1}"
+end
+
+3.times do |i|
+	user = User.create role: :manager, password: '12345678', email: "manager#{i+1}@xsquare.com", outlet_id: outlet.id
+	user.create_profile(
+		name: "Manager #{i+1}", 
 		address: Faker::Address.street_address, 
 		phone: Faker::PhoneNumber.cell_phone, 
 		join_at: Faker::Time.between(1.year.ago, DateTime.now), 
@@ -36,7 +48,7 @@ puts "create owner"
 end
 
 5.times do |i|
-	user = User.create role: :cashier, password: '12345678', email: "cashier#{i+1}@savenue.com", outlet_id: outlet.id
+	user = User.create role: :cashier, password: '12345678', email: "cashier#{i+1}@xsquare.com", outlet_id: outlet.id
 	user.create_profile(
 		name: "Cashier #{i+1}", 
 		address: Faker::Address.street_address, 
@@ -48,7 +60,7 @@ end
 end
 
 20.times do |i|
-	user = User.create role: :tenant, password: '12345678', email: "tenant#{i+1}@savenue.com", outlet_id: outlet.id
+	user = User.create role: :tenant, password: '12345678', email: "tenant#{i+1}@xsquare.com", outlet_id: outlet.id
 	user.create_profile(
 		name: "Tenant #{i+1}", 
 		address: Faker::Address.street_address, 
@@ -800,7 +812,7 @@ end
 
 puts "start create table"
 200.times do |i|
-	Table.create name: "#{i + 1}", location: 'savenue'
+	Table.create name: "#{i + 1}", location: 'savenue', outlet: outlet
 	puts "create table #{i + 1}"
 end
 
@@ -864,6 +876,7 @@ end
     choice: product.choices.sample,
     note: Faker::Lorem.sentence,
     served: true,
+    paid: true,
     discount: product.discounts.sample,
     created_at: order.created_at
   )
@@ -905,9 +918,7 @@ Payment.all.each_with_index do |payment, i|
 		payment.discount_percent = rand(0..100)
 		payment.discount_by = User.manager.order("RANDOM()").first
 	end
-	puts "-----------"
-	puts payment.total.to_i
-	puts "-----------"
+
 	payment.debit_amount = rand(0..payment.total.to_i)
 	payment.credit_amount = rand(0..(payment.total.to_i - payment.debit_amount.to_i))
 	payment.cash_amount = payment.total - (payment.debit_amount.to_i + payment.credit_amount.to_i)
@@ -929,6 +940,9 @@ Order.all.each do |order|
 	order.destroy if order.order_items.blank?
 end
 
+Payment.all.each do |payment|
+	payment.destroy if payment.orders.blank?
+end
 
 
 
