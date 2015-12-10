@@ -73,6 +73,7 @@ class V1::BaseController < ApplicationController
   def index
     plural_resource_name = "@#{resource_name.pluralize}"
     resources = resource_class.where(query_params)
+                              .order(updated_at: :desc)
                               .page(page_params[:page])
                               .per(page_params[:page_size])
 

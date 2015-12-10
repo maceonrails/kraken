@@ -111,10 +111,18 @@ class V1::ProductsController < V1::BaseController
       #product categories and params
       product_category     = ProductCategory.find_or_create_by(name: resource_params[:serv_category])
       product_sub_category = ProductSubCategory.find_or_create_by(name: resource_params[:serv_sub_category])
-      product_sub_category.update(product_category_id: product_category.id, name: resource_params[:serv_sub_category])
+      
+      if product_sub_category.product_category_id.present?
+        if product_sub_category.product_category != product_category
+          product_sub_category = ProductSubCategory.create(name: product_sub_category.name, product_category_id: product_category.id)
+        end
+      else
+        product_sub_category.update(product_category_id: product_category.id)
+      end
 
       resource_params[:product_sub_category_id] = product_sub_category.id
 
+      resource_params.delete(:picture)
       resource_params.delete(:picture_base64)
       resource_params.delete(:serv_category)
       resource_params.delete(:serv_sub_category)
