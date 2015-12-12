@@ -906,11 +906,6 @@ end
 
 Payment.all.each_with_index do |payment, i|
 
-	if payment.orders.blank?
-		payment.destroy
-		next
-	end
-
 	if i % 5 == 0
 		payment.discount_amount = payment.sub_total*rand()
 		payment.discount_by = User.manager.order("RANDOM()").first
