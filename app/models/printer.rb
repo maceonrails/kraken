@@ -115,13 +115,12 @@ class Printer < ActiveRecord::Base
 
   def self.print_recap(user)
     start_login = user.start_login
-    text = center(true)
+    text = ''
     recap = Payment.recap(user)
 
     text << "Rekap Omzet Kasir\n"
     text << double_line
     text << "\n"
-    text << center(false)
     text << "Kasir   : "+ ( user.try(:name) || user.try(:email) ) +"\n"
     text << "Tanggal : "+ (start_login.strftime("%d %B %Y").to_s rescue Date.today.strftime("%d %B %Y").to_s) + "\n"
     # text << "s/d   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
@@ -177,19 +176,15 @@ class Printer < ActiveRecord::Base
 
     text << "\n\n"
 
-    text << "Yg menyerahkan       Yg menerima"
+    text << "Yg menyerahkan         Yg menerima"
     text << "\n\n\n\n\n\n"
-    text << "--------------      -------------"
+    text << "--------------         -------------"
     text << "\n\n\n\n"
 
-    text << center(true)
-    text << "=================================\n"
+    text << double_line
 
     text << "\n"
-    text << emphasized(true)
-    text << "#{user.outlet.name} Print Rekap\n"
-    text << emphasized(false)
-    text << center(false)
+    text << center_line("#{user.outlet.name} Print Rekap")
     text << "\n\n\n\n\n\n\n"
 
     succeed = true
