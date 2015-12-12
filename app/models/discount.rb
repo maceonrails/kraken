@@ -3,7 +3,7 @@ class Discount < ActiveRecord::Base
   has_many :product_discounts
   has_many :products, through: :product_discounts
 
-  default_scope { where(active: true).order(updated_at: :desc) }
+  # default_scope { where(active: true).order(updated_at: :desc) }
   scope :active_by_date, -> { where("?::date BETWEEN start_date::date AND end_date::date", Date.today) }
   scope :active_by_time, -> { where("?::time BETWEEN start_time::time AND end_time::time", Time.now) }
   scope :active_by_days, -> { where("? = ANY (days)", Date.today.strftime("%A")) }

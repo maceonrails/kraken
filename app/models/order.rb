@@ -12,7 +12,7 @@ class Order < ActiveRecord::Base
   # before_create :set_struck_id
   # after_create :set_queue_number
 
-  default_scope { order(updated_at: :desc) }
+  # default_scope { order(updated_at: :desc) }
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }
   scope :histories, -> { where("orders.payment_id IS NOT NULL").latest }
