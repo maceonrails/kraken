@@ -4,7 +4,14 @@ class V1::TablesController < V1::BaseController
   skip_before_action :set_token_response, only: %w(all)
 
   def index
-    @tables   = Table.includes(:parts).order("name::int").all
+    @tables = Table.includes(:parts).order("tables.name")
+    if current_user.tenant?
+      @tables = @tables
+                  .joins(orders: {order_items: :product})
+                  .where('products.tenant_id = ? AND order_items.served is not true', current_user.id)
+                  .uniq
+    end
+
   end
 
   def locations

@@ -111,18 +111,18 @@ class Printer < ActiveRecord::Base
     return text
   end
 
-  def print_rekap(user)
+  def self.print_recap(user)
     start_login = user.start_login
     text = center(true)
-    recap = Order.recap(user)
+    recap = Payment.recap(user)
 
     text << "Rekap Omzet Kasir\n"
     text << double_line
     text << "\n"
     text << center(false)
-    text << "Kasir : "+ ( user.try(:name) || user.try(:email) ) +"\n"
-    text << "Mulai : "+ (start_login.strftime("%d %B %Y %H:%M").to_s rescue '') + "\n"
-    text << "s/d   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
+    text << "Kasir   : "+ ( user.try(:name) || user.try(:email) ) +"\n"
+    text << "Tanggal : "+ (start_login.strftime("%d %B %Y").to_s rescue Date.today.strftime("%d %B %Y").to_s) + "\n"
+    # text << "s/d   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
     text << double_line
     text << "\n\n"
 
@@ -167,9 +167,9 @@ class Printer < ActiveRecord::Base
     text << "\n"
 
     text << print_line("Jumlah struk", recap.count, '')
-    text << print_line("Rata2 per struk", (recap.total_transaction / recap.count rescue 0))
-    text << print_line("Jumlah tamu", recap.sum(:person), '')
-    text << print_line("Rata2 per tamu", (recap.total_transaction / recap.sum(:person) rescue 0))
+    text << print_line("Rata2 per struk", (recap.total_transaction.to_i / recap.count rescue 0))
+    text << print_line("Jumlah tamu", recap.total_pax, '')
+    text << print_line("Rata2 per tamu", (recap.total_transaction.to_i / recap.total_pax rescue 0))
     text << "\n"
     text << print_line("Total", recap.total_transaction)
 
@@ -185,7 +185,7 @@ class Printer < ActiveRecord::Base
 
     text << "\n"
     text << emphasized(true)
-    text << "Bober Cafe Print Rekap\n"
+    text << "#{user.outlet.name} Print Rekap\n"
     text << emphasized(false)
     text << center(false)
     text << "\n\n\n\n\n\n\n"
@@ -221,6 +221,7 @@ class Printer < ActiveRecord::Base
         succeed = false
       end
     end
+    return { status: succeed }
   end
 
   def self.do_print(payment, opts = { preview: true })

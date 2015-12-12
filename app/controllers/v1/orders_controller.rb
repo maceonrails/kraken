@@ -79,6 +79,42 @@ class V1::OrdersController < V1::BaseController
     render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
 
+  def graph_by_tax
+    date  = Date.today
+    case params[:timeframe]
+    when 'last_three_months'
+      date_start = (date - 3.months).beginning_of_month
+      date_end   = date.end_of_month
+    when 'last_six_months'
+      date_start = (date - 6.months).beginning_of_month
+      date_end   = date.end_of_month
+    when 'this_year'
+      date_start = date.beginning_of_year
+      date_end   = date.end_of_month
+    when 'last_three_year'
+      date_start = (date - 3.years).beginning_of_year
+      date_end   = date.end_of_month
+    when 'this_month'
+      date_start = date.beginning_of_month
+      date_end   = date.end_of_month
+    when 'this_week'
+      date_start = date.beginning_of_week
+      date_end   = date.end_of_week
+    else
+      date_start = date.beginning_of_day
+      date_end   = date.end_of_day
+    end
+    data = OrderItem
+            .where('order_items.created_at >= ? and order_items.created_at <= ?', date_start, date_end)
+            .select("DATE(order_items.created_at) as created_at, sum(order_items.tax_amount) as name")
+            .group('order_items.created_at')
+            .order('order_items.created_at')
+    data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
+    data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
+    render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
+  end
+
   def graph_by_order
     date  = Date.today
     case params[:timeframe]

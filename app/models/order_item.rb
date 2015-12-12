@@ -7,6 +7,8 @@ class OrderItem < ActiveRecord::Base
 
   before_save :calculate_amount
 
+  # default_scope { order(updated_at: :desc) }
+
   def active_quantity
     if paid
       res = paid_quantity.to_i

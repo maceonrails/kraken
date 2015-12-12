@@ -18,6 +18,7 @@ class Table < ActiveRecord::Base
   default_scope { where(parent_id: nil) }
   has_many :parts, foreign_key: 'parent_id', class_name: 'TableParts'
   belongs_to :outlet
+  has_many :orders
 
   def self.create_data(params)
     _start   = params[:table][:start].to_i

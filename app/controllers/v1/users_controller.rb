@@ -29,9 +29,10 @@ class V1::UsersController < V1::BaseController
   def rekap
     user = User.find(params[:id])
     if user
-      order = Order.new
-      order.print_rekap(user)
-      render json: { message: "ok" }, status: 200
+      # order = Order.new
+      # order.print_rekap(user)
+      recap = Payment.getRecap(user)
+      render json: { recap: recap }, status: 200
     else
       render json: { message: "user not found" }, status: 404
     end
