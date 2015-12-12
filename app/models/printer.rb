@@ -262,7 +262,7 @@ class Printer < ActiveRecord::Base
       end
 
       if succeed && !opts[:preview]
-        order.order_items.each do |item|
+        payment.order_items.each do |item|
           item.update(printed_quantity: item.paid_quantity)
         end
       end
@@ -327,35 +327,35 @@ class Printer < ActiveRecord::Base
     return text
   end
 
-  def self.line(number = 33)
+  def self.line(number = 41)
     "-" * number + "\n"
   end
 
-  def self.double_line(number = 33)
+  def self.double_line(number = 41)
     "=" * number + "\n"
   end
 
-  def self.repeat(char = '-', number = 33, new_line = true)
+  def self.repeat(char = '-', number = 41, new_line = true)
     result = char * number
     new_line ? result : result + "\n"
   end
 
-  def self.per_line(text, number = 33)
+  def self.per_line(text, number = 41)
     part1, part2 = text.slice!(0...number), text
     part2 = (" " * (part1.index(":") + 2)) + part2
     return part1.to_s + (part2.present? ? "\n" + part2.to_s : "")
   end
 
-  def self.center_line(text, number = 33)
+  def self.center_line(text, number = 41)
     whitespace = number - text.length
     return (" " * (whitespace/2)) + text
   end
 
-  def self.pull_left(text, currency = 'Rp.', length = 18)
+  def self.pull_left(text, currency = 'Rp.', length = 23)
     (text.length <= length ? text + " " * (length - text.length) : text.truncate(length, :omission => '')) + ": " + currency
   end
 
-  def self.pull_right(text, length = 9)
+  def self.pull_right(text, length = 12)
     amount = number_to_currency(text, unit: "", separator: ",", delimiter: ".", precision: 0)
     return " " * (length - amount.length) + amount
   end
@@ -363,10 +363,10 @@ class Printer < ActiveRecord::Base
   def self.print_line(text, amount = 0, currency = 'Rp.')
     result = ''
     result << pull_left(text, currency)
-    result << pull_right(amount, 33 - result.length) rescue binding.pry
-    if text[18..-1].present?
+    result << pull_right(amount, 41 - result.length) rescue binding.pry
+    if text[23..-1].present?
       result << "\n" 
-      result << "  " + text[18..-1].to_s
+      result << "  " + text[23..-1].to_s
     end
     result << "\n"
   end

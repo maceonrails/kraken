@@ -1,5 +1,6 @@
 class Payment < ActiveRecord::Base
-	has_many :orders
+  has_many :orders
+	has_many :order_items, through: :orders
 	belongs_to :discount_provider, foreign_key: :discount_by, class_name: 'User'
 	belongs_to :cashier, class_name: 'User', foreign_key: 'cashier_id'
 
