@@ -1,94 +1,52 @@
-# config/deploy/staging.rb
-require 'mina/bundler'
-require 'mina/rails'
-require 'mina/git'
-require 'mina/rvm'
+# config valid only for Capistrano 3.1
+lock '3.1.0'
 
-#                                                                        Config
-# ==============================================================================
-set :term_mode,       :system
-set :rails_env,       'staging'
+set :application, 'kaki lima square'
+set :repo_url, 'git@gitlab.com:maceonrails/eresto-foodcourt-backend-local.git'
 
-set :domain,          '104.215.153.222'
-# set :port,            37894
+# Default branch is :master
+ask :branch, :savenue
 
-set :deploy_to,       "/home/azureuser/Project/backend/#{rails_env}"
-set :app_path,        "#{deploy_to}/#{current_path}"
+# Default deploy_to directory is /var/www/my_app
+set :deploy_to, '/var/www/xsquare'
 
-set :repository,      'https://github.com/evandavid/kraken.git'
-set :brach,           'master'
+set :linked_files, %w{config/database.yml}
+set :linked_dirs, %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
 
-set :user,            'azureuser'
-set :shared_paths,    ['public/static', 'tmp']
-set :keep_releases,   5
+# Default value for :scm is :git
+# set :scm, :git
 
-#                                                                           RVM
-# ==============================================================================
-set :rvm_path, '$HOME/.rvm/scripts/rvm'
+# Default value for :format is :pretty
+# set :format, :pretty
 
-task :environment do
-  invoke 'rvm:use[2.1.6]'
-end
+# Default value for :log_level is :debug
+# set :log_level, :debug
 
-#                                                                    Setup task
-# ==============================================================================
-task :setup do
-  queue! %{
-    mkdir -p "#{deploy_to}/shared/tmp/pids"
-  }
-end
+# Default value for :pty is false
+# set :pty, true
 
-#                                                                   Deploy task
-# ==============================================================================
-desc "deploys the current version to the server."
-task :deploy => :environment do
-  deploy do
-    invoke 'git:clone'
-    invoke 'bundle:install'
-    invoke 'rails:db_migrate'
-    invoke 'rails:assets_precompile'
-    invoke 'deploy:link_shared_paths'
+# Default value for :linked_files is []
+# set :linked_files, %w{config/database.yml}
 
-    to :launch do
-      invoke :'unicorn:restart'
+# Default value for linked_dirs is []
+# set :linked_dirs, %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
+
+# Default value for default_env is {}
+# set :default_env, { path: "/opt/ruby/bin:$PATH" }
+
+# Default value for keep_releases is 5
+# set :keep_releases, 5
+
+namespace :deploy do
+
+  desc 'Restart application'
+  task :restart do
+    on roles(:app), in: :sequence, wait: 5 do
+      execute :touch, release_path.join('tmp/restart.txt')
     end
   end
-end
 
-
-#                                                                       Unicorn
-# ==============================================================================
-namespace :unicorn do
-  set :unicorn_pid, "#{app_path}/tmp/pids/unicorn.pid"
-  set :start_unicorn, %{
-    cd #{app_path}
-    bundle exec unicorn -c #{app_path}/config/unicorn/#{rails_env}.rb -E #{rails_env} -D
-  }
-
-#                                                                    Start task
-# ------------------------------------------------------------------------------
-  desc "Start unicorn"
-  task :start => :environment do
-    queue 'echo "-----> Start Unicorn"'
-    queue! start_unicorn
-  end
-
-#                                                                     Stop task
-# ------------------------------------------------------------------------------
-  desc "Stop unicorn"
-  task :stop do
-    queue 'echo "-----> Stop Unicorn"'
-    queue! %{
-      test -s "#{unicorn_pid}" && kill -QUIT `cat "#{unicorn_pid}"` && echo "Stop Ok" && exit 0
-      echo >&2 "Not running"
-    }
-  end
-
-#                                                                  Restart task
-# ------------------------------------------------------------------------------
-  desc "Restart unicorn using 'upgrade'"
-  task :restart => :environment do
-    invoke 'unicorn:stop'
-    invoke 'unicorn:start'
-  end
+  before :finishing, 'linked_files:upload'
+  after :publishing, 'deploy:restart'
+  after :finishing, 'deploy:cleanup'
 end

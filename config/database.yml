@@ -20,7 +20,9 @@ test:
 
 production:
   <<: *default
-  database: local_eresto_core_prod
+  username: kalisquare
+  password: kalidb87
+  database: xsquare_db
 
 staging:
   <<: *default

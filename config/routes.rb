@@ -93,6 +93,7 @@ Rails.application.routes.draw do
       collection { get 'graph_by_revenue' }
       collection { get 'graph_by_order' }
       collection { get 'graph_by_pax' }
+      collection { get 'graph_by_tax' }
       collection { get 'get_order_quantity' }
 
       member { get 'get' }
