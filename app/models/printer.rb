@@ -108,6 +108,11 @@ class Printer < ActiveRecord::Base
     text << center_line("Thanks For Your Visit")
     text << "\n"
     text << center_line("Till Next Time")
+    text << "\n"
+    text << "\n"
+    text << center_line("Powered by")
+    text << "\n"
+    text << center_line("eresto.co.id")
     text << "\n\n\n\n\n\n\n"
 
     return text
