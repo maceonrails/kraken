@@ -121,8 +121,7 @@ class V1::ProductsController < V1::BaseController
       end
 
       resource_params[:product_sub_category_id] = product_sub_category.id
-
-      resource_params.delete(:picture)
+      resource_params.delete(:picture) if params[:action] == 'update'
       resource_params.delete(:picture_base64)
       resource_params.delete(:serv_category)
       resource_params.delete(:serv_sub_category)
