@@ -196,7 +196,8 @@ class V1::OrdersController < V1::BaseController
                    .select("(products.name) as name, sum(order_items.quantity) as price")
                    .group('products.name')
                    .order("price")
-                   .map{|o| [o.name, o.price.to_i]}
+    data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.map{|o| [o.name, o.price.to_i]}
     render json: data, status: 200
   end
 
@@ -224,7 +225,7 @@ class V1::OrdersController < V1::BaseController
                 .where(created_at: Date.today.beginning_of_day..Date.today.end_of_day)
                 .all
       orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
-      orders = orders.where("orders.servant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+      orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
       @orders = orders
       @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]

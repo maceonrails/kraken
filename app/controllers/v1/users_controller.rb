@@ -21,7 +21,7 @@ class V1::UsersController < V1::BaseController
       @users = @users.try(params[:role])
     end
 
-    @total = @users.count if page_params.present?
+    @total = @users.count
     @users = @users.page(page_params[:page]).per(page_params[:page_size]) if page_params.present?
     respond_with @users
   end
