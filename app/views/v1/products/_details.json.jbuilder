@@ -6,7 +6,7 @@ json.default_price  product.default_price
 json.price          product.price - product.active_discount.try(:amount).to_i rescue 0
 json.discount       product.active_discount.try(:amount).to_i
 json.default_price  product.price
-json.picture        request.protocol + request.host_with_port + product.picture
+json.picture        request.protocol + request.host_with_port + product.picture rescue nil
 json.created_at     product.created_at
 json.updated_at     product.updated_at
 json.choices				product.choices

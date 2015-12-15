@@ -121,7 +121,9 @@ class V1::ProductsController < V1::BaseController
       end
 
       resource_params[:product_sub_category_id] = product_sub_category.id
-      resource_params[:picture] = '/uploads/' + resource_params[:picture].split('/')[-1]
+      if resource_params[:picture].present?
+        resource_params[:picture] = '/uploads/' + resource_params[:picture].split('/')[-1]
+      end
       resource_params.delete(:picture_base64)
       resource_params.delete(:serv_category)
       resource_params.delete(:serv_sub_category)
