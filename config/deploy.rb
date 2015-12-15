@@ -11,7 +11,7 @@ ask :branch, :savenue
 set :deploy_to, '/var/www/xsquare'
 
 set :linked_files, %w{config/database.yml}
-set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
+set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system public/uploads}
 
 # Default value for :scm is :git
 # set :scm, :git
