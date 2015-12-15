@@ -83,7 +83,7 @@ class Printer < ActiveRecord::Base
 
       text << "\n"
       text << print_line("CHANGE", payment.return_amount < 0 ? 0 : payment.return_amount)
-      text << "\n\n"
+      text << "\n"
 
       if payment.debit_amount.to_i > 0
         text << per_line(" *DEBIT CARD #{payment.debit_name}: ****#{payment.debit_number.to_s[-4, 4]}")
@@ -110,10 +110,8 @@ class Printer < ActiveRecord::Base
     text << center_line("Till Next Time")
     text << "\n"
     text << "\n"
-    text << center_line("Powered by")
-    text << "\n"
-    text << center_line("eresto.co.id")
-    text << "\n\n\n\n\n\n\n"
+    text << center_line("Powered by eresto.co.id")
+    text << "\n\n\n\n\n\n"
 
     return text
   end

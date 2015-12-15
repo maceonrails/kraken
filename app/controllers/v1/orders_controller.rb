@@ -236,7 +236,11 @@ class V1::OrdersController < V1::BaseController
       orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
       orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
       orders = orders.group("products.tenant_id, orders.id") if params[:tenant_id].present?
-      @orders = orders.page(page_params[:page]).per(10)
+      if page_params[:page_size] == 'all'
+        @orders = orders.page(page_params[:page]).per(orders.count)
+      else
+        @orders = orders.page(page_params[:page]).per(page_params[:page_size])
+      end
       @total  = orders.count || 0
     else
       render json: {message: 'order not found'}, status: 404
