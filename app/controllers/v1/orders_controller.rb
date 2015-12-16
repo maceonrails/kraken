@@ -238,7 +238,7 @@ class V1::OrdersController < V1::BaseController
       orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
       orders = orders.group("products.tenant_id, orders.id") if params[:tenant_id].present?
       if page_params[:page_size] == 'all'
-        @orders = orders.page(page_params[:page]).per(orders.count)
+        @orders = orders.page(page_params[:page]).per(Order.count)
       else
         @orders = orders.page(page_params[:page]).per(page_params[:page_size])
       end

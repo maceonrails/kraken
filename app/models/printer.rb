@@ -41,13 +41,11 @@ class Printer < ActiveRecord::Base
 
     payment.orders.each do |order|
       text << "Order no #{order.table.name} :\n"
-      text << line
       order.order_items.each do |item|
         unless item.active_quantity == 0
           text << print_line("#{item.active_quantity} #{item.product.name}", item.total_price)
         end
       end
-      text << "\n"
     end
     text << "\n"
     text << print_line("Sub Total", payment.sub_total)
@@ -94,24 +92,21 @@ class Printer < ActiveRecord::Base
         text << per_line(" *CREDIT CARD #{payment.credit_name}: ****#{payment.credit_number.to_s[-4, 4]}")
         text << "\n"
       end
-      text << "\n"
     end
 
     if opts[:reprint]
       text << center_line("--REPRINT--")
+      text << "\n"
     end
 
-    text << "\n"
     text << double_line
-    text << "\n"
 
     text << center_line("Thanks For Your Visit")
     text << "\n"
     text << center_line("Till Next Time")
     text << "\n"
-    text << "\n"
     text << center_line("Powered by eresto.co.id")
-    text << "\n\n\n\n\n\n"
+    text << "\n\n\n"
 
     return text
   end
@@ -182,13 +177,13 @@ class Printer < ActiveRecord::Base
     text << "Yg menyerahkan         Yg menerima"
     text << "\n\n\n\n\n\n"
     text << "--------------         -------------"
-    text << "\n\n\n\n"
+    text << "\n\n"
 
     text << double_line
 
     text << "\n"
     text << center_line("#{user.outlet.name} Print Rekap")
-    text << "\n\n\n\n\n\n\n"
+    text << "\n\n\n"
 
     succeed = true
     puts "==================="

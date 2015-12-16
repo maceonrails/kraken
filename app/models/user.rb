@@ -33,7 +33,8 @@ class User < ActiveRecord::Base
   belongs_to :outlet
   accepts_nested_attributes_for :profile
 
-  before_save  :ensure_authentication_token
+  before_save :ensure_authentication_token
+  before_save :set_outlet
   validates :email, uniqueness: true, email_format: { message: "doesn't look like an email address" }
 
   enum role:
@@ -79,6 +80,12 @@ class User < ActiveRecord::Base
   end
 
   private
+
+    def set_outlet
+      if self.outlet_id.blank?
+        self.outlet = Outlet.first
+      end
+    end
 
     def generate_authentication_token
       loop do
