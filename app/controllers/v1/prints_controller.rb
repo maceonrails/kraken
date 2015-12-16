@@ -3,7 +3,6 @@ class V1::PrintsController < ApplicationController
   def bill
     orders = Order.find(params[:order_ids].split(','))
     payment = Payment.new(orders: orders, cashier_id: params[:cashier_id])
-    binding.pry
     if Printer.print_bill(payment)
       render json: { message: 'Ok' }, status: 200
     else
