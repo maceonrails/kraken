@@ -106,7 +106,7 @@ class Printer < ActiveRecord::Base
     text << center_line("Till Next Time")
     text << "\n"
     text << center_line("Powered by eresto.co.id")
-    text << "\n\n\n"
+    text << "\n\n\n\n\n\n\n\n\n"
 
     return text
   end
@@ -183,7 +183,7 @@ class Printer < ActiveRecord::Base
 
     text << "\n"
     text << center_line("#{user.outlet.name} Print Rekap")
-    text << "\n\n\n"
+    text << "\n\n\n\n\n\n\n\n\n"
 
     succeed = true
     puts "==================="
