@@ -104,7 +104,7 @@ class V1::BaseController < ApplicationController
 
   # PATCH/PUT /api/{plural_resource_name}/1
   def update
-    resource_params[:updated_by] = current_user.id unless resource_name == 'user'
+    resource_params[:updated_by] = current_user.id if resource_name != 'user' && resource_name != 'outlet'
     if get_resource.update(resource_params)
       render :show
     else

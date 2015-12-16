@@ -75,6 +75,39 @@ class V1::OrderItemsController < V1::BaseController
     end
   end
 
+  def search
+    query  = params[:data] || ''
+    result = OrderItem.joins('
+      RIGHT OUTER JOIN "products" on "products"."id" = "order_items"."product_id" 
+      INNER JOIN "users" on "users"."id" = "products"."tenant_id"
+    ')
+    result = OrderItem.joins(product: :tenant)
+      .select("
+        products.tenant_id as tenant_id,
+        products.name as name, 
+        sum(order_items.quantity) as quantity, 
+        sum(order_items.paid_quantity) as paid_quantity, 
+        sum(order_items.void_quantity) as void_quantity, 
+        sum(order_items.oc_quantity) as oc_quantity, 
+        sum(order_items.tax_amount) as tax_amount,
+        sum(order_items.paid_amount) as paid_amount
+      ")
+      .where("LOWER(products.name) LIKE ?", "%#{query.downcase}%")
+      .order("products.name")
+
+    if params[:dateStart].present? && params[:dateEnd].present?
+      start_date = Date.parse(params[:dateStart]).beginning_of_day
+      end_date = Date.parse(params[:dateEnd]).end_of_day
+      result = result.where('order_items.created_at >= ? and order_items.created_at <= ?', start_date, end_date)
+    end
+
+    result = result.joins(order: :table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
+    result = result.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    result = result.group("products.tenant_id, products.name")
+
+    render json: { result: result }
+  end
+
   private
     def order_item_params
      	params.require(:order_item).permit(:order_id, :product_id, :quantity, :choice_id, :paid_amount, :note, :served, :void, :paid)
