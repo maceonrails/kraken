@@ -34,10 +34,6 @@ class Payment < ActiveRecord::Base
   scope :total_pax, -> { joins(:orders).sum('orders.person') }
   scope :average_per_pax, -> { sum('cash_amount - return_amount') }
 
-  Outlet.first.taxs.each do |tax, amount|
-    scope "total_#{tax}".to_sym, -> { amount.to_f/100 * total_sales }
-  end
-
   def self.getRecap(user)
     res = recap(user)
     result = {}
@@ -45,7 +41,7 @@ class Payment < ActiveRecord::Base
     result[:date] = start_login.strftime("%d %B %Y").to_s rescue Date.today.strftime("%d %B %Y").to_s
 
     user.outlet.taxs.each do |tax, amount|
-      result[tax] = res.send("total_#{tax}").to_f
+      result[tax] = (amount.to_f/100 * total_sales).to_f
     end
 
     result[:total_product_discount] = res.total_product_discount
