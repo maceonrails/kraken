@@ -5,10 +5,9 @@ set :application, 'xsquare'
 set :repo_url, 'git@gitlab.com:maceonrails/eresto-foodcourt-backend-local.git'
 
 # Default branch is :master
-ask :branch, :savenue
+set :branch, :savenue
 
 # Default deploy_to directory is /var/www/my_app
-set :deploy_to, '/var/www/xsquare'
 
 set :linked_files, %w{config/database.yml}
 set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system public/uploads}
