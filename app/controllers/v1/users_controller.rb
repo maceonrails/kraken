@@ -21,6 +21,17 @@ class V1::UsersController < V1::BaseController
       @users = @users.try(params[:role])
     end
 
+
+    if (current_user.role == 'admin')
+      @users = @users.where("role IN (?)", [User.roles[:tenant]])
+    elsif (current_user.role == 'manager')
+      @users = @users.where("role IN (?)", [User.roles[:tenant], User.roles[:cashier], User.roles[:admin]])
+    elsif (current_user.role == 'superadmin')
+      @users = @users
+    else 
+      @users = []
+    end
+
     @total = @users.count
     @users = @users.page(page_params[:page]).per(page_params[:page_size]) if page_params.present?
     respond_with @users
