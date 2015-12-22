@@ -9,6 +9,6 @@ class ErrorMailer < ApplicationMailer
     @outlet  = Outlet.first
     @code    = code
     @message = message
-    mail to: "ev.kristian@gmail.com", subject: 'Error encounter on '+@outlet.name.to_s
+    mail to: "maceonrails@gmail.com", subject: 'Error encounter on '+@outlet.name.to_s
   end
 end
