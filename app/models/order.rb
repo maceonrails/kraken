@@ -72,7 +72,7 @@ class Order < ActiveRecord::Base
     return false if params['products'].blank?
     # begin
       if params['id'].blank? || params['type'] == 'move'
-        order = Order.where(served: false, table_id: params['table_id'], created_at: 8.hour.ago..Time.now).first
+        order = Order.where("payment_id IS NULL").where(table_id: params['table_id'], created_at: 8.hour.ago..Time.now).first
         if order.blank?
           order = Order.create
         end

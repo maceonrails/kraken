@@ -156,35 +156,15 @@ class Payment < ActiveRecord::Base
     return false unless order
     params[:order_items].each do |item|
       order_item = order.order_items.find_by(product_id: item['product_id'])
-      if params[:type] == 'move'
-        base_item = base_order.order_items.find_by(product_id: item['product_id'])
-        item['quantity'] = item['pay_quantity']
-        item['paid_quantity'] = item['pay_quantity']
-        item['void_quantity'] = 0
-        item['oc_quantity'] = 0
-        base_item.quantity -= item['pay_quantity']
-        if base_item.quantity <= 0
-          base_item.destroy
-        else
-          base_item.save
-        end
-      else
-        active_quantity = item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
       
-        if item['pay_quantity'].zero? || item['pay_quantity'] > active_quantity
-          item['pay_quantity'] = active_quantity
-        end
-        item['paid_quantity'] += item['pay_quantity']
-        item['paid_quantity'] = item['quantity'] if item['paid_quantity'] > item['quantity']
-      end
+      item['paid'] = true 
+      item['served'] = true
+      item['paid_quantity'] = order_item.quantity - (order_item.void_quantity + order_item.oc_quantity)
 
-      item['pay_quantity'] = 0
-
-      active_quantity = item['quantity'] - item['paid_quantity'] - order_item.void_quantity - order_item.oc_quantity
-      
-      if active_quantity <= 0
-        item['paid'] = true 
-        item['served'] = true
+      if item['paid_quantity'].to_i < 0
+        item['paid_quantity'] = 0 
+      elsif item['paid_quantity'].to_i > order_item.quantity || item['paid_quantity'].blank?
+        item['paid_quantity'] = order_item.quantity
       end
 
       order_item.update!(item.except(:id, :price, :print_quantity, :discount))
@@ -196,9 +176,7 @@ class Payment < ActiveRecord::Base
   end
 
   def self.clear_complete_order(order)
-    unless Order.joins(:order_items).where("orders.id = ? AND quantity > (void_quantity + oc_quantity + paid_quantity)", order.id).exists?
-      order.update waiting: false
-      Table.where(order_id: order.id).update_all(order_id: nil) if order.table
-    end
+    order.update waiting: false
+    Table.where(order_id: order.id).update_all(order_id: nil)
   end
 end
