@@ -6,6 +6,8 @@ class OrderItem < ActiveRecord::Base
 	belongs_to :discount
 
   before_save :calculate_amount
+  before_save :check_quantity
+  before_create :set_price
 
   # default_scope { order(updated_at: :desc) }
 
@@ -46,9 +48,7 @@ class OrderItem < ActiveRecord::Base
         order_item.update(
           void_by: user.id,
           void_note: params[:note],
-          void_quantity: item["pay_quantity"].to_i + order_item.void_quantity,
-          served: true,
-          paid: false
+          void_quantity: item["pay_quantity"].to_i + order_item.void_quantity
         )
       end
     end
@@ -63,9 +63,7 @@ class OrderItem < ActiveRecord::Base
       order_item.update(
         oc_by: user.id,
         oc_note: params[:note],
-        oc_quantity: item["pay_quantity"].to_i + order_item.oc_quantity,
-        served: true,
-        paid: false
+        oc_quantity: item["pay_quantity"].to_i + order_item.oc_quantity
       )
     end
     clear_complete_order(order)
@@ -73,11 +71,11 @@ class OrderItem < ActiveRecord::Base
   end
 
   def total_price
-    (active_quantity * product.price)
+    (active_quantity * paid_price)
   end
 
   def calc_discount_amount
-    self.discount_amount = (discount ? discount.amount || discount.percentage.to_f/100 * product.price : 0) * active_quantity
+    self.discount_amount = (discount ? discount.amount || discount.percentage.to_f/100 * paid_price : 0) * active_quantity
   end
 
   def calc_tax_amount
@@ -90,7 +88,11 @@ class OrderItem < ActiveRecord::Base
   end
 
   def calc_paid_amount
-    self.paid_amount = self.tax_amount + total_price - self.discount_amount
+    self.paid_amount = self.tax_amount + (paid_quantity * paid_price) - self.discount_amount
+  end
+
+  def paid_price
+    price.blank? ? product.price : price
   end
 
   def calculate_amount
@@ -104,5 +106,16 @@ class OrderItem < ActiveRecord::Base
       order.update waiting: false
       Table.where(order_id: order.id).update_all(order_id: nil) if order.table
     end
+  end
+
+  def check_quantity
+    if unpaid_quantity <= 0
+      self.served = true
+      self.paid = true
+    end 
+  end
+
+  def set_price
+    self.price = product.price
   end
 end

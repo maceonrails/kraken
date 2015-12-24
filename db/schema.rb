@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151209045109) do
+ActiveRecord::Schema.define(version: 20151224101343) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -96,6 +96,7 @@ ActiveRecord::Schema.define(version: 20151209045109) do
     t.decimal  "tax_amount",       precision: 25, scale: 2
     t.decimal  "discount_amount",  precision: 25, scale: 2
     t.integer  "discount_id"
+    t.decimal  "price"
   end
 
   add_index "order_items", ["discount_id"], name: "index_order_items_on_discount_id", using: :btree
