@@ -46,7 +46,9 @@ class OrderItem < ActiveRecord::Base
         order_item.update(
           void_by: user.id,
           void_note: params[:note],
-          void_quantity: item["pay_quantity"] + order_item.void_quantity
+          void_quantity: item["pay_quantity"].to_i + order_item.void_quantity,
+          served: true,
+          paid: false
         )
       end
     end
@@ -61,7 +63,9 @@ class OrderItem < ActiveRecord::Base
       order_item.update(
         oc_by: user.id,
         oc_note: params[:note],
-        oc_quantity: item["pay_quantity"] + order_item.oc_quantity
+        oc_quantity: item["pay_quantity"].to_i + order_item.oc_quantity,
+        served: true,
+        paid: false
       )
     end
     clear_complete_order(order)
