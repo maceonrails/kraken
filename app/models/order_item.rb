@@ -6,7 +6,7 @@ class OrderItem < ActiveRecord::Base
 	belongs_to :discount
 
   before_save :calculate_amount
-  before_save :check_quantity
+  # before_update :check_quantity
   before_create :set_price
 
   # default_scope { order(updated_at: :desc) }
@@ -50,6 +50,9 @@ class OrderItem < ActiveRecord::Base
           void_note: params[:note],
           void_quantity: item["pay_quantity"].to_i + order_item.void_quantity
         )
+        if order_item.unpaid_quantity <= 0
+          order_item.update_attributes(served: true, paid: true)
+        end
       end
     end
     clear_complete_order(order)
@@ -65,6 +68,9 @@ class OrderItem < ActiveRecord::Base
         oc_note: params[:note],
         oc_quantity: item["pay_quantity"].to_i + order_item.oc_quantity
       )
+      if order_item.unpaid_quantity <= 0
+        order_item.update_attributes(served: true, paid: true)
+      end
     end
     clear_complete_order(order)
     return order
