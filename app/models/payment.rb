@@ -154,21 +154,18 @@ class Payment < ActiveRecord::Base
     order = Order.save_from_servant(params)
     base_order = Order.find(params[:id])
     return false unless order
-    params[:order_items].each do |item|
-      order_item = order.order_items.find_by(product_id: item['product_id'])
-      
-      item['paid'] = true 
-      item['served'] = true
-      item['paid_quantity'] = order_item.quantity - (order_item.void_quantity + order_item.oc_quantity)
+    order.order_items.each do |item|
+      item.paid = true 
+      item.served = true
+      item.paid_quantity = item.quantity - (item.void_quantity + item.oc_quantity)
 
-      if item['paid_quantity'].to_i < 0
-        item['paid_quantity'] = 0 
-      elsif item['paid_quantity'].to_i > order_item.quantity || item['paid_quantity'].blank?
-        item['paid_quantity'] = order_item.quantity
+      if item.paid_quantity.to_i < 0
+        item.paid_quantity = 0 
+      elsif item.paid_quantity.to_i > item.quantity || item.paid_quantity.blank?
+        item.paid_quantity = item.quantity
       end
 
-      order_item.update!(item.except(:id, :price, :print_quantity, :discount))
-      item['print_quantity'] = order_item.paid_quantity
+      item.save!
     end
     clear_complete_order(order)
 
