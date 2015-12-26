@@ -1,4 +1,4 @@
-class V1::PrintsController < ApplicationController
+class V1::PrintsController < V1::BaseController
   
   def bill
     orders = Order.find(params[:order_ids].split(','))

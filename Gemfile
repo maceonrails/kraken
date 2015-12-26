@@ -14,6 +14,8 @@ gem 'rack-cors', :require => 'rack/cors'
 gem 'carrierwave'
 gem "mini_magick"
 gem "figaro"
+gem 'rails_admin'
+gem 'responders', '~> 2.0'
 
 # gem 'unicorn'
 gem 'mina'

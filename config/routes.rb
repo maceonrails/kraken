@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
 
+  mount RailsAdmin::Engine => '/super_admin', as: 'rails_admin'
   apipie
   get '/manager', :to => redirect('/manager/index.html')
   get '/kitchen', :to => redirect('/kitchen/index.html')
@@ -17,6 +18,11 @@ Rails.application.routes.draw do
     get 'prints/recap'
 
     get '/users/:id/rekap' => 'users#rekap'
+
+    post '/syncs/import_from_cloud' => 'syncs#import_from_cloud'
+    post '/syncs/export_from_local' => 'syncs#export_from_local'
+    post '/syncs/import_from_cloud' => 'syncs#import_from_cloud'
+    post '/syncs/import_from_local' => 'syncs#import_from_local'
 
     resources :tables do
       collection { get 'search' }

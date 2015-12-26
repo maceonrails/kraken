@@ -23,6 +23,7 @@ module Backend
     # config.i18n.default_locale = :de
 
     config.autoload_paths += %W( #{config.root}/app/exports )
+    config.api_only = false
 
     # Timezone to jakarta
     config.time_zone = 'Jakarta' 
