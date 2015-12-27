@@ -46,6 +46,7 @@ class OrderItem < ActiveRecord::Base
       if item[:pay_quantity] > 0
         order_item = OrderItem.find(item['id'])
         order_item.update(
+          void: true,
           void_by: user.id,
           void_note: params[:note],
           void_quantity: item["pay_quantity"].to_i + order_item.void_quantity

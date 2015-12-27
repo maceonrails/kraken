@@ -1,5 +1,5 @@
 class V1::OrdersController < V1::BaseController
-	before_action :set_resource, only: [:update, :show]
+	before_action :set_resource, only: [:update, :show, :unlock]
 
   def index
     @orders = Order.where(query_params)
@@ -210,6 +210,7 @@ class V1::OrdersController < V1::BaseController
   end
 
   def show
+    @orders.each{|order|order.update_attribute(:locked, true)}
   end
 
   def get
@@ -283,6 +284,11 @@ class V1::OrdersController < V1::BaseController
     end
   end
 
+  def unlock
+    @orders.each{|order|order.update_attribute(:locked, false)}
+    render json: { message: 'Ok' }, status: 201
+  end
+
   def set_resource(resource = nil)
     tables = Table.where(name: params[:id].split(","))
     @orders = Order.find(tables.map(&:order_id))
@@ -325,7 +331,7 @@ class V1::OrdersController < V1::BaseController
 
     def from_servant_params
       params.require(:order).permit(:id, :servant_id, :table_id, :name, :person,
-        products: [:id, :quantity, :take_away, :void, :void_note, :choice, :price, :void_by, :order_item_id, note:[]])
+        products: [:id, :quantity, :void_quantity, :take_away, :void, :void_note, :choice, :price, :void_by, :order_item_id, note:[]])
     end
 
 end

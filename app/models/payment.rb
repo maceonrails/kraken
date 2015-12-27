@@ -119,31 +119,42 @@ class Payment < ActiveRecord::Base
 
   def self.pay(params)
 	  payment = Payment.new
+    failed = false
   	payment.transaction do
 	  	params[:orders].each do |order|
         order = pay_order(order)
-        order.update(cashier_id: params['cashier_id']) if params['cashier_id'].present?
-	  		payment.orders << order
-	  	end
-      payment.cashier_id = params['cashier_id'] if params['cashier_id'].present?
-      payment.discount_amount = params['discount_amount'] if params['discount_amount'].present?
-      payment.discount_percent = params['discount_percent'] if params['discount_percent'].present?
-      payment.discount_by = params['discount_by'] if params['discount_by'].present?
-      payment.debit_amount = params['debit_amount'] if params['debit_amount'].present?
-      payment.credit_amount = params['credit_amount'] if params['credit_amount'].present?
-      payment.cash_amount = params['cash_amount'] if params['cash_amount'].present?
-      payment.debit_name = params['debit_name'] if params['debit_name'].present?
-      payment.debit_number = params['debit_number'] if params['debit_number'].present?
-      payment.credit_name = params['credit_name'] if params['credit_name'].present?
-      payment.credit_number = params['credit_number'] if params['credit_number'].present?
-  		
-      if payment.save
-        if params['print'] == 'paper'
-          Printer.print_receipt(payment) 
-        elsif params['print'] == 'email'
-          ReceiptMailer.send_receipt(payment, params[:email]).deliver_later
+        if order
+          order.update(cashier_id: params['cashier_id']) if params['cashier_id'].present?
+          payment.orders << order
+        else
+          failed = true
+          break
         end
-        return true
+	  	end
+
+      if !failed
+        payment.cashier_id = params['cashier_id'] if params['cashier_id'].present?
+        payment.discount_amount = params['discount_amount'] if params['discount_amount'].present?
+        payment.discount_percent = params['discount_percent'] if params['discount_percent'].present?
+        payment.discount_by = params['discount_by'] if params['discount_by'].present?
+        payment.debit_amount = params['debit_amount'] if params['debit_amount'].present?
+        payment.credit_amount = params['credit_amount'] if params['credit_amount'].present?
+        payment.cash_amount = params['cash_amount'] if params['cash_amount'].present?
+        payment.debit_name = params['debit_name'] if params['debit_name'].present?
+        payment.debit_number = params['debit_number'] if params['debit_number'].present?
+        payment.credit_name = params['credit_name'] if params['credit_name'].present?
+        payment.credit_number = params['credit_number'] if params['credit_number'].present?
+    		
+        if payment.save
+          if params['print'] == 'paper'
+            Printer.print_receipt(payment) 
+          elsif params['print'] == 'email'
+            ReceiptMailer.send_receipt(payment, params[:email]).deliver_later
+          end
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -151,7 +162,7 @@ class Payment < ActiveRecord::Base
   end
 
   def self.pay_order(params)
-    order = Order.save_from_servant(params)
+    order = Order.save_from_servant(params, true)
     base_order = Order.find(params[:id])
     return false unless order
     order.order_items.each do |item|

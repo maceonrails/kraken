@@ -46,7 +46,7 @@ class Order < ActiveRecord::Base
   end
 
   def get_active_items
-    waiting ? order_items.where("quantity > (paid_quantity + void_quantity + oc_quantity)") : order_items
+    waiting ? order_items.where("quantity::int > (paid_quantity::int + void_quantity::int + oc_quantity::int)") : order_items
   end
 
   def self.make_order(params)
@@ -67,24 +67,31 @@ class Order < ActiveRecord::Base
     end
   end
 
-  def self.save_from_servant(params)
+  def self.save_from_cashier(params)
+    
+  end
+
+  def self.save_from_servant(params, from_cashier = false)
     params['products'] = params[:products] ? params[:products] : params[:order_items]
-    return false if params['products'].blank?
+    return false if params['products'].blank? 
     # begin
       if params['id'].blank? || params['type'] == 'move'
-        order = Order.where("payment_id IS NULL").where(table_id: params['table_id'], created_at: 8.hour.ago..Time.now).first
+        order = Order.where("payment_id IS NULL AND waiting IS TRUE")
+                     .where(table_id: params['table_id'], created_at: 8.hour.ago..Time.now)
+                     .first
         if order.blank?
           order = Order.create
         end
       else
         order = Order.find(params['id'])
+        return false if order.blank? || order.payment_id.present? || order.waiting == false || (order.locked && !from_cashier) 
       end
 
       order.name = params['name'] if params['name'].present?
       order.table_id = params['table_id'] if params['table_id'].present?
       order.servant_id = params['servant_id'] if params['servant_id'].present?
       order.cashier_id = params['cashier_id'] if params['cashier_id'].present?
-      order.person = params['person'] if params['person'].present?
+      order.person = params['person'].present? ? params['person'] : 1
 
       if params['type'] == 'move'
         order.name = "split from " + order.name
@@ -110,13 +117,14 @@ class Order < ActiveRecord::Base
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
           quantity:         prd['quantity'],
-          note:             note,
-          void:             prd['void'],
-          discount_id:      prd['discount_id'],
-          void_note:        prd['void_note'],
-          take_away:        prd['take_away'],
+          note:             note || orderItem.note,
+          void:             prd['void'] || orderItem.void,
+          discount_id:      prd['discount_id'] || orderItem.discount_id,
+          void_note:        prd['void_note'] || orderItem.void_note,
+          take_away:        prd['take_away'] || orderItem.take_away,
           saved_choice:     prd['choice'] || prd['saved_choice'],
-          void_by:          prd['void_by'],
+          void_by:          prd['void_by'] || orderItem.void_by,
+          void_quantity:    prd['void_quantity'] || orderItem.void_quantity,
           pay_quantity:     prd['pay_quantity'] || 0
         )
       end

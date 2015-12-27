@@ -58,7 +58,7 @@ class User < ActiveRecord::Base
     end
   end
 
-  def self.authorize? email, password, invalid_role = ['cashier', 'waitress', 'tenant']
+  def self.authorize? email, password, invalid_role = ['waitress']
     user = find_by_email(email)
     if user && user.valid_password?(password) && invalid_role.exclude?(user.role) 
       user

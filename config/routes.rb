@@ -91,6 +91,7 @@ Rails.application.routes.draw do
       collection { get 'waiting_orders' }
       collection { get 'history_orders' }
       collection { post 'from_servant' }
+      collection { post 'unlock' }
       member { post 'pay_order' }
       member { post 'make_order' }
       member { post 'print_order' }

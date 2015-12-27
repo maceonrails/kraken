@@ -8,13 +8,6 @@ json.orders @orders do |order|
 	json.struck_id 				order.struck_id
 	json.discount_amount 	order.discount_amount
 	json.discount_percent order.discount_percent
-	json.cash_amount 			order.cash_amount
-	json.debit_amount 		order.debit_amount
-	json.credit_amount 		order.credit_amount
-	json.credit_name 			order.credit_name
-	json.credit_number 		order.credit_number
-	json.debit_name 			order.debit_name
-	json.debit_number 		order.debit_number
 
 	json.table_name 			order.table.try(:name)
 	json.table_location 	order.table.try(:location)
