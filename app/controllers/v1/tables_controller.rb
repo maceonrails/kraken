@@ -8,7 +8,7 @@ class V1::TablesController < V1::BaseController
     if current_user.tenant?
       @tables = @tables
                   .joins(orders: {order_items: :product})
-                  .where('products.tenant_id = ? AND order_items.served is not true', current_user.id)
+                  .where('products.tenant_id = ? AND order_items.served is not true AND orders.waiting IS FALSE', current_user.id)
                   .uniq
     end
 
