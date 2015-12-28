@@ -116,7 +116,7 @@ class Order < ActiveRecord::Base
         end
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
         orderItem.update(
-          quantity:         prd['quantity'],
+          quantity:         prd['quantity'] || orderItem.quantity,
           note:             note || orderItem.note,
           void:             prd['void'] || orderItem.void,
           discount_id:      prd['discount_id'] || orderItem.discount_id,
@@ -128,6 +128,8 @@ class Order < ActiveRecord::Base
           pay_quantity:     prd['pay_quantity'] || 0
         )
       end
+
+      clear_complete_order(order)
 
       return order
     # rescue Exception => e
