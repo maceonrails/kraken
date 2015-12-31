@@ -23,9 +23,9 @@ class V1::UsersController < V1::BaseController
 
 
     if (current_user.role == 'admin')
-      @users = @users.where("role IN (?)", [User.roles[:tenant]])
+      @users = @users.where("role IN (?)", [User.roles[:cashier], User.roles[:tenant]])
     elsif (current_user.role == 'manager')
-      @users = @users.where("role IN (?)", [User.roles[:tenant], User.roles[:cashier], User.roles[:admin]])
+      @users = @users.where("role IN (?)", [User.roles[:manager], User.roles[:tenant], User.roles[:cashier], User.roles[:admin]])
     elsif (current_user.role == 'superadmin')
       @users = @users
     else 
