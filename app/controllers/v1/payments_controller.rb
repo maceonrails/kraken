@@ -24,11 +24,11 @@ class V1::PaymentsController < V1::BaseController
       payments = payments.uniq
 
       @resume = {}
-      @resume[:cash_amount] = payments.sum("payments.total - (payments.debit_amount + payments.credit_amount)")
-      @resume[:debit_amount] = payments.sum("payments.debit_amount")
-      @resume[:credit_amount] = payments.sum("payments.credit_amount")
-      @resume[:discount_amount] = payments.sum("payments.discount_amount")
-      @resume[:total] = payments.sum("payments.total")
+      @resume[:cash_amount] = payments.uniq.sum("payments.total::float - (payments.debit_amount::float + payments.credit_amount::float)")
+      @resume[:debit_amount] = payments.uniq.sum("payments.debit_amount::float")
+      @resume[:credit_amount] = payments.uniq.sum("payments.credit_amount::float")
+      @resume[:discount_amount] = payments.uniq.sum("payments.discount_amount::float")
+      @resume[:total] = payments.uniq.sum("payments.total::float")
 
       if page_params[:page_size] == 'all'
         @payments = payments.page(page_params[:page]).per(Payment.count)
