@@ -16,7 +16,7 @@ class V1::PaymentsController < V1::BaseController
       query  = params[:data] || ''
       payments = Payment.joins(orders: :table)
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
-                    .where("payments.receipt_number LIKE ? OR tables.name LIKE ?", "%#{query}%", "%#{query}%")
+                    .where("payments.receipt_number LIKE ? OR tables.name LIKE ? OR payments.note LIKE ?", "%#{query}%", "%#{query}%", "%#{query}%")
       payments = payments.joins(:cashier).where("users.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
       payments = payments.joins(orders: {order_items: :product}).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
       payments = payments.where("payments.cashier_id = ?", params[:cashier_id]) if params[:cashier_id].present?
