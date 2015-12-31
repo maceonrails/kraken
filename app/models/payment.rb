@@ -19,7 +19,7 @@ class Payment < ActiveRecord::Base
   scope :total_credit, -> { sum('credit_amount::float') }
   scope :total_non_cash, -> { sum('debit_amount::float + credit_amount::float') }
   scope :total_transaction, -> { sum('total').to_f }
-  scope :total_sales, -> { joins(orders: {order_items: :product}).sum('total::float') }
+  scope :total_sales, -> { sum('total::float') }
   scope :total_product_discount, -> { joins(orders: :order_items).sum('order_items.discount_amount::float') }
   scope :total_order_discount, -> { sum('discount_amount::float') }
   scope :total_taxes, -> { joins(orders: :order_items).sum('order_items.tax_amount') }

@@ -234,10 +234,11 @@ class V1::OrdersController < V1::BaseController
       orders = Order.joins('LEFT OUTER JOIN "tables" on "tables"."id" = "orders"."table_id"')
                     .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
                     .where("tables.name LIKE ? OR orders.name LIKE ?", "%#{query}%", "%#{query}%")
-                    .order("orders.created_at DESC")
       orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
       orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
-      orders = orders.group("products.tenant_id, orders.id") if params[:tenant_id].present?
+      # orders = orders.group("products.tenant_id, orders.id") if params[:tenant_id].present?
+      orders = orders.order("orders.created_at DESC")
+      orders = orders.uniq
       if page_params[:page_size] == 'all'
         @orders = orders.page(page_params[:page]).per(Order.count)
       else

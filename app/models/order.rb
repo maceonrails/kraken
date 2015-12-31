@@ -115,6 +115,9 @@ class Order < ActiveRecord::Base
           orderItem = order.order_items.find(order_item_id)
         end
         note = prd['note'].respond_to?(:join) ? prd['note'].join(',') : prd['note']
+
+        prd['void_by'] = orderItem.product.try(:tenant_id) if prd['void_by'].blank? && prd['void_quantity'].to_i > 0
+
         orderItem.update(
           quantity:         prd['quantity'] || orderItem.quantity,
           note:             note || orderItem.note,

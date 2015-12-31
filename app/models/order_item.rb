@@ -1,5 +1,6 @@
 class OrderItem < ActiveRecord::Base
   belongs_to :voider, class_name: 'User', foreign_key: 'void_by'
+  belongs_to :oc_giver, class_name: 'User', foreign_key: 'oc_by'
 	belongs_to :order
 	belongs_to :product
 	belongs_to :choice
@@ -8,6 +9,9 @@ class OrderItem < ActiveRecord::Base
   before_save :calculate_amount
   # before_update :check_quantity
   before_create :set_price
+
+  delegate :name, :role, to: :voider, prefix: true, allow_nil: true
+  delegate :name, :role, to: :oc_giver, prefix: true, allow_nil: true
 
   # default_scope { order(updated_at: :desc) }
 
@@ -95,7 +99,7 @@ class OrderItem < ActiveRecord::Base
   end
 
   def calc_paid_amount
-    self.paid_amount = self.tax_amount + (paid_quantity * paid_price) - self.discount_amount
+    self.paid_amount = self.tax_amount + ((paid_quantity.to_i + oc_quantity.to_i) * paid_price) - self.discount_amount
   end
 
   def paid_price

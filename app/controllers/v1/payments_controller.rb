@@ -1,5 +1,46 @@
 class V1::PaymentsController < V1::BaseController
 
+  def search
+    if params[:type]
+      puts '==========='
+      puts 'today'
+      payments = Payment
+                .includes(:orders, orders: :order_items)
+                .where(created_at: Date.today.beginning_of_day..Date.today.end_of_day)
+                .all
+      payments = payments.joins(:cashier).where("users.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
+      payments = payments.joins(orders: {order_items: :product}).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+      @payments = payments
+      @total  = @payments.count || 0
+    elsif params[:dateStart] && params[:dateEnd]
+      query  = params[:data] || ''
+      payments = Payment.joins(orders: :table)
+                    .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
+                    .where("payments.receipt_number LIKE ? OR tables.name LIKE ?", "%#{query}%", "%#{query}%")
+      payments = payments.joins(:cashier).where("users.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
+      payments = payments.joins(orders: {order_items: :product}).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+      payments = payments.where("payments.cashier_id = ?", params[:cashier_id]) if params[:cashier_id].present?
+      payments = payments.order("payments.created_at DESC")
+      payments = payments.uniq
+
+      @resume = {}
+      @resume[:cash_amount] = payments.sum("payments.total::float - (payments.debit_amount::float + payments.credit_amount::float)")
+      @resume[:debit_amount] = payments.sum("payments.debit_amount::float")
+      @resume[:credit_amount] = payments.sum("payments.credit_amount::float")
+      @resume[:discount_amount] = payments.sum("payments.discount_amount::float")
+      @resume[:total] = payments.sum("payments.total::float")
+
+      if page_params[:page_size] == 'all'
+        @payments = payments.page(page_params[:page]).per(Payment.count)
+      else
+        @payments = payments.page(page_params[:page]).per(page_params[:page_size])
+      end
+      @total  = payments.count || 0
+    else
+      render json: {message: 'payment not found'}, status: 404
+    end
+  end
+
   def show
   end
 
@@ -11,6 +52,8 @@ class V1::PaymentsController < V1::BaseController
       render json: { message: "pay order failed" }, status: 409
     end
 	end
+
+
 
 	def pay_params
     params.permit(:id, :servant_id, :table_id, :name, :discount_by, :discount_amount, :discount_percent, :void, :cashier_id,

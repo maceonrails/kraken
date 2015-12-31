@@ -1,20 +1,22 @@
-json.orders @orders do |order|
-  json.extract! order, :id, :name, :person, :created_at, :table_id, :queue_number, :created, :pantry_created, :payment_id
-  json.servant do
-    json.name order.server.profile.name rescue ''
-    json.email order.server.email rescue ''
-  end
+json.resume @resume
+json.payments @payments do |payment|
+  json.extract! payment, :receipt_number, :cashier_id, :created_at, :debit_amount, :credit_amount, :discount_amount, :discount_percent, :discount_by, :note
+  json.cash_amount payment[:total].to_f - (payment.debit_amount.to_f + payment.credit_amount.to_f)
+  json.total payment[:total].to_f
+  json.order_ids payment.orders.joins(:table).pluck('tables.name').join(", ")
+
 
   json.cashier do
-    json.name order.cashier.profile.name rescue ''
-    json.email order.cashier.email rescue ''
+    json.name payment.cashier.profile.name rescue ''
+    json.email payment.cashier.email rescue ''
   end
 
-  json.table do
+  json.orders payment.orders do |order|
+    json.extract! order, :id, :name, :person, :created_at, :table_id, :queue_number, :created, :pantry_created
+    json.table do
     json.name order.table.name
   end if order.table
-
-  json.products order.order_items do |item|
+    json.products order.order_items do |item|
     if !params[:tenant_id] || item.product.tenant_id == params[:tenant_id]
       json.partial! 'v1/products/details', product: item.product
       json.take_away       item.take_away
@@ -39,6 +41,7 @@ json.orders @orders do |order|
       end
       json.order_item_id  item.id
     end
+  end
   end
 end
 

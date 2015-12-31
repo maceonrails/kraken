@@ -132,6 +132,14 @@ Rails.application.routes.draw do
       collection { get 'search' }
       collection { get 'all' }
     end
+
+    resources :voids do
+      collection { get 'search' }
+    end
+
+    resources :officer_checks do
+      collection { get 'search' }
+    end
   end
 
   # catch not found
