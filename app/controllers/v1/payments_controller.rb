@@ -21,7 +21,7 @@ class V1::PaymentsController < V1::BaseController
       else
         payments = payments.where("payments.receipt_number LIKE ? OR payments.note LIKE ?", "%#{query}%", "%#{query}%")
       end
-      
+
       payments = payments.joins(:cashier).where("users.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
       payments = payments.joins(orders: {order_items: :product}).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
       payments = payments.where("payments.cashier_id = ?", params[:cashier_id]) if params[:cashier_id].present?
@@ -33,6 +33,7 @@ class V1::PaymentsController < V1::BaseController
       @resume[:debit_amount] = payments.sum("payments.debit_amount::float")
       @resume[:credit_amount] = payments.sum("payments.credit_amount::float")
       @resume[:discount_amount] = payments.sum("payments.discount_amount::float")
+      @resume[:oc_amount] = payments.sum("payments.oc_amount::float")
       @resume[:total] = payments.sum("payments.total::float")
 
       if page_params[:page_size] == 'all'
@@ -53,7 +54,6 @@ class V1::PaymentsController < V1::BaseController
     if Payment.pay(pay_params)
       render json: { message: 'Ok' }, status: 201
     else
-      binding.pry
       render json: { message: "pay order failed" }, status: 409
     end
 	end

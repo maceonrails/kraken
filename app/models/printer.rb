@@ -359,7 +359,7 @@ class Printer < ActiveRecord::Base
   def self.print_line(text, amount = 0, currency = 'Rp.')
     result = ''
     result << pull_left(text, currency)
-    result << pull_right(amount, 40 - result.length) rescue binding.pry
+    result << pull_right(amount, 40 - result.length)
     if text[23..-1].present?
       result << "\n" 
       result << "  " + text[23..-1].to_s

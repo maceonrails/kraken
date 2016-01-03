@@ -286,13 +286,17 @@ class V1::OrdersController < V1::BaseController
   end
 
   def unlock
-    @orders.each{|order|order.update_attribute(:locked, false)}
+    if @orders
+      @orders.each{|order|order.update_attribute(:locked, false)}
+    end
     render json: { message: 'Ok' }, status: 201
   end
 
   def set_resource(resource = nil)
-    tables = Table.where(name: params[:id].split(","))
-    @orders = Order.find(tables.map(&:order_id))
+    if params[:id]
+      tables = Table.where(name: params[:id].split(","))
+      @orders = Order.find(tables.map(&:order_id))
+    end
   end
 
   private

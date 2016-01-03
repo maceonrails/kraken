@@ -36,14 +36,15 @@ class OrderItem < ActiveRecord::Base
     return orders
   end
 
-  def self.oc_items(user, params)
+  def self.oc_items(user, params, cashier)
     payment = Payment.new
     params[:orders].each do |order|
       payment.orders << oc_item(user, order, params)
     end
     payment.oc_amount = payment.total
+    payment.cashier = cashier
     payment.save!
-    return orders
+    return payment.orders
   end
 
   def self.void_item(user, order_params, params)
@@ -73,7 +74,7 @@ class OrderItem < ActiveRecord::Base
       order_item.update(
         oc_by: user.id,
         oc_note: params[:note],
-        quantity: item["pay_quantity"].to_i + order_item.oc_quantity
+        oc_quantity: item["pay_quantity"].to_i + order_item.oc_quantity
       )
       if order_item.unpaid_quantity <= 0
         order_item.update_attributes(served: true, paid: true)

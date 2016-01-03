@@ -18,7 +18,7 @@ class Payment < ActiveRecord::Base
   scope :total_debit, -> { sum('debit_amount::float') }
   scope :total_credit, -> { sum('credit_amount::float') }
   scope :total_oc, -> { sum('oc_amount::float') }
-  scope :total_non_cash, -> { sum('debit_amount::float + credit_amount::float + oc_amount::float') }
+  scope :total_non_cash, -> { sum('debit_amount::float + credit_amount::float') + sum('oc_amount::float') }
   scope :total_transaction, -> { sum('total::float') }
   scope :total_sales, -> { sum('total::float') }
   scope :total_product_discount, -> { joins(orders: :order_items).sum('order_items.discount_amount::float') }
@@ -42,7 +42,7 @@ class Payment < ActiveRecord::Base
     result[:date] = start_login.strftime("%d %B %Y").to_s rescue Date.today.strftime("%d %B %Y").to_s
 
     user.outlet.taxs.each do |tax, amount|
-      result[tax] = (amount.to_f/100 * total_sales).to_f
+      result[tax] = (amount.to_f/100 * (res.total_non_cash + res.total_cash)).to_f
     end
 
     result[:total_product_discount] = res.total_product_discount

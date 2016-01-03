@@ -28,7 +28,7 @@ class V1::OrderItemsController < V1::BaseController
 
   def oc_items
     if user = User.can_oc?(params[:email], params[:password])
-      if orders = OrderItem.oc_items(user, void_params)
+      if orders = OrderItem.oc_items(user, void_params, current_user)
         render json: { message: 'Ok' }, status: 201
       else
         render json: { message: "OC items failed" }, status: 409
