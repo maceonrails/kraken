@@ -149,6 +149,7 @@ class Printer < ActiveRecord::Base
     text << print_line("(+) Cash", recap.total_cash)
     text << print_line("(+) Debit", recap.total_debit)
     text << print_line("(+) Credit", recap.total_credit)
+    text << print_line("(+) Officer Check", recap.total_oc)
     text << line
     text << print_line("Total Trans.", recap.total_transaction)
     text << line

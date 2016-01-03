@@ -14,9 +14,14 @@ class V1::PaymentsController < V1::BaseController
       @total  = @payments.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
-      payments = Payment.joins(orders: :table)
-                    .where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
-                    .where("payments.receipt_number LIKE ? OR tables.name LIKE ? OR payments.note LIKE ?", "%#{query}%", "%#{query}%", "%#{query}%")
+      payments = Payment.where(created_at: (Date.parse(params[:dateStart])).beginning_of_day..(Date.parse(params[:dateEnd])).end_of_day)
+                    
+      if query.downcase.include?("order")
+        payments = payments.joins(orders: :table).where("tables.name ILIKE :q", q: "%#{query.split(" ").last}%")
+      else
+        payments = payments.where("payments.receipt_number LIKE ? OR payments.note LIKE ?", "%#{query}%", "%#{query}%")
+      end
+      
       payments = payments.joins(:cashier).where("users.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
       payments = payments.joins(orders: {order_items: :product}).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
       payments = payments.where("payments.cashier_id = ?", params[:cashier_id]) if params[:cashier_id].present?
@@ -24,11 +29,11 @@ class V1::PaymentsController < V1::BaseController
       payments = payments.uniq
 
       @resume = {}
-      @resume[:cash_amount] = payments.uniq.sum("payments.total::float - (payments.debit_amount::float + payments.credit_amount::float)")
-      @resume[:debit_amount] = payments.uniq.sum("payments.debit_amount::float")
-      @resume[:credit_amount] = payments.uniq.sum("payments.credit_amount::float")
-      @resume[:discount_amount] = payments.uniq.sum("payments.discount_amount::float")
-      @resume[:total] = payments.uniq.sum("payments.total::float")
+      @resume[:cash_amount] = payments.sum("payments.total::float - (payments.debit_amount::float + payments.credit_amount::float)")
+      @resume[:debit_amount] = payments.sum("payments.debit_amount::float")
+      @resume[:credit_amount] = payments.sum("payments.credit_amount::float")
+      @resume[:discount_amount] = payments.sum("payments.discount_amount::float")
+      @resume[:total] = payments.sum("payments.total::float")
 
       if page_params[:page_size] == 'all'
         @payments = payments.page(page_params[:page]).per(Payment.count)

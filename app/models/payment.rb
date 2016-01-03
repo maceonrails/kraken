@@ -14,11 +14,12 @@ class Payment < ActiveRecord::Base
   }
 
   scope :between_date, -> (start, finish){ where("payments.created_at >= ? AND payments.created_at <= ?", start, finish) }
-  scope :total_cash, -> { sum('total::float - (debit_amount::float + credit_amount::float)') }
+  scope :total_cash, -> { sum('total::float - (debit_amount::float + credit_amount::float + oc_amount::float)') }
   scope :total_debit, -> { sum('debit_amount::float') }
   scope :total_credit, -> { sum('credit_amount::float') }
-  scope :total_non_cash, -> { sum('debit_amount::float + credit_amount::float') }
-  scope :total_transaction, -> { sum('total').to_f }
+  scope :total_oc, -> { sum('oc_amount::float') }
+  scope :total_non_cash, -> { sum('debit_amount::float + credit_amount::float + oc_amount::float') }
+  scope :total_transaction, -> { sum('total::float') }
   scope :total_sales, -> { sum('total::float') }
   scope :total_product_discount, -> { joins(orders: :order_items).sum('order_items.discount_amount::float') }
   scope :total_order_discount, -> { sum('discount_amount::float') }
@@ -29,10 +30,10 @@ class Payment < ActiveRecord::Base
       .group("product_categories.id")
       .to_a
   }
-  scope :total_receipt, -> { sum('cash_amount - return_amount') }
-  scope :average_per_receipt, -> { sum('cash_amount - return_amount') }
-  scope :total_pax, -> { joins(:orders).sum('orders.person') }
-  scope :average_per_pax, -> { sum('cash_amount - return_amount') }
+  scope :total_receipt, -> { count() }
+  scope :average_per_receipt, -> { total_sales / total_receipt }
+  scope :total_pax, -> { joins(:orders).count() }
+  scope :average_per_pax, -> { total_sales / total_pax }
 
   def self.getRecap(user)
     res = recap(user)
@@ -50,6 +51,7 @@ class Payment < ActiveRecord::Base
     result[:total_cash] = res.total_cash
     result[:total_debit] = res.total_debit
     result[:total_credit] = res.total_credit
+    result[:total_oc] = res.total_oc
     result[:total_non_cash] = res.total_non_cash
 
     # result[:category] = {}

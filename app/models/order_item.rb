@@ -16,8 +16,8 @@ class OrderItem < ActiveRecord::Base
   # default_scope { order(updated_at: :desc) }
 
   def active_quantity
-    if paid
-      res = paid_quantity.to_i
+    if paid || quantity.to_i <= void_quantity.to_i + oc_quantity.to_i + paid_quantity.to_i
+      res = paid_quantity.to_i + oc_quantity.to_i
     else
       res = unpaid_quantity.to_i
     end
@@ -37,10 +37,12 @@ class OrderItem < ActiveRecord::Base
   end
 
   def self.oc_items(user, params)
-  	orders = []
+    payment = Payment.new
     params[:orders].each do |order|
-      orders << oc_item(user, order, params)
+      payment.orders << oc_item(user, order, params)
     end
+    payment.oc_amount = payment.total
+    payment.save!
     return orders
   end
 
@@ -71,7 +73,7 @@ class OrderItem < ActiveRecord::Base
       order_item.update(
         oc_by: user.id,
         oc_note: params[:note],
-        oc_quantity: item["pay_quantity"].to_i + order_item.oc_quantity
+        quantity: item["pay_quantity"].to_i + order_item.oc_quantity
       )
       if order_item.unpaid_quantity <= 0
         order_item.update_attributes(served: true, paid: true)
@@ -94,7 +96,7 @@ class OrderItem < ActiveRecord::Base
     self.tax_amount = 0;
     taxs.each_pair do |name, amount|
       percentage = amount.to_f / 100
-      self.tax_amount += (percentage * total_price).to_i
+      self.tax_amount += (percentage * ((paid_quantity.to_i + oc_quantity.to_i) * paid_price)).to_i
     end rescue true
   end
 

@@ -11,12 +11,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151227080534) do
+ActiveRecord::Schema.define(version: 20160103074620) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "uuid-ossp"
   enable_extension "hstore"
+
+  create_table "admins", force: :cascade do |t|
+    t.string   "email",                  default: "", null: false
+    t.string   "encrypted_password",     default: "", null: false
+    t.string   "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.integer  "sign_in_count",          default: 0,  null: false
+    t.datetime "current_sign_in_at"
+    t.datetime "last_sign_in_at"
+    t.inet     "current_sign_in_ip"
+    t.inet     "last_sign_in_ip"
+    t.datetime "created_at",                          null: false
+    t.datetime "updated_at",                          null: false
+  end
+
+  add_index "admins", ["email"], name: "index_admins_on_email", unique: true, using: :btree
+  add_index "admins", ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true, using: :btree
 
   create_table "choices", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
     t.string   "name"
@@ -142,8 +160,8 @@ ActiveRecord::Schema.define(version: 20151227080534) do
     t.string   "payment_type"
     t.boolean  "void"
     t.string   "note"
-    t.datetime "created_at",                                null: false
-    t.datetime "updated_at",                                null: false
+    t.datetime "created_at",                                              null: false
+    t.datetime "updated_at",                                              null: false
     t.decimal  "amount",           precision: 25, scale: 2
     t.decimal  "discount",         precision: 25, scale: 2
     t.string   "receipt_number"
@@ -161,6 +179,7 @@ ActiveRecord::Schema.define(version: 20151227080534) do
     t.decimal  "cash_amount",      precision: 20, scale: 2
     t.decimal  "credit_amount",    precision: 20, scale: 2
     t.decimal  "debit_amount",     precision: 20, scale: 2
+    t.decimal  "oc_amount",        precision: 20, scale: 2, default: 0.0
   end
 
   create_table "printers", force: :cascade do |t|

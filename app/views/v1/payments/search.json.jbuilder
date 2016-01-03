@@ -1,6 +1,6 @@
 json.resume @resume
 json.payments @payments do |payment|
-  json.extract! payment, :receipt_number, :cashier_id, :created_at, :debit_amount, :credit_amount, :discount_amount, :discount_percent, :discount_by, :note
+  json.extract! payment, :receipt_number, :cashier_id, :created_at, :debit_amount, :credit_amount, :discount_amount, :oc_amount, :discount_percent, :discount_by, :note
   json.cash_amount payment[:total].to_f - (payment.debit_amount.to_f + payment.credit_amount.to_f)
   json.total payment[:total].to_f
   json.order_ids payment.orders.joins(:table).pluck('tables.name').join(", ")
