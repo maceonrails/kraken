@@ -78,6 +78,9 @@ Rails.application.routes.draw do
       collection { get 'category' }
       collection { get 'all' }
       collection { get 'get_by_tenant' }
+      collection { get 'get_top_foods' }
+      collection { get 'get_top_drinks' }
+      collection { get 'get_order_quantity' }
     end
 
     resources :discounts do

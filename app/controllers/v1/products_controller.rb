@@ -25,6 +25,34 @@ class V1::ProductsController < V1::BaseController
     super
   end
 
+  def get_top_foods
+    order = 'ASC'
+    data  = Product.joins('LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"')
+                   .joins(tenant: :profile)
+                   .select("(products.name) as name, sum(order_items.quantity) as quantity, profiles.name as tenant_name")
+                   .where("products.category = 'food'")
+                   .group('products.name, profiles.name')
+                   .order("quantity")
+                   .limit(10)
+    data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.map{|o| [o.name, o.quantity.to_i, o.tenant_name]}
+    render json: data, status: 200
+  end
+
+  def get_top_drinks
+    order = 'ASC'
+    data  = Product.joins('LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"')
+                   .joins(tenant: :profile)
+                   .select("(products.name) as name, sum(order_items.quantity) as quantity, profiles.name as tenant_name")
+                   .where("products.category = 'drink'")
+                   .group('products.name, profiles.name')
+                   .order("quantity")
+                   .limit(10)
+    data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.map{|o| [o.name, o.quantity.to_i, o.tenant_name]}
+    render json: data, status: 200
+  end
+
   def search
     field  = search_params[:field].downcase.to_sym
     query  = search_params[:q]
@@ -75,7 +103,7 @@ class V1::ProductsController < V1::BaseController
   private
     def product_params
       if current_user.role == 'manager'
-        params.require(:product).permit(:name, :category, :picture,
+        params.require(:product).permit(:name, :picture,
           :description, :picture_base64, :product_sub_category_id, :picture_extension, :active, :tenant_id,
           :price, :sold_out, :serv_category, :serv_sub_category, choices: [:name, :id])
       else
