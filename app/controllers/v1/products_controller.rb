@@ -33,7 +33,6 @@ class V1::ProductsController < V1::BaseController
                    .where("products.category = 'food'")
                    .group('products.name, profiles.name')
                    .order("quantity")
-                   .limit(10)
     data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.map{|o| [o.name, o.quantity.to_i, o.tenant_name]}
     render json: data, status: 200
@@ -47,7 +46,6 @@ class V1::ProductsController < V1::BaseController
                    .where("products.category = 'drink'")
                    .group('products.name, profiles.name')
                    .order("quantity")
-                   .limit(10)
     data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.map{|o| [o.name, o.quantity.to_i, o.tenant_name]}
     render json: data, status: 200
