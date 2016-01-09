@@ -32,6 +32,7 @@ class User < ActiveRecord::Base
   has_one :profile, :autosave => true
   belongs_to :outlet
   accepts_nested_attributes_for :profile
+  has_many :attendances
 
   delegate :name, to: :profile, allow_nil: true
 
@@ -42,7 +43,7 @@ class User < ActiveRecord::Base
   enum role:
     [
       :eresto, :owner, :superadmin, :manager, :bartender,
-      :waitress, :captain, :cashier, :chef, :tenant
+      :waitress, :captain, :cashier, :chef, :tenant, :admin
     ]
 
   ## Remove email field
@@ -52,6 +53,14 @@ class User < ActiveRecord::Base
 
   def email_changed?
     false
+  end
+
+  def come_in
+    attendances.create(date: Date.today, come_in: Time.now) if attendances.where(date: Date.today).blank?
+  end
+
+  def come_out
+    attendances.where(date: Date.today).update_all(come_out: Time.now)
   end
 
   def ensure_authentication_token

@@ -39,6 +39,8 @@ Rails.application.routes.draw do
       collection { post 'authorize_for_discount' }
       collection { post 'authorize_for_void' }
       collection { post 'authorize_for_oc' }
+      collection { get 'attendances' }
+      collection { put 'come_out' }
     end
 
     resources :outlets do

@@ -37,6 +37,38 @@ class V1::UsersController < V1::BaseController
     respond_with @users
   end
 
+  def attendances
+    query  = params[:data] || ''
+    result = Attendance.joins(user: :profile)
+      .select("
+        attendances.date as date,
+        attendances.come_in as come_in, 
+        attendances.come_out as come_out, 
+        (attendances.come_out - attendances.come_in) as duration, 
+        profiles.name as name
+      ")
+      .where("LOWER(profiles.name) LIKE ?", "%#{query.downcase}%")
+      .where("users.role = ?", User.roles[:tenant])
+
+    result = result.where("users.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
+    
+    if params[:tenant_id].present? && params[:dateStart].present? && params[:dateEnd].present?
+      result = result.where("attendances.user_id = ?", params[:tenant_id])
+      # result = result.group("attendances.user_id")
+      start_date = Date.parse(params[:dateStart])
+      end_date = Date.parse(params[:dateEnd])
+      result = result.where('attendances.date >= ? and attendances.date <= ?', start_date, end_date)
+      result = result.order("attendances.date")
+    else
+      date = Date.parse(params[:date])
+      result = result.where("attendances.date = ?", date)
+      # result = result.group("attendances.date")
+      result = result.order("attendances.come_in")
+    end
+
+    render json: { result: result }
+  end
+
   def rekap
     user = User.find(params[:id])
     if user
@@ -125,6 +157,11 @@ class V1::UsersController < V1::BaseController
     respond_with(@users) do |format|
       format.json { render :index }
     end
+  end
+
+  def come_out
+    current_user.come_out
+    render json: { message: 'successfully logout' }, status: 201
   end
 
   private
