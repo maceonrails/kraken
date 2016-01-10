@@ -136,7 +136,7 @@ class Printer < ActiveRecord::Base
 
     text << print_line("Penjualan", recap.total_sales)
     user.outlet.taxs.each do |tax, amount|
-      text << print_line("Total #{tax}", recap.send("total_#{tax}"))
+      text << print_line("Total #{tax}", (amount.to_f/100 * (recap.total_non_cash + recap.total_cash)).to_f)
     end
     text << line
     text << print_line("Discount Produk", recap.total_product_discount)
