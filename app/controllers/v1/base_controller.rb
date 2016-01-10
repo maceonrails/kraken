@@ -116,6 +116,46 @@ class V1::BaseController < ApplicationController
     @user = current_user
   end
 
+  def get_range_date timeframe
+    date  = Date.today
+    case timeframe
+    when 'this_month'
+      date_start = date.beginning_of_month
+      date_end   = date.end_of_month
+    when 'last_month'
+      date_start = (date - 1.months).beginning_of_month
+      date_end   = (date - 1.months).end_of_month
+    when 'last_three_months'
+      date_start = (date - 3.months).beginning_of_month
+      date_end   = date.end_of_month
+    when 'last_six_months'
+      date_start = (date - 6.months).beginning_of_month
+      date_end   = date.end_of_month
+    when 'this_year'
+      date_start = date.beginning_of_year
+      date_end   = date.end_of_month
+    when 'last_year'
+      date_start = (date - 1.years).beginning_of_year
+      date_end   = (date - 1.years).end_of_year
+    when 'last_three_year'
+      date_start = (date - 3.years).beginning_of_year
+      date_end   = date.end_of_month
+    when 'this_week'
+      date_start = date.beginning_of_week
+      date_end   = date.end_of_week
+    when 'last_week'
+      date_start = (date - 1.week).beginning_of_week
+      date_end   = (date - 1.week).end_of_week
+    when 'yesterday'
+      date_start = (date - 1.day).beginning_of_day
+      date_end   = (date - 1.day).end_of_day
+    else
+      date_start = date.beginning_of_day
+      date_end   = date.end_of_day
+    end
+    return {date_start: date_start, date_end: date_end}
+  end
+
   private
     def outlet_params
       params.require(:outlet).permit(:id, :name, :email, :phone, :mobile, :address, :taxs).tap do |whitelisted|

@@ -44,35 +44,14 @@ class V1::OrdersController < V1::BaseController
   end
 
   def graph_by_revenue
-    date  = Date.today
-    case params[:timeframe]
-    when 'last_three_months'
-      date_start = (date - 3.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'last_six_months'
-      date_start = (date - 6.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_year'
-      date_start = date.beginning_of_year
-      date_end   = date.end_of_month
-    when 'last_three_year'
-      date_start = (date - 3.years).beginning_of_year
-      date_end   = date.end_of_month
-    when 'this_month'
-      date_start = date.beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_week'
-      date_start = date.beginning_of_week
-      date_end   = date.end_of_week
-    else
-      date_start = date.beginning_of_day
-      date_end   = date.end_of_day
-    end
+    date = get_range_date(params[:timeframe])
     data = OrderItem
-            .where('order_items.created_at >= ? and order_items.created_at <= ?', date_start, date_end)
             .select("DATE(order_items.created_at) as created_at, sum(order_items.paid_amount) as name")
             .group('order_items.created_at')
             .order('order_items.created_at')
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
@@ -80,35 +59,16 @@ class V1::OrdersController < V1::BaseController
   end
 
   def graph_by_tax
-    date  = Date.today
-    case params[:timeframe]
-    when 'last_three_months'
-      date_start = (date - 3.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'last_six_months'
-      date_start = (date - 6.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_year'
-      date_start = date.beginning_of_year
-      date_end   = date.end_of_month
-    when 'last_three_year'
-      date_start = (date - 3.years).beginning_of_year
-      date_end   = date.end_of_month
-    when 'this_month'
-      date_start = date.beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_week'
-      date_start = date.beginning_of_week
-      date_end   = date.end_of_week
-    else
-      date_start = date.beginning_of_day
-      date_end   = date.end_of_day
-    end
+    date = get_range_date(params[:timeframe])
     data = OrderItem
-            .where('order_items.created_at >= ? and order_items.created_at <= ?', date_start, date_end)
             .select("DATE(order_items.created_at) as created_at, sum(order_items.tax_amount) as name")
             .group('order_items.created_at')
             .order('order_items.created_at')
+
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
+    
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
@@ -116,36 +76,15 @@ class V1::OrdersController < V1::BaseController
   end
 
   def graph_by_order
-    date  = Date.today
-    case params[:timeframe]
-    when 'last_three_months'
-      date_start = (date - 3.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'last_six_months'
-      date_start = (date - 6.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_year'
-      date_start = date.beginning_of_year
-      date_end   = date.end_of_month
-    when 'last_three_year'
-      date_start = (date - 3.years).beginning_of_year
-      date_end   = date.end_of_month
-    when 'this_month'
-      date_start = date.beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_week'
-      date_start = date.beginning_of_week
-      date_end   = date.end_of_week
-    else
-      date_start = date.beginning_of_day
-      date_end   = date.end_of_day
-    end
+    date = get_range_date(params[:timeframe])
     data = OrderItem
-            .where('order_items.created_at >= ? and order_items.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
             .select("DATE(order_items.created_at) as created_at, count(order_items.paid_quantity) as name")
             .group('order_items.created_at')
             .order('order_items.created_at')
 
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
@@ -153,36 +92,15 @@ class V1::OrdersController < V1::BaseController
   end
 
   def graph_by_pax
-    date  = Date.today
-    case params[:timeframe]
-    when 'last_three_months'
-      date_start = (date - 3.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'last_six_months'
-      date_start = (date - 6.months).beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_year'
-      date_start = date.beginning_of_year
-      date_end   = date.end_of_month
-    when 'last_three_year'
-      date_start = (date - 3.years).beginning_of_year
-      date_end   = date.end_of_month
-    when 'this_month'
-      date_start = date.beginning_of_month
-      date_end   = date.end_of_month
-    when 'this_week'
-      date_start = date.beginning_of_week
-      date_end   = date.end_of_week
-    else
-      date_start = date.beginning_of_day
-      date_end   = date.end_of_day
-    end
+    date = get_range_date(params[:timeframe])
     data = OrderItem
-            .where('order_items.created_at >= ? and order_items.created_at <= ? AND order_items.void IS NOT TRUE', date_start, date_end)
             .select("DATE(order_items.created_at) as created_at, count(order_items) as name")
             .group('order_items.created_at')
             .order('order_items.created_at')
 
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?

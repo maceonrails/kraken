@@ -27,12 +27,17 @@ class V1::ProductsController < V1::BaseController
 
   def get_top_foods
     order = 'ASC'
+    date = get_range_date(params[:timeframe])
     data  = Product.joins('LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"')
                    .joins(tenant: :profile)
                    .select("(products.name) as name, sum(order_items.quantity) as quantity, profiles.name as tenant_name")
                    .where("products.category = 'food'")
                    .group('products.name, profiles.name')
                    .order("quantity")
+    
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
     data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.map{|o| [o.name, o.quantity.to_i, o.tenant_name]}
     render json: data, status: 200
@@ -40,12 +45,17 @@ class V1::ProductsController < V1::BaseController
 
   def get_top_drinks
     order = 'ASC'
+    date = get_range_date(params[:timeframe])
     data  = Product.joins('LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"')
                    .joins(tenant: :profile)
                    .select("(products.name) as name, sum(order_items.quantity) as quantity, profiles.name as tenant_name")
                    .where("products.category = 'drink'")
                    .group('products.name, profiles.name')
                    .order("quantity")
+
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
     data = data.where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
     data = data.map{|o| [o.name, o.quantity.to_i, o.tenant_name]}
     render json: data, status: 200
