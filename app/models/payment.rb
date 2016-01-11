@@ -39,7 +39,7 @@ class Payment < ActiveRecord::Base
     res = recap(user)
     result = {}
     result[:name] = user.try(:name) || user.try(:email)
-    result[:date] = start_login.strftime("%d %B %Y").to_s rescue Date.today.strftime("%d %B %Y").to_s
+    result[:date] = Date.today.strftime("%d %B %Y").to_s
 
     user.outlet.taxs.each do |tax, amount|
       result[tax] = (amount.to_f/100 * (res.total_non_cash + res.total_cash)).to_f

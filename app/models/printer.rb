@@ -120,7 +120,7 @@ class Printer < ActiveRecord::Base
     text << double_line
     text << "\n"
     text << "Kasir   : "+ ( user.try(:name) || user.try(:email) ) +"\n"
-    text << "Tanggal : "+ (start_login.strftime("%d %B %Y").to_s rescue Date.today.strftime("%d %B %Y").to_s) + "\n"
+    text << "Tanggal : "+ (Date.today.strftime("%d %B %Y").to_s) + "\n"
     # text << "s/d   : "+ Time.now.strftime("%d %B %Y %H:%M").to_s + "\n"
     text << double_line
     text << "\n\n"
