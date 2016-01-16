@@ -95,10 +95,7 @@ class Synchronize < ActiveRecord::Base
 			
 		end
 
-		def export_from_local()
-			last_sync   = Synchronize.order('created_at').last
-			start_date  = last_sync.nil? ? (Date.parse('16-12-2015').beginning_of_day) : last_sync.last_date
-      last_date   = start_date.end_of_day+1.days
+		def export_from_local(start_date, last_date)
 			params = {}
 			params[:company] = Company.first
 			params[:outlet] = Outlet.first
