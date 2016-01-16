@@ -3,20 +3,13 @@ module Exports
     include HTTParty
 
     def initialize
-      @base_uri = 'api-bober.eresto.io/v1'
+      @base_uri = 'xsquare-api.eresto.co.id/v1'
     end
 
     def do_export
-      last_sync   = Synchronize.order('created_at').last
-      start_date  = last_sync.nil? ? (Date.today - 1.days) : last_sync.created_at
-      outlet      = Outlet.first
-      orders      = Order.where(updated_at: (start_date.beginning_of_day+4.hours+10.minutes)..Time.zone.now.end_of_day)
-      order_items = OrderItem.where(updated_at: (start_date.beginning_of_day+4.hours+10.minutes)..Time.zone.now.end_of_day)
-      data        = { orders: orders, order_items: order_items, outlet: outlet }
-
-      response    = HTTParty.post("http://#{@base_uri}/orders/import", { body: data.to_json })
+      response = HTTParty.post("http://#{@base_uri}/syncs/import_from_cloud", { body: Synchronize.export_from_local().to_json })
       if response.code < 300
-        Synchronize.create!
+        Synchronize.create!(last_date: last_date)
       else
         ErrorMailer.error_email(response.code, response.message.to_s, response.body.to_s).deliver_now
       end

@@ -1,22 +1,14 @@
 class V1::SyncsController < V1::BaseController
+  skip_before_action :authenticate
+  skip_before_action :set_token_response
 
-	# from cloud
-  def import_sales
-  	Synchronize.import_sales(params[:payments])
-  end
-
-  # from local
-  def export_sales
-  	Synchronize.export_sales(params[:payments])
-  end
-
-  # from both 
-  def import_data
-  	Synchronize.import_data
-  end
-
-  # from both
-  def export_data
-  	Synchronize.export_data
+  def import_from_cloud
+    params = JSON.parse request.body.read
+    status = Synchronize.import_from_cloud params
+    if status
+      render json: { message: "Import successful"}, status: 201
+    else
+      render json: { message: "Import order failed" }, status: 409
+    end
   end
 end

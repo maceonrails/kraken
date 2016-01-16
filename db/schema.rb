@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160116035838) do
+ActiveRecord::Schema.define(version: 20160116061835) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -297,6 +297,7 @@ ActiveRecord::Schema.define(version: 20160116035838) do
   create_table "synchronizes", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_date"
   end
 
   create_table "tables", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|

@@ -7,8 +7,12 @@
 #
 # set :output, Rails.root+"/log/cron_log.log"
 #
-every :day, :at => '12:05am' do
-  # command "/usr/bin/some_great_command"
+# every :day, :at => '12:05am' do
+#   # command "/usr/bin/some_great_command"
+#   runner "Exports::OrderExporter.new.do_export"
+# end
+
+every 10.minutes do
   runner "Exports::OrderExporter.new.do_export"
 end
 #

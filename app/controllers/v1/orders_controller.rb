@@ -1,5 +1,17 @@
 class V1::OrdersController < V1::BaseController
 	before_action :set_resource, only: [:update, :show, :unlock]
+  skip_before_action :authenticate, only: %w(import)
+  skip_before_action :set_token_response, only: %w(import)
+
+  def import
+    params = JSON.parse request.body.read
+    status = Order.do_import params
+    if status
+      render json: { message: "Import successful"}, status: 201
+    else
+      render json: { message: "Import order failed" }, status: 409
+    end
+  end
 
   def index
     @orders = Order.where(query_params)

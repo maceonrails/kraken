@@ -20,6 +20,50 @@ class Order < ActiveRecord::Base
     end
   end
 
+  def self.do_import(params)
+    begin
+      orders = params['orders']
+      items  = params['order_items']
+      outlet = params['outlet']
+      users = params['users']
+      products = params['products']
+      payments = params['payments']
+
+      outlet_obj = Outlet.find_or_create_by(id: outlet['id'])
+      outlet_obj.update_attributes(outlet)
+
+      users.each do |user|
+        user_obj = User.find_or_create_by(id: user['id'])
+        user_obj.update_attributes(user)
+      end
+
+      products.each do |product|
+        product_obj = Product.find_or_create_by(id: product['id'])
+        product_obj.update_attributes(product)
+      end
+
+      ## save orders
+      orders.each do |order|
+        order_obj    = Order.find_or_create_by(id: order['id'])
+        order_obj.update_attributes(order)
+      end
+
+      ## save order_items
+      items.each do |item|
+        item_obj = OrderItem.find_or_create_by(id: item['id'])
+        item_obj.update_attributes(item)
+      end
+
+      payments.each do |payment|
+        payment_obj = Payment.find_or_create_by(id: payment['id'])
+        payment_obj.update_attributes(payment)
+      end
+      return true
+    rescue Exception => e
+      return false
+    end
+  end
+
   # default_scope { order(updated_at: :desc) }
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }
   scope :latest, -> { order(updated_at: :desc) }

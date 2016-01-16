@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user_id: 
+  date: 2016-01-09
+  come_in: 2016-01-09 22:03:18
+  come_out: 2016-01-09 22:03:18
+
+two:
+  user_id: 
+  date: 2016-01-09
+  come_in: 2016-01-09 22:03:18
+  come_out: 2016-01-09 22:03:18

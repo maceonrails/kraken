@@ -21,7 +21,7 @@ Rails.application.routes.draw do
 
     post '/syncs/import_from_cloud' => 'syncs#import_from_cloud'
     post '/syncs/export_from_local' => 'syncs#export_from_local'
-    post '/syncs/import_from_cloud' => 'syncs#import_from_cloud'
+    post '/syncs/export_from_cloud' => 'syncs#export_from_cloud'
     post '/syncs/import_from_local' => 'syncs#import_from_local'
 
     resources :tables do
