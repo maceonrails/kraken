@@ -44,12 +44,12 @@ class Synchronize < ActiveRecord::Base
 				attendance_obj.update_attributes(attendance)
 			end
 
-			product_catagories.each do |cat|
+			product_categories.each do |cat|
 				cat_obj = ProductCategory.find_or_create_by(id: cat['id'])
 				cat_obj.update_attributes(cat)
 			end
 
-			product_sub_catagories.each do |cat|
+			product_sub_categories.each do |cat|
 				cat_obj = ProductSubCategory.find_or_create_by(id: cat['id'])
 				cat_obj.update_attributes(cat)
 			end
