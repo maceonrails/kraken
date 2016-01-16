@@ -130,6 +130,6 @@ class OrderItem < ActiveRecord::Base
   end
 
   def set_price
-    self.price = product.price
+    self.price = product.try(:price) || 0
   end
 end
