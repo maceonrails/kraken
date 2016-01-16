@@ -99,19 +99,19 @@ class Synchronize < ActiveRecord::Base
 			params = {}
 			params[:company] = Company.first
 			params[:outlet] = Outlet.first
-			params[:users] = User.where(created_at: start_date..last_date)
-			params[:product_categories] = ProductCategory.where(created_at: start_date..last_date)
-			params[:product_sub_categories] = ProductSubCategory.where(created_at: start_date..last_date)
-			params[:products] = Product.where(created_at: start_date..last_date)
-			params[:discounts] = Discount.where(created_at: start_date..last_date)
+			params[:users] = User.all
+			params[:product_categories] = ProductCategory.all
+			params[:product_sub_categories] = ProductSubCategory.all
+			params[:products] = Product.all
+			params[:discounts] = Discount.all
+			params[:choices] = Choice.all
+			params[:tables] = Table.all
+			params[:product_choices] = ProductChoice.where(created_at: start_date..last_date)
 			params[:payments] = Payment.where(created_at: start_date..last_date)
 			params[:orders] = Order.where(created_at: start_date..last_date)
 			params[:order_items] = OrderItem.where(created_at: start_date..last_date)
-			params[:choices] = Choice.where(created_at: start_date..last_date)
-			params[:product_choices] = ProductChoice.where(created_at: start_date..last_date)
 			params[:product_discounts] = ProductDiscount.where(created_at: start_date..last_date)
 			params[:attendances] = Attendance.where(created_at: start_date..last_date)
-			params[:tables] = Table.where(created_at: start_date..last_date)
 
 			return params
 		end
