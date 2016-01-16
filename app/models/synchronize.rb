@@ -5,6 +5,7 @@ class Synchronize < ActiveRecord::Base
 			company = data['company']
 			outlet = data['outlet']
 			users = data['users']
+			profiles = data['profiles']
 			payments = data['payments']
 			orders = data['orders']
 			order_items = data['order_items']
@@ -27,6 +28,11 @@ class Synchronize < ActiveRecord::Base
 			users.each do |user|
 				user_obj = User.find_or_create_by(id: user['id'])
 				user_obj.update_attributes(user)
+			end
+
+			profiles.each do |profile|
+				profile_obj = Profile.find_or_create_by(id: profile['id'])
+				profile_obj.update_attributes(profile)
 			end
 
 			tables.each do |table|
@@ -100,18 +106,19 @@ class Synchronize < ActiveRecord::Base
 			params[:company] = Company.first
 			params[:outlet] = Outlet.first
 			params[:users] = User.all
+			params[:profiles] = Profile.all
 			params[:product_categories] = ProductCategory.all
 			params[:product_sub_categories] = ProductSubCategory.all
 			params[:products] = Product.all
 			params[:discounts] = Discount.all
 			params[:choices] = Choice.all
 			params[:tables] = Table.all
-			params[:product_choices] = ProductChoice.where(created_at: start_date..last_date)
-			params[:payments] = Payment.where(created_at: start_date..last_date)
-			params[:orders] = Order.where(created_at: start_date..last_date)
-			params[:order_items] = OrderItem.where(created_at: start_date..last_date)
-			params[:product_discounts] = ProductDiscount.where(created_at: start_date..last_date)
-			params[:attendances] = Attendance.where(created_at: start_date..last_date)
+			params[:product_choices] = ProductChoice.all
+			params[:payments] = Payment.all
+			params[:orders] = Order.all
+			params[:order_items] = OrderItem.all
+			params[:product_discounts] = ProductDiscount.all
+			params[:attendances] = Attendance.all
 
 			return params
 		end
