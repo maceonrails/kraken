@@ -11,6 +11,14 @@ class Order < ActiveRecord::Base
   # before_create :set_queue
   # before_create :set_struck_id
   # after_create :set_queue_number
+  belongs_to :outlet
+  before_create :set_outlet_id
+  
+  def set_outlet_id
+    if self.outlet_id.blank?
+      self.outlet = Outlet.first
+    end
+  end
 
   # default_scope { order(updated_at: :desc) }
   scope :waiting_orders, -> { where("orders.table_id IS NULL AND orders.waiting IS TRUE") }

@@ -32,6 +32,15 @@ class Product < ActiveRecord::Base
   accepts_nested_attributes_for :product_choices
   accepts_nested_attributes_for :choices
 
+  belongs_to :outlet
+  before_create :set_outlet_id
+  
+  def set_outlet_id
+    if self.outlet_id.blank?
+      self.outlet = Outlet.first
+    end
+  end
+
   def self.sync(products)
     Choice.delete_all
     ProductChoice.delete_all

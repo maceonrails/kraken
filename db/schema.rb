@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160109150318) do
+ActiveRecord::Schema.define(version: 20160116035838) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -147,6 +147,7 @@ ActiveRecord::Schema.define(version: 20160109150318) do
     t.boolean  "pantry_created",                            default: false
     t.uuid     "payment_id"
     t.boolean  "locked",                                    default: false
+    t.uuid     "outlet_id"
   end
 
   add_index "orders", ["payment_id"], name: "index_orders_on_payment_id", using: :btree
@@ -189,6 +190,7 @@ ActiveRecord::Schema.define(version: 20160109150318) do
     t.decimal  "credit_amount",    precision: 20, scale: 2
     t.decimal  "debit_amount",     precision: 20, scale: 2
     t.decimal  "oc_amount",        precision: 20, scale: 2, default: 0.0
+    t.uuid     "outlet_id"
   end
 
   create_table "printers", force: :cascade do |t|
@@ -275,6 +277,7 @@ ActiveRecord::Schema.define(version: 20160109150318) do
     t.decimal  "price",                   precision: 25, scale: 2
     t.decimal  "default_price",           precision: 25, scale: 2
     t.uuid     "tenant_id"
+    t.uuid     "outlet_id"
   end
 
   add_index "products", ["active"], name: "index_products_on_active", using: :btree

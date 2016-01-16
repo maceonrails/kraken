@@ -7,6 +7,15 @@ class Payment < ActiveRecord::Base
 	before_create :set_receipt_number
   before_save :set_all_amount
 
+  belongs_to :outlet
+  before_create :set_outlet_id
+  
+  def set_outlet_id
+    if self.outlet_id.blank?
+      self.outlet = Outlet.first
+    end
+  end
+
   # default_scope { order(updated_at: :desc) }
 
   scope :recap, ->(user, start_date = nil, end_date = nil) { 
