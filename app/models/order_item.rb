@@ -106,7 +106,7 @@ class OrderItem < ActiveRecord::Base
   end
 
   def paid_price
-    price.blank? ? product.price : price
+    price.blank? ? (product.try(:price) || 0) : price
   end
 
   def calculate_amount
