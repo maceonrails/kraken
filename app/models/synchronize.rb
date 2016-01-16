@@ -36,7 +36,7 @@ class Synchronize < ActiveRecord::Base
 
 			choices.each do |choice|
 				choice_obj = Choice.find_or_create_by(id: choice['id'])
-				choice_obj.update_attributes(user)
+				choice_obj.update_attributes(choice)
 			end
 
 			attendances.each do |attendance|
