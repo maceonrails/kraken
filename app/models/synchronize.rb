@@ -105,20 +105,20 @@ class Synchronize < ActiveRecord::Base
 			params = {}
 			params[:company] = Company.first
 			params[:outlet] = Outlet.first
-			params[:users] = User.all
-			params[:profiles] = Profile.all
-			params[:product_categories] = ProductCategory.all
-			params[:product_sub_categories] = ProductSubCategory.all
-			params[:products] = Product.all
-			params[:discounts] = Discount.all
-			params[:choices] = Choice.all
-			params[:tables] = Table.all
-			params[:product_choices] = ProductChoice.all
-			params[:payments] = Payment.all
-			params[:orders] = Order.all
-			params[:order_items] = OrderItem.all
-			params[:product_discounts] = ProductDiscount.all
-			params[:attendances] = Attendance.all
+			params[:users] = User.where(updated_at: start_date...last_date)
+			params[:profiles] = Profile.where(updated_at: start_date...last_date)
+			params[:product_categories] = ProductCategory.where(updated_at: start_date...last_date)
+			params[:product_sub_categories] = ProductSubCategory.where(updated_at: start_date...last_date)
+			params[:products] = Product.where(updated_at: start_date...last_date)
+			params[:discounts] = Discount.where(updated_at: start_date...last_date)
+			params[:choices] = Choice.where(updated_at: start_date...last_date)
+			params[:tables] = Table.where(updated_at: start_date...last_date)
+			params[:product_choices] = ProductChoice.where(updated_at: start_date...last_date)
+			params[:payments] = Payment.where(updated_at: start_date...last_date)
+			params[:orders] = Order.where(updated_at: start_date...last_date)
+			params[:order_items] = OrderItem.where(updated_at: start_date...last_date)
+			params[:product_discounts] = ProductDiscount.where(updated_at: start_date...last_date)
+			params[:attendances] = Attendance.where(updated_at: start_date...last_date)
 
 			return params
 		end
