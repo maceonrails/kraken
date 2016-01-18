@@ -22,10 +22,10 @@ class V1::UsersController < V1::BaseController
     end
 
 
-    if (current_user.role == 'admin')
-      @users = @users.where("role IN (?)", [User.roles[:cashier], User.roles[:tenant]])
-    elsif (current_user.role == 'manager')
-      @users = @users.where("role IN (?)", [User.roles[:manager], User.roles[:tenant], User.roles[:cashier], User.roles[:admin]])
+    if (current_user.role == 'admin' || current_user.role == 'captain')
+      @users = @users.where("role IN (?)", [User.roles[:cashier], User.roles[:tenant], User.roles[:captain]])
+    elsif (current_user.role == 'manager' || current_user.role == 'owner')
+      @users = @users.where("role IN (?)", [User.roles[:manager], User.roles[:tenant], User.roles[:cashier], User.roles[:admin], User.roles[:captain]])
     elsif (current_user.role == 'superadmin')
       @users = @users
     else 

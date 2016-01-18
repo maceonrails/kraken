@@ -103,19 +103,41 @@ class V1::OrdersController < V1::BaseController
     render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
 
-  def graph_by_pax
+  def graph_by_tenant
     date = get_range_date(params[:timeframe])
     data = OrderItem
-            .select("DATE(order_items.created_at) as created_at, count(order_items) as name")
-            .group('order_items.created_at')
-            .order('order_items.created_at')
+            .joins(product: { tenant: :profile })
+            .select("
+              products.tenant_id as tenant_id,
+              profiles.name as name, 
+              sum(order_items.paid_quantity + order_items.oc_quantity) as quantity, 
+              sum(order_items.paid_amount) as revenue
+            ")
+            .group('products.tenant_id, profiles.name')
+            .order('revenue')
 
     if params[:timeframe] != 'all'
       data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
     end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
-    data = data.group("products.tenant_id, order_items.id") if params[:tenant_id].present?
+    data = data.group("products.tenant_id") if params[:tenant_id].present?
+    render json: data.map{|o| [o.name, o.revenue.to_f, o.quantity]}, status: 200
+  end
+
+  def graph_by_pax
+    date = get_range_date(params[:timeframe])
+    data = Order
+            .select("DATE(orders.created_at) as created_at, count(orders) as name")
+            .group('orders.created_at')
+            .order('orders.created_at')
+
+    if params[:timeframe] != 'all'
+      data = data.where('orders.created_at >= ? and orders.created_at <= ?', date[:date_start], date[:date_end])
+    end
+    data = data.joins(:table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
+    data = data.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.group("products.tenant_id, orders.id") if params[:tenant_id].present?
             
     render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
