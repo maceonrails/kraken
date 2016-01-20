@@ -5,7 +5,12 @@ json.products @products do |product|
   json.category           product.product_sub_category.name
   json.default_price      product.default_price
   json.price              product.try(:price)
-  json.picture            request.protocol + request.host_with_port + product.picture.to_s
+  if product.picture.present?
+    json.picture          request.protocol + request.host_with_port + product.picture.to_s
+  else
+    json.picture          request.protocol + request.host_with_port + '/placeholder/no-image.png'
+  end
+
   json.created_at         product.created_at
   json.updated_at         product.updated_at
   json.choices            product.choices
