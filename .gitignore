@@ -16,6 +16,8 @@
 !/log/.keep
 /tmp
 /public/uploads
+/public/manager
+/public/chef
 .DS_Store
 
 # Ignore application configuration

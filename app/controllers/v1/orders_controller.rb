@@ -142,6 +142,26 @@ class V1::OrdersController < V1::BaseController
     render json: data.map{|o| [o.created_at.to_f * 1000, o.name.to_i]}, status: 200
   end
 
+  def graph_by_hour
+    date = get_range_date(params[:timeframe])
+    data = OrderItem
+            .select('
+              EXTRACT(HOUR from order_items.created_at) as hour,
+              COUNT(EXTRACT(HOUR from order_items.created_at)) as number
+            ')
+            .group('EXTRACT(HOUR from order_items.created_at)')
+            .order('EXTRACT(HOUR from order_items.created_at)')
+
+    if params[:timeframe] != 'all'
+      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+    end
+
+    data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
+    data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
+    data = data.joins(:product).group("products.tenant_id") if params[:tenant_id].present?
+    render json: data.map{|o| [o.hour.to_i, o.number]}, status: 200
+  end
+
   def get_order_quantity
     order = 'ASC'
     data  = Product.joins('LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"')

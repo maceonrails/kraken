@@ -93,7 +93,7 @@ class V1::OrderItemsController < V1::BaseController
         sum(order_items.paid_amount) as paid_amount
       ")
       .where("LOWER(products.name) LIKE ?", "%#{query.downcase}%")
-      .order("products.name")
+      .order("paid_amount desc")
 
     if params[:dateStart].present? && params[:dateEnd].present?
       start_date = Date.parse(params[:dateStart]).beginning_of_day
