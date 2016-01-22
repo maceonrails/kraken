@@ -5,9 +5,9 @@ set :stage, :production
 # server in each group is considered to be the first
 # unless any hosts have the primary property set.
 # Don't declare `role :all`, it's a meta role
-role :app, %w{savenue.ddns.ms}
-role :web, %w{savenue.ddns.ms}
-role :db,  %w{savenue.ddns.ms}
+role :app, %w{xsquare.ddns.ms}
+role :web, %w{xsquare.ddns.ms}
+role :db,  %w{xsquare.ddns.ms}
 
 # Extended Server Syntax
 # ======================
@@ -15,7 +15,7 @@ role :db,  %w{savenue.ddns.ms}
 # definition into the server list. The second argument
 # something that quacks like a hash can be used to set
 # extended properties on the server.
-server 'savenue.ddns.ms', user: 'cecep', roles: %w{web app}, port: 22
+server 'xsquare.ddns.ms', user: 'cecep', roles: %w{web app}, port: 22
 set :deploy_to, '/var/www/xsquare'
 
 set :whenever_identifier, ->{ "#{fetch(:application)}_#{fetch(:stage)}" }

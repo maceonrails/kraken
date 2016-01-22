@@ -9,7 +9,7 @@ module Exports
     def do_export(start_date = nil, last_date = nil)
       last_sync   = Synchronize.order('last_date').last
       start_date  ||= last_sync.nil? ? (Date.parse('16-12-2015').beginning_of_day) : last_sync.last_date
-      last_date   ||= start_date+4.hours
+      last_date   ||= Time.now
 
       response = HTTParty.post(
         "http://xsquare-api.eresto.co.id/v1/syncs/import_from_cloud", 
