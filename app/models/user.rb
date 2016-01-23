@@ -90,6 +90,20 @@ class User < ActiveRecord::Base
     authorize? email, password
   end
 
+  def as_json(options=nil)
+  attrs = {
+    only: [
+      :id, :email, :encrypted_password, 
+      :role, :reset_password_token, 
+      :reset_password_sent_at, :remember_created_at, :sign_in_count, 
+      :current_sign_in_at, :last_sign_in_at,
+      :company_id, :outlet_id, :created_at, :updated_at
+    ],
+    methods: [:roles]
+  }
+  super (attrs.merge(options || {}))
+end
+
   private
 
     def set_outlet
