@@ -24,6 +24,7 @@ class Product < ActiveRecord::Base
   has_many :discounts, through: :product_discounts
   has_many :order_items
   belongs_to :tenant, class_name: 'User'
+  before_create :set_category
 
   # default_scope { order(updated_at: :desc) }
 
@@ -34,11 +35,29 @@ class Product < ActiveRecord::Base
 
   belongs_to :outlet
   before_create :set_outlet_id
-  
+
   def set_outlet_id
     if self.outlet_id.blank?
       self.outlet = Outlet.first
     end
+  end
+
+  def set_category
+    if is_drink?
+      self.category = 'drink' unless self.category
+    elsif is_food?
+      self.category = 'food' unless self.category
+    end
+  end
+
+  def is_drink?
+    product_category.to_s.downcase.include?('drink') || product_category.to_s.downcase.include?('minum') ||
+    product_sub_category.to_s.downcase.include?('drink') || product_sub_category.to_s.downcase.include?('minum')
+  end
+
+  def is_food?
+    product_category.to_s.downcase.include?('food') || product_category.to_s.downcase.include?('makan') ||
+    product_sub_category.to_s.downcase.include?('food') || product_sub_category.to_s.downcase.include?('makan')
   end
 
   def self.sync(products)
