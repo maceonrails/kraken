@@ -12,7 +12,7 @@
 #   runner "Exports::OrderExporter.new.do_export"
 # end
 
-every 2.hours do
+every 1.hours do
   runner "Exports::OrderExporter.new.do_export"
 end
 #

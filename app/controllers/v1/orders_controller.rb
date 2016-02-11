@@ -62,7 +62,7 @@ class V1::OrdersController < V1::BaseController
             .group('order_items.created_at')
             .order('order_items.created_at')
     if params[:timeframe] != 'all'
-      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+      data = data.where('DATE(order_items.created_at) >= ? and DATE(order_items.created_at) <= ?', date[:date_start], date[:date_end])
     end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
@@ -78,7 +78,7 @@ class V1::OrdersController < V1::BaseController
             .order('order_items.created_at')
 
     if params[:timeframe] != 'all'
-      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+      data = data.where('DATE(order_items.created_at) >= ? and DATE(order_items.created_at) <= ?', date[:date_start], date[:date_end])
     end
     
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
@@ -95,7 +95,7 @@ class V1::OrdersController < V1::BaseController
             .order('order_items.created_at')
 
     if params[:timeframe] != 'all'
-      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+      data = data.where('DATE(order_items.created_at) >= ? and DATE(order_items.created_at) <= ?', date[:date_start], date[:date_end])
     end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
@@ -117,7 +117,7 @@ class V1::OrdersController < V1::BaseController
             .order('revenue')
 
     if params[:timeframe] != 'all'
-      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+      data = data.where('DATE(order_items.created_at) >= ? and DATE(order_items.created_at) <= ?', date[:date_start], date[:date_end])
     end
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(:product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
@@ -133,7 +133,7 @@ class V1::OrdersController < V1::BaseController
             .order('orders.created_at')
 
     if params[:timeframe] != 'all'
-      data = data.where('orders.created_at >= ? and orders.created_at <= ?', date[:date_start], date[:date_end])
+      data = data.where('DATE(orders.created_at) >= ? and DATE(orders.created_at) <= ?', date[:date_start], date[:date_end])
     end
     data = data.joins(:table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
     data = data.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
@@ -153,7 +153,7 @@ class V1::OrdersController < V1::BaseController
             .order('EXTRACT(HOUR from order_items.created_at)')
 
     if params[:timeframe] != 'all'
-      data = data.where('order_items.created_at >= ? and order_items.created_at <= ?', date[:date_start], date[:date_end])
+      data = data.where('DATE(order_items.created_at) >= ? and DATE(order_items.created_at) <= ?', date[:date_start], date[:date_end])
     end
 
     data = data.joins(order: :table).where('tables.outlet_id = ?', params[:outlet_id]) if params[:outlet_id].present?
