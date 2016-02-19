@@ -90,6 +90,7 @@ class Synchronize < ActiveRecord::Base
 			orders.each do |order|
 				order_obj = Order.find_or_initialize_by(id: order['id'])
 				order_obj.update_attributes(order)
+				order_obj.payment.try(:save)
 			end
 
 			order_items.each do |order_item|
@@ -100,7 +101,7 @@ class Synchronize < ActiveRecord::Base
 		end
 
 		def import_from_local(data)
-			
+
 		end
 
 		def export_from_local(start_date, last_date)

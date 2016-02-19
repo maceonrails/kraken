@@ -9,7 +9,7 @@ class Payment < ActiveRecord::Base
 
   belongs_to :outlet
   before_create :set_outlet_id
-  
+
   def set_outlet_id
     if self.outlet_id.blank?
       self.outlet = Outlet.first
@@ -18,8 +18,8 @@ class Payment < ActiveRecord::Base
 
   # default_scope { order(updated_at: :desc) }
 
-  scope :recap, ->(user, start_date = nil, end_date = nil) { 
-    between_date(start_date || Date.today.beginning_of_day, end_date || Date.today.end_of_day).where(cashier_id: user.id) 
+  scope :recap, ->(user, start_date = nil, end_date = nil) {
+    between_date(start_date || Date.today.beginning_of_day, end_date || Date.today.end_of_day).where(cashier_id: user.id)
   }
 
   scope :between_date, -> (start, finish){ where("payments.created_at >= ? AND payments.created_at <= ?", start, finish) }
@@ -33,7 +33,7 @@ class Payment < ActiveRecord::Base
   scope :total_product_discount, -> { joins(orders: :order_items).sum('order_items.discount_amount::float') }
   scope :total_order_discount, -> { sum('discount_amount::float') }
   scope :total_taxes, -> { joins(orders: :order_items).sum('order_items.tax_amount') }
-  scope :total_per_category, -> { 
+  scope :total_per_category, -> {
       joins(orders: {order_items: {product: {product_sub_category: :product_category}}})
       .select("product_categories.name as name, sum(order_items.paid_quantity) as quantity, sum(order_items.paid_amount) as amount")
       .group("product_categories.id")
@@ -86,10 +86,12 @@ class Payment < ActiveRecord::Base
   end
 
 	def set_receipt_number
-    holder = '0000'
-    payments = Payment.where("created_at >= ?", Time.zone.now.beginning_of_day).count + 1
-    payments = holder[0..(holder.length - payments.to_s.length)] + payments.to_s
-    self.receipt_number = 'SA-' + payments + '-' + Time.now.strftime('%d/%m/%Y')
+    if self.receipt_number.blank?
+      holder = '0000'
+      payments = Payment.where("created_at >= ?", Time.zone.now.beginning_of_day).count + 1
+      payments = holder[0..(holder.length - payments.to_s.length)] + payments.to_s
+      self.receipt_number = 'SA-' + payments + '-' + Time.now.strftime('%d/%m/%Y')
+    end
   end
 
   def sub_total
@@ -155,10 +157,10 @@ class Payment < ActiveRecord::Base
         payment.debit_number = params['debit_number'] if params['debit_number'].present?
         payment.credit_name = params['credit_name'] if params['credit_name'].present?
         payment.credit_number = params['credit_number'] if params['credit_number'].present?
-    		
+
         if payment.save
           if params['print'] == 'paper'
-            Printer.print_receipt(payment) 
+            Printer.print_receipt(payment)
           elsif params['print'] == 'email'
             ReceiptMailer.send_receipt(payment, params[:email]).deliver_later
           end
@@ -177,12 +179,12 @@ class Payment < ActiveRecord::Base
     base_order = Order.find(params[:id])
     return false unless order
     order.order_items.each do |item|
-      item.paid = true 
+      item.paid = true
       item.served = true
       item.paid_quantity = item.quantity - (item.void_quantity + item.oc_quantity)
 
       if item.paid_quantity.to_i < 0
-        item.paid_quantity = 0 
+        item.paid_quantity = 0
       elsif item.paid_quantity.to_i > item.quantity || item.paid_quantity.blank?
         item.paid_quantity = item.quantity
       end
