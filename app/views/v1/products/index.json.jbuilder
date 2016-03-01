@@ -35,4 +35,4 @@ json.products @products do |product|
   end
 end
 
-json.total @products.first.total if @products.first
+json.total @total

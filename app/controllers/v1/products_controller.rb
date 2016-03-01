@@ -2,6 +2,29 @@ class V1::ProductsController < V1::BaseController
   skip_before_action :authenticate, only: %w(all)
   skip_before_action :set_token_response, only: %w(all)
 
+    def index
+    @products = Product.where(query_params)
+                              .order(updated_at: :desc)
+       
+    if params[:sold_out] == 'true'
+      @products = @products.where(sold_out: true)
+    end
+
+    if params[:role] == 'chef'
+      @products = @products.joins(product_sub_category: :product_category).where("product_categories.name = 'FOODS' OR product_categories.name = 'SNACKS'")
+    elsif params[:role] == 'bartender'
+      @products = @products.joins(product_sub_category: :product_category).where("product_categories.name = 'DRINKS' OR product_categories.name = 'SHEESA'")
+    elsif params[:role] == 'tenant' && params[:tenant_id].present?
+      @products = @products.where("tenant_id = ?", params[:tenant_id])
+    end                        
+
+    @products = @products.includes(attach_includes) if attach_includes
+    @total = @products.count
+    @products = @products.page(page_params[:page]).per(page_params[:page_size])
+
+    respond_with @products
+  end
+
   def get_by_tenant
     @products = Product.where(tenant: current_user)
     respond_with(@products) do |format|
@@ -97,6 +120,13 @@ class V1::ProductsController < V1::BaseController
                    .per(page_params[:page_size])
       @total    = Product.where(products[field]
                    .matches("%#{query}%"))
+                   .count
+    end
+
+    if params[:tenant_id].present?
+      @products = @products.where("tenant_id = ?", params[:tenant_id])
+      @total    = Product.where(products[field]
+                   .matches("%#{query}%")).where("tenant_id = ?", params[:tenant_id])
                    .count
     end
 
