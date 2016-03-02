@@ -184,6 +184,15 @@ class Order < ActiveRecord::Base
         )
       end
 
+      order.order_items.each do |item|
+        unless item.served
+          order.created = false
+          order.pantry_created = false
+        end
+      end
+
+      order.save!
+
       clear_complete_order(order)
 
       return order
