@@ -19,7 +19,7 @@ class Payment < ActiveRecord::Base
   # default_scope { order(updated_at: :desc) }
 
   scope :recap, ->(user, start_date = nil, end_date = nil) {
-    between_date(start_date || Date.today.beginning_of_day, end_date || Date.today.end_of_day).where(cashier_id: user.id)
+    between_date(start_date || 14.hours.ago, end_date || Time.now).where(cashier_id: user.id)
   }
 
   scope :between_date, -> (start, finish){ where("payments.created_at >= ? AND payments.created_at <= ?", start, finish) }
