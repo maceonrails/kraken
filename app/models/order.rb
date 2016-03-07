@@ -180,7 +180,8 @@ class Order < ActiveRecord::Base
           saved_choice:     prd['choice'] || prd['saved_choice'],
           void_by:          prd['void_by'] || orderItem.void_by,
           void_quantity:    prd['void_quantity'] || orderItem.void_quantity,
-          pay_quantity:     prd['pay_quantity'] || 0
+          pay_quantity:     prd['pay_quantity'] || 0,
+          served:           prd['served'] || orderItem.served
         )
       end
 

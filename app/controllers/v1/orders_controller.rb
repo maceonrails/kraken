@@ -37,8 +37,9 @@ class V1::OrdersController < V1::BaseController
 
   def toggle_served
     order = Order.find(params[:id])
-    order.toggle :created
-    if order.save
+    item_served = order.order_items.joins(:product).where("products.category = 'food' AND order_items.served IS NOT TRUE").blank?
+
+    if item_served && order.update(created: true, pantry_created: true)
       render json: order, status: 201
     else
       render json: order, status: 409
@@ -47,8 +48,9 @@ class V1::OrdersController < V1::BaseController
   
   def toggle_pantry
     order = Order.find(params[:id])
-    order.toggle :pantry_created 
-    if order.save
+    item_served = order.order_items.joins(:product).where("products.category = 'food' AND order_items.served IS NOT TRUE").blank?
+
+    if item_served && order.update(created: true, pantry_created: true)
       render json: order, status: 201
     else
       render json: order, status: 409
@@ -198,8 +200,16 @@ class V1::OrdersController < V1::BaseController
                 .where(created_at: Date.today.beginning_of_day..Date.today.end_of_day)
                 .all
       orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
-      orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) if params[:tenant_id].present?
-      @orders = orders
+      if params[:tenant_id].present?
+        orders = orders.joins(order_items: :product).where("products.tenant_id = ?", params[:tenant_id]) 
+        orders = orders.where("orders.created IS NOT TRUE") if params[:history].blank?
+      end
+
+      if params[:history].present?
+        @orders = orders.order("orders.created_at DESC").uniq
+      else
+        @orders = orders.order("orders.created_at").uniq
+      end
       @total  = @orders.count || 0
     elsif params[:dateStart] && params[:dateEnd]
       query  = params[:data] || ''
@@ -308,7 +318,7 @@ class V1::OrdersController < V1::BaseController
 
     def from_servant_params
       params.require(:order).permit(:id, :servant_id, :table_id, :name, :person,
-        products: [:id, :quantity, :void_quantity, :take_away, :void, :void_note, :choice, :price, :void_by, :order_item_id, note:[]])
+        products: [:id, :quantity, :void_quantity, :take_away, :void, :void_note, :choice, :price, :void_by, :order_item_id, :served, note:[]])
     end
 
 end

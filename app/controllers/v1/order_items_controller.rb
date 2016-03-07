@@ -48,7 +48,12 @@ class V1::OrderItemsController < V1::BaseController
 
   def toggle_served
     order_item = OrderItem.find(params[:id])
-    order_item.toggle :served 
+    if order_item.served == true
+      order_item.served = false
+    else
+      order_item.served = true
+    end
+
     if order_item.save
       render json: order_item, status: 201
     else

@@ -16,6 +16,8 @@ json.order do
     json.void_by        item.void_by
     json.order_item_id  item.id
     json.tenant_id      item.product.tenant_id
+    json.time           item.created_at.strftime("%H:%M")
+    json.served         item.served
   end
 end
 

@@ -17,6 +17,8 @@ json.orders @orders do |order|
 		json.default_price 	item.product.price
 		json.name 					item.product.name
 		json.discount 			item.discount
+		json.time						item.created_at.strftime("%H:%M")
+		
 		json.product do
 			json.choices item.product.choices
 			json.discounts item.product.discounts.active
