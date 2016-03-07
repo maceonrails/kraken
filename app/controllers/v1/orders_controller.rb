@@ -197,7 +197,7 @@ class V1::OrdersController < V1::BaseController
       puts 'today'
       orders = Order
                 .includes(:table, :order_items, order_items: :product)
-                .where(created_at: Date.today.beginning_of_day..Date.today.end_of_day)
+                .where(created_at: 14.hours.ago..Time.now)
                 .all
       orders = orders.joins(:table).where("tables.outlet_id = ?", params[:outlet_id]) if params[:outlet_id].present?
       if params[:tenant_id].present?
