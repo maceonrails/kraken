@@ -1,4 +1,6 @@
 set :stage, :production
+set :application, 'xsquare'
+
 # Simple Role Syntax
 # ==================
 # Supports bulk-adding hosts to roles, the primary

@@ -1,5 +1,5 @@
-set :stage, :production
-set :application, 'xsquare'
+set :stage, :demo
+set :application, 'foodcourt'
 
 # Simple Role Syntax
 # ==================
@@ -7,9 +7,9 @@ set :application, 'xsquare'
 # server in each group is considered to be the first
 # unless any hosts have the primary property set.
 # Don't declare `role :all`, it's a meta role
-role :app, %w{192.168.1.253}
-role :web, %w{192.168.1.253}
-role :db,  %w{192.168.1.253}
+role :app, %w{188.166.213.198}
+role :web, %w{188.166.213.198}
+role :db,  %w{188.166.213.198}
 
 # Extended Server Syntax
 # ======================
@@ -17,10 +17,8 @@ role :db,  %w{192.168.1.253}
 # definition into the server list. The second argument
 # something that quacks like a hash can be used to set
 # extended properties on the server.
-server '192.168.1.253', user: 'cecep', roles: %w{web app}
-set :deploy_to, '/var/www/xsquare'
-
-set :whenever_identifier, ->{ "#{fetch(:application)}_#{fetch(:stage)}" }
+server '188.166.213.198', user: 'deploy', roles: %w{web app}
+set :deploy_to, '/home/deploy/foodcourt'
 
 # you can set custom ssh options
 # it's possible to pass any option but you need to keep in mind that net/ssh understand limited list of options

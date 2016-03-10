@@ -20,9 +20,15 @@ test:
 
 production:
   <<: *default
-  username: kalisquare
-  password: kalidb87
+  username: deploy
+  password: macefarel87
   database: xsquare_db
+
+demo:
+  <<: *default
+  username: deploy
+  password: macefarel87
+  database: foodcourt_db
 
 staging:
   <<: *default
