@@ -8,7 +8,7 @@ set :branch, :savenue
 
 # Default deploy_to directory is /var/www/my_app
 
-# set :linked_files, %w{config/database.yml}
+set :linked_files, %w{config/database.yml}
 set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system public/uploads}
 
 # Default value for :scm is :git

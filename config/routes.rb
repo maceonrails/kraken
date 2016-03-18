@@ -82,6 +82,8 @@ Rails.application.routes.draw do
       collection { get 'get_by_tenant' }
       collection { get 'get_top_foods' }
       collection { get 'get_top_drinks' }
+      collection { get 'get_top_sellings' }
+      collection { get 'get_bottom_sellings' }
       collection { get 'get_order_quantity' }
     end
 
