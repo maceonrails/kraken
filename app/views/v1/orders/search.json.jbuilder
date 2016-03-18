@@ -1,5 +1,5 @@
 json.orders @orders do |order|
-  if params[:history] || order.order_items.joins(:product).where("products.tenant_id = ? AND order_items.served IS NOT TRUE", params[:tenant_id]).count > 0 
+  if params[:from_manager] || params[:history] || order.order_items.joins(:product).where("products.tenant_id = ? AND order_items.served IS NOT TRUE", params[:tenant_id]).count > 0 
     json.extract! order, :id, :name, :person, :created_at, :table_id, :queue_number, :created, :pantry_created, :payment_id
     json.servant do
       json.name order.server.profile.name rescue ''
