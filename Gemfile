@@ -29,7 +29,7 @@ gem 'rufus-scheduler'
 gem 'yajl-ruby'
 gem "faker"
 
-gem 'mina-unicorn', :require => false
+# gem 'mina-unicorn', :require => false
 
 group :development do
 	gem 'grape-rails-routes'
