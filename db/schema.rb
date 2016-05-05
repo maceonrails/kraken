@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160119055737) do
+ActiveRecord::Schema.define(version: 20160505042547) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -173,6 +173,7 @@ ActiveRecord::Schema.define(version: 20160119055737) do
     t.decimal  "debit_amount",     precision: 20, scale: 2
     t.decimal  "oc_amount",        precision: 20, scale: 2, default: 0.0
     t.uuid     "outlet_id"
+    t.datetime "closing_time"
   end
 
   create_table "printers", force: :cascade do |t|

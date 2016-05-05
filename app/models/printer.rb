@@ -217,6 +217,7 @@ class Printer < ActiveRecord::Base
         succeed = false
       end
     end
+    recap.update_all(closing_time: Time.now) if succeed
     return { status: succeed }
   end
 
